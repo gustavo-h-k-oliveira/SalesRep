@@ -28,3 +28,6 @@ build/
 
 # Ignore generated dependency files
 .gradle
+
+# Ignore todo
+todo
