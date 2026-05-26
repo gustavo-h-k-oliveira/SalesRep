@@ -15,5 +15,15 @@ public class Alerta {
     private @NonNull TipoAlerta tipo;
     private @NonNull CriticidadeAlerta criticidade;
     private @NonNull String descricao;
+    private @NonNull StatusAlerta status;
     private @NonNull LocalDate dataGeracao;
+
+    // Métodos de consulta
+    public boolean estaCritico() {
+        return criticidade == CriticidadeAlerta.ALTA;
+    }
+
+    public boolean estaResolvido() {
+        return status == StatusAlerta.RESOLVIDO;
+    }
 }
