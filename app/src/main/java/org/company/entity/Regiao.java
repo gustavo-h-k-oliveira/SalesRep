@@ -14,4 +14,9 @@ public class Regiao {
     private @NonNull Uf uf;
     private @NonNull String gerenteRegional;
     private @NonNull StatusRegiao status;
+
+    // Método de consulta
+    public boolean estaAtivo() {
+        return status == StatusRegiao.NORMAL;
+    }
 }

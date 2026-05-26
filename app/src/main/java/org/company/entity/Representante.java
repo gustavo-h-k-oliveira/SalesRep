@@ -21,8 +21,4 @@ public class Representante {
     public List<Cliente> getClientes() {
         return carteira == null ? List.of() : List.copyOf(carteira);
     }
-
-    public void setCarteira(List<Cliente> carteira) {
-        this.carteira = carteira == null ? List.of() : List.copyOf(carteira);
-    }
 }

@@ -20,4 +20,13 @@ public class Pedido {
     private Optional<LocalDate> dataFaturamento;
     private @NonNull BigDecimal valorTotal;
     private @NonNull StatusPedido status;
+
+    // Métodos de consulta
+    public boolean estaFaturado() {
+        return status == StatusPedido.FATURADO;
+    }
+
+    public boolean estaCancelado() {
+        return status == StatusPedido.CANCELADO;
+    }
 }
