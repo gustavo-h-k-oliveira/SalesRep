@@ -7,18 +7,34 @@ import lombok.NonNull;
 
 import java.util.List;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+
 @Getter
 @Setter(AccessLevel.NONE)
+@Entity
 public class Representante {
     
-    private int id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private @NonNull String nome;
+    
+    @ManyToOne
+    @JoinColumn(name = "regiao_id")
     private @NonNull Regiao regiao;
 
-    @Setter(AccessLevel.NONE)
-    private @NonNull List<Cliente> carteira;
+    private @NonNull String celular;
 
-    public List<Cliente> getClientes() {
-        return carteira == null ? List.of() : List.copyOf(carteira);
-    }
+    @OneToMany(mappedBy = "representante")
+    private List<Pedido> pedidos;
+
+    @OneToMany(mappedBy = "representante")
+    private List<Cliente> clientes;
 }
