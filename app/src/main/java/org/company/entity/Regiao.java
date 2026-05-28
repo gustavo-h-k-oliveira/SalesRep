@@ -9,14 +9,15 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NonNull;
 
 @Getter
-@Setter(AccessLevel.NONE)
+@Setter
 @Entity
 public class Regiao {
 
@@ -24,10 +25,10 @@ public class Regiao {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private @NonNull String nome;
+    private @NotBlank String nome;
     
     @Enumerated(EnumType.STRING)
-    private @NonNull Uf uf;
+    private @NotNull Uf uf;
     
     @OneToMany(mappedBy = "regiao")
     private @NonNull List<Cliente> clientes;
@@ -35,10 +36,10 @@ public class Regiao {
     @OneToMany(mappedBy = "regiao")
     private List<Representante> representantes;
 
-    private @NonNull String gerenteRegional;
+    private @NotBlank String gerenteRegional;
     
     @Enumerated(EnumType.STRING)
-    private @NonNull StatusRegiao status;
+    private @NotNull StatusRegiao status;
 
     // Método de consulta
     public boolean estaAtivo() {
