@@ -46,6 +46,12 @@ public class Cliente {
     @Enumerated(EnumType.STRING)
     private @NonNull StatusCliente status;
 
+    public void atualizarStatusPorUltimaCompra() {
+        this.status = getDiasSemCompra() >= 45
+            ? StatusCliente.INATIVO
+            : StatusCliente.ATIVO;
+    }
+
     // Métodos de consulta
     public boolean estaAtivo() {
         return status == StatusCliente.ATIVO;

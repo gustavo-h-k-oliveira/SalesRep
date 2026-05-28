@@ -30,7 +30,7 @@ public class Representante {
     @JoinColumn(name = "regiao_id")
     private @NonNull Regiao regiao;
 
-    private @NonNull String celular;
+    private @NonNull String telefone;
 
     @OneToMany(mappedBy = "representante")
     private List<Pedido> pedidos;

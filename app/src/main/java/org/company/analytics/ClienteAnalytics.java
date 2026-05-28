@@ -17,4 +17,6 @@ public class ClienteAnalytics {
     // public int calcularFrequencia(Cliente cliente) {
 
     // };
+
+    // public List<Cliente> buscarClientesPrioritario() {}
 }

@@ -31,3 +31,5 @@ build/
 
 # Ignore todo
 todo
+
+application.properties
