@@ -13,14 +13,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Id;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.NonNull;
 
 @Getter
-@Setter(AccessLevel.NONE)
+@Setter
 @Entity
 public class Cliente {
     
@@ -28,23 +29,25 @@ public class Cliente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private @NonNull String nome;
+    private @NotBlank String nome;
     
     @ManyToOne
     @JoinColumn(name = "regiao_id")
-    private @NonNull Regiao regiao;
+    @Valid
+    private @NotNull Regiao regiao;
     
     @ManyToOne
     @JoinColumn(name = "representante_id")
-    private @NonNull Representante representante;
+    @Valid
+    private @NotNull Representante representante;
 
     @OneToMany(mappedBy = "cliente")
     private List<Pedido> pedidos;
     
-    private @NonNull LocalDate ultimaCompra;
+    private @NotNull LocalDate ultimaCompra;
     
     @Enumerated(EnumType.STRING)
-    private @NonNull StatusCliente status;
+    private @NotNull StatusCliente status;
 
     public void atualizarStatusPorUltimaCompra() {
         this.status = getDiasSemCompra() >= 45

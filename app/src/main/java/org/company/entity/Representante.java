@@ -1,9 +1,7 @@
 package org.company.entity;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.NonNull;
 
 import java.util.List;
 
@@ -14,9 +12,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 @Getter
-@Setter(AccessLevel.NONE)
+@Setter
 @Entity
 public class Representante {
     
@@ -24,13 +25,14 @@ public class Representante {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private @NonNull String nome;
+    private @NotBlank String nome;
     
     @ManyToOne
+    @Valid
     @JoinColumn(name = "regiao_id")
-    private @NonNull Regiao regiao;
+    private @NotNull Regiao regiao;
 
-    private @NonNull String telefone;
+    private @NotBlank String telefone;
 
     @OneToMany(mappedBy = "representante")
     private List<Pedido> pedidos;

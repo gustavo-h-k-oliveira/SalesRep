@@ -14,13 +14,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import lombok.AccessLevel;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.NonNull;
 
 @Getter
-@Setter(AccessLevel.NONE)
+@Setter
 @Entity
 public class Pedido {
     
@@ -30,21 +31,23 @@ public class Pedido {
 
     @ManyToOne
     @JoinColumn(name = "cliente_id")
-    private @NonNull Cliente cliente;
+    @Valid
+    private @NotNull Cliente cliente;
     
     @ManyToOne
     @JoinColumn(name = "representante_id")
-    private @NonNull Representante representante;
+    @Valid
+    private @NotNull Representante representante;
     
-    private @NonNull LocalDate dataEmissao;
+    private @NotNull LocalDate dataEmissao;
     
     @Column(name = "data_faturamento", nullable = true)
     private LocalDate dataFaturamento;    
     
-    private @NonNull BigDecimal valorTotal;
+    private @NotNull @PositiveOrZero BigDecimal valorTotal;
     
     @Enumerated(EnumType.STRING)
-    private @NonNull StatusPedido status;
+    private @NotNull StatusPedido status;
 
     @OneToMany(mappedBy = "pedido")
     private List<PedidoItem> itens;
