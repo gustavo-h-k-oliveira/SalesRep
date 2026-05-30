@@ -5,11 +5,13 @@ import java.util.Optional;
 
 import org.company.dto.RegiaoRequestDto;
 import org.company.dto.RegiaoResponseDto;
-import org.company.entity.Cliente;
+import org.company.dto.ClienteResponseDto;
+import org.company.dto.RepresentanteResponseDto;
 import org.company.entity.Regiao;
-import org.company.entity.Representante;
 import org.company.entity.Uf;
 import org.company.mapper.RegiaoDtoMapper;
+import org.company.mapper.ClienteDtoMapper;
+import org.company.mapper.RepresentanteDtoMapper;
 import org.company.service.RegiaoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +33,8 @@ public class RegiaoController {
 
     private final RegiaoService regiaoService;
     private final RegiaoDtoMapper regiaoDtoMapper;
+    private final ClienteDtoMapper clienteDtoMapper;
+    private final RepresentanteDtoMapper representanteDtoMapper;
 
     @GetMapping
     public List<RegiaoResponseDto> listarTodos() {
@@ -55,13 +59,17 @@ public class RegiaoController {
     }
 
     @GetMapping("/{id}/clientes")
-    public List<Cliente> listarClientes(@PathVariable Long id) {
-        return regiaoService.encontrarClientesPorRegiao(id);
+    public List<ClienteResponseDto> listarClientes(@PathVariable Long id) {
+        return regiaoService.encontrarClientesPorRegiao(id).stream()
+            .map(clienteDtoMapper::toClienteResponseDto)
+            .toList();
     }
 
     @GetMapping("/{id}/representantes")
-    public List<Representante> listarRepresentantes(@PathVariable Long id) {
-        return regiaoService.encontrarRepresentantesPorRegiao(id);
+    public List<RepresentanteResponseDto> listarRepresentantes(@PathVariable Long id) {
+        return regiaoService.encontrarRepresentantesPorRegiao(id).stream()
+            .map(representanteDtoMapper::toRepresentanteResponseDto)
+            .toList();
     }
 
     @PostMapping

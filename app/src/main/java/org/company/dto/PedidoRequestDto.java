@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import org.company.entity.StatusPedido;
+import org.company.entity.StatusAutorizacaoComercial;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -29,4 +30,7 @@ public class PedidoRequestDto {
 
     @NotNull
     private StatusPedido status;
+
+    @NotNull
+    private StatusAutorizacaoComercial autorizacaoComercial;
 }

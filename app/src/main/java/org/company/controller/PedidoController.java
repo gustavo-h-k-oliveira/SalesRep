@@ -88,10 +88,12 @@ public class PedidoController {
     }
 
     @GetMapping("/periodo")
-    public List<Pedido> listarPorPeriodo(
+    public List<PedidoResponseDto> listarPorPeriodo(
             @RequestParam java.time.LocalDate inicio,
             @RequestParam java.time.LocalDate fim) {
-        return pedidoService.encontrarPedidosPorPeriodo(inicio, fim);
+        return pedidoService.encontrarPedidosPorPeriodo(inicio, fim).stream()
+            .map(pedidoDtoMapper::toPedidoResponseDto)
+            .toList();
     }
 
     @PostMapping
@@ -127,6 +129,7 @@ public class PedidoController {
         pedido.setDataFaturamento(dto.getDataFaturamento());
         pedido.setValorTotal(dto.getValorTotal());
         pedido.setStatus(dto.getStatus());
+        pedido.setAutorizacaoComercial(dto.getAutorizacaoComercial());
         return pedido;
     }
 
@@ -137,6 +140,7 @@ public class PedidoController {
         pedido.setDataFaturamento(dto.getDataFaturamento());
         pedido.setValorTotal(dto.getValorTotal());
         pedido.setStatus(dto.getStatus());
+        pedido.setAutorizacaoComercial(dto.getAutorizacaoComercial());
     }
 
     private Cliente buscarCliente(Long clienteId) {

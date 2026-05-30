@@ -5,11 +5,13 @@ import java.util.Optional;
 
 import org.company.dto.RepresentanteRequestDto;
 import org.company.dto.RepresentanteResponseDto;
-import org.company.entity.Cliente;
+import org.company.dto.ClienteResponseDto;
+import org.company.dto.PedidoResponseDto;
 import org.company.entity.Representante;
 import org.company.entity.Regiao;
-import org.company.entity.Pedido;
 import org.company.mapper.RepresentanteDtoMapper;
+import org.company.mapper.ClienteDtoMapper;
+import org.company.mapper.PedidoDtoMapper;
 import org.company.service.RegiaoService;
 import org.company.service.RepresentanteService;
 import jakarta.validation.Valid;
@@ -33,6 +35,8 @@ public class RepresentanteController {
     private final RepresentanteService representanteService;
     private final RegiaoService regiaoService;
     private final RepresentanteDtoMapper representanteDtoMapper;
+    private final ClienteDtoMapper clienteDtoMapper;
+    private final PedidoDtoMapper pedidoDtoMapper;
 
     @GetMapping
     public List<RepresentanteResponseDto> listarTodos() {
@@ -57,13 +61,17 @@ public class RepresentanteController {
     }
 
     @GetMapping("/{id}/clientes")
-    public List<Cliente> listarClientes(@PathVariable Long id) {
-        return representanteService.encontrarClientesDoRepresentante(id);
+    public List<ClienteResponseDto> listarClientes(@PathVariable Long id) {
+        return representanteService.encontrarClientesDoRepresentante(id).stream()
+            .map(clienteDtoMapper::toClienteResponseDto)
+            .toList();
     }
 
     @GetMapping("/{id}/pedidos")
-    public List<Pedido> listarPedidos(@PathVariable Long id) {
-        return representanteService.encontrarPedidosDoRepresentante(id);
+    public List<PedidoResponseDto> listarPedidos(@PathVariable Long id) {
+        return representanteService.encontrarPedidosDoRepresentante(id).stream()
+            .map(pedidoDtoMapper::toPedidoResponseDto)
+            .toList();
     }
 
     @PostMapping

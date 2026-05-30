@@ -12,5 +12,6 @@ public record PedidoResponseDto(
     LocalDate dataEmissao,
     LocalDate dataFaturamento,
     BigDecimal valorTotal,
-    String status
+    String status,
+    String autorizacaoComercial
 ) {}

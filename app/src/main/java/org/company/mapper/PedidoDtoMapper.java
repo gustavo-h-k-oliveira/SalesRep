@@ -17,7 +17,8 @@ public class PedidoDtoMapper {
             pedido.getDataEmissao(),
             pedido.getDataFaturamento(),
             pedido.getValorTotal(),
-            pedido.getStatus() != null ? pedido.getStatus().name() : null
+            pedido.getStatus() != null ? pedido.getStatus().name() : null,
+            pedido.getAutorizacaoComercial() != null ? pedido.getAutorizacaoComercial().name() : null
         );
     }
 }

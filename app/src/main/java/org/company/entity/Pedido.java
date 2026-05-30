@@ -17,6 +17,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -48,6 +49,9 @@ public class Pedido {
     
     @Enumerated(EnumType.STRING)
     private @NotNull StatusPedido status;
+
+    @Enumerated(EnumType.STRING)
+    private @NotNull StatusAutorizacaoComercial autorizacaoComercial;
 
     @OneToMany(mappedBy = "pedido")
     private List<PedidoItem> itens;
