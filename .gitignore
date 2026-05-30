@@ -33,3 +33,5 @@ build/
 todo
 
 application.properties
+*.sql
+*.csv
