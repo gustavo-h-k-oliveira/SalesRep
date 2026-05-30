@@ -1,7 +1,9 @@
 package org.company.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
+import org.company.analytics.ProdutoAnalytics;
 import org.company.entity.PedidoItem;
 import org.company.entity.Produto;
 import org.company.repository.PedidoItemRepository;
@@ -15,7 +17,10 @@ import lombok.RequiredArgsConstructor;
 public class ProdutoService {
     
     private final ProdutoRepository produtoRepository;
+
     private final PedidoItemRepository pedidoItemRepository;
+
+    private final ProdutoAnalytics produtoAnalytics;
 
     // Métodos de consulta
     public List<Produto> encontrarTodos() {
@@ -42,4 +47,14 @@ public class ProdutoService {
     public void deletar(Long id) {
         produtoRepository.deleteById(id);
     }
+
+    // Método de cálculo
+    public BigDecimal calcularFaturamentoPorSku(Long produtoId) {
+        return produtoAnalytics.calcularFaturamentoPorSku(produtoId);
+    }
+
+    public java.util.List<String> buscarProdutosCriticos() {
+        return produtoAnalytics.buscarProdutosComBaixaRecompra();
+    }
 }
+

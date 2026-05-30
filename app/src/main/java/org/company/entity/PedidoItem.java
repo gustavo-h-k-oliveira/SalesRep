@@ -8,14 +8,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NonNull;
 
 @Getter
-@Setter(AccessLevel.NONE)
+@Setter
 @Entity
 public class PedidoItem {
     
@@ -24,16 +26,18 @@ public class PedidoItem {
     private @NonNull Long id;
 
     @ManyToOne
+    @Valid
     @JoinColumn(name = "pedido_id")
-    private @NonNull Pedido pedido;
+    private @NotNull Pedido pedido;
 
     @ManyToOne
+    @Valid
     @JoinColumn(name = "produto_id")
-    private @NonNull Produto produto;
+    private @NotNull Produto produto;
 
-    private int quantidade;
+    private @Positive int quantidade;
 
-    private @NonNull BigDecimal precoUnitario;
+    private @NotNull @Positive BigDecimal precoUnitario;
 
-    private @NonNull BigDecimal subTotal;
+    private @NotNull @Positive BigDecimal subTotal;
 }

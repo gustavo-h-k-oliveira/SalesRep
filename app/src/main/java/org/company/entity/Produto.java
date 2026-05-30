@@ -7,14 +7,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.NotBlank;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.NonNull;
 
 @Getter
-@Setter(AccessLevel.NONE)
+@Setter
 @Entity
 public class Produto {
     
@@ -22,9 +21,9 @@ public class Produto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private @NonNull String sku;
+    private @NotBlank String sku;
     
-    private @NonNull String descricao;
+    private @NotBlank String descricao;
 
     @OneToMany(mappedBy = "produto")
     private List<PedidoItem> itens;
