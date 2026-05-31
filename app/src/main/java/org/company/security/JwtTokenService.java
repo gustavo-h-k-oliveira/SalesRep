@@ -11,6 +11,8 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
+import org.company.exception.InvalidJwtTokenException;
+
 @Service
 public class JwtTokenService {
 
@@ -48,7 +50,11 @@ public class JwtTokenService {
     }
 
     public String getUsernameFromToken(String token) {
-        DecodedJWT decodedJWT = verifier.verify(token);
-        return decodedJWT.getSubject();
+        try {
+            DecodedJWT decodedJWT = verifier.verify(token);
+            return decodedJWT.getSubject();
+        } catch (JWTVerificationException e) {
+            throw new InvalidJwtTokenException("Token JWT inválido ou expirado.", e);
+        }
     }
 }
