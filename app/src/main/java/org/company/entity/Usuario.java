@@ -7,6 +7,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -35,4 +37,8 @@ public class Usuario {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private StatusUsuario status;
+
+    @OneToOne
+    @JoinColumn(name = "representante_id", unique = true)
+    private Representante representante;
 }

@@ -28,16 +28,21 @@ public class JwtTokenService {
         this.expirationMillis = expirationMillis;
     }
 
-    public String generateToken(String username, String role) {
+    public String generateToken(String username, String role, Long representanteId) {
         Date now = new Date();
         Date expiresAt = new Date(now.getTime() + expirationMillis);
 
-        return JWT.create()
+        var tokenBuilder = JWT.create()
                 .withSubject(username)
                 .withClaim("role", role)
                 .withIssuedAt(now)
-                .withExpiresAt(expiresAt)
-                .sign(algorithm);
+                .withExpiresAt(expiresAt);
+
+        if (representanteId != null) {
+            tokenBuilder.withClaim("representanteId", representanteId);
+        }
+
+        return tokenBuilder.sign(algorithm);
     }
 
     public boolean validateToken(String token) {
@@ -53,6 +58,17 @@ public class JwtTokenService {
         try {
             DecodedJWT decodedJWT = verifier.verify(token);
             return decodedJWT.getSubject();
+        } catch (JWTVerificationException e) {
+            throw new InvalidJwtTokenException("Token JWT inválido ou expirado.", e);
+        }
+    }
+
+    public Long getRepresentanteIdFromToken(String token) {
+        try {
+            DecodedJWT decodedJWT = verifier.verify(token);
+            return decodedJWT.getClaim("representanteId").isNull()
+                    ? null
+                    : decodedJWT.getClaim("representanteId").asLong();
         } catch (JWTVerificationException e) {
             throw new InvalidJwtTokenException("Token JWT inválido ou expirado.", e);
         }

@@ -42,11 +42,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 String username = jwtTokenService.getUsernameFromToken(token);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                Long representanteId = jwtTokenService.getRepresentanteIdFromToken(token);
 
+                UsuarioPrincipal usuarioPrincipal = UsuarioPrincipal.from(userDetails, representanteId);
                 var authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails,
+                        usuarioPrincipal,
                         null,
-                        userDetails.getAuthorities());
+                        usuarioPrincipal.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (InvalidJwtTokenException ex) {

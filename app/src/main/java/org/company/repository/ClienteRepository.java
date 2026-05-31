@@ -18,4 +18,6 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     List<Cliente> findByStatus(StatusCliente status);
 
     long countByStatus(StatusCliente status);
+
+    long countByRepresentanteIdAndStatus(Long representanteId, StatusCliente status);
 }

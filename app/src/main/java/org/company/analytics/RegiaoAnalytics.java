@@ -23,13 +23,17 @@ public class RegiaoAnalytics {
     private final PedidoRepository pedidoRepository;
 
     public List<String> buscarRegioesCriticas() {
+        return buscarRegioesCriticas(null);
+    }
+
+    public List<String> buscarRegioesCriticas(Long representanteId) {
         LocalDate hoje = LocalDate.now();
         LocalDate atualInicio = hoje.minusDays(30);
         LocalDate anteriorInicio = hoje.minusDays(60);
         LocalDate anteriorFim = hoje.minusDays(31);
 
-        Map<Long, BigDecimal> faturamentoAtual = faturamentoPorRegiao(atualInicio, hoje);
-        Map<Long, BigDecimal> faturamentoAnterior = faturamentoPorRegiao(anteriorInicio, anteriorFim);
+        Map<Long, BigDecimal> faturamentoAtual = faturamentoPorRegiao(atualInicio, hoje, representanteId);
+        Map<Long, BigDecimal> faturamentoAnterior = faturamentoPorRegiao(anteriorInicio, anteriorFim, representanteId);
 
         return regiaoRepository.findAll().stream()
             .filter(regiao -> {
@@ -42,11 +46,12 @@ public class RegiaoAnalytics {
             .collect(Collectors.toList());
     }
 
-    private Map<Long, BigDecimal> faturamentoPorRegiao(LocalDate inicio, LocalDate fim) {
+    private Map<Long, BigDecimal> faturamentoPorRegiao(LocalDate inicio, LocalDate fim, Long representanteId) {
         return pedidoRepository.findAll().stream()
             .filter(pedido -> pedido.getDataFaturamento() != null)
             .filter(pedido -> !pedido.getDataFaturamento().isBefore(inicio) && !pedido.getDataFaturamento().isAfter(fim))
             .filter(Pedido::estaFaturado)
+            .filter(pedido -> representanteId == null || (pedido.getRepresentante() != null && representanteId.equals(pedido.getRepresentante().getId())))
             .collect(Collectors.groupingBy(
                 pedido -> pedido.getCliente().getRegiao().getId(),
                 Collectors.mapping(Pedido::getValorTotal, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))

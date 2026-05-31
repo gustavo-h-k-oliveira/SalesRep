@@ -45,19 +45,26 @@ public class AlertaService {
     }
 
     public List<AlertaDto> buscarAlertas() {
+        return buscarAlertas(null);
+    }
+
+    public List<AlertaDto> buscarAlertas(Long representanteId) {
         List<AlertaDto> alertas = new ArrayList<>();
-        alertas.addAll(buscarAlertasClientesInativos());
-        alertas.addAll(buscarAlertasRegioesCriticas());
-        alertas.addAll(buscarAlertasProdutosCriticos());
+        alertas.addAll(buscarAlertasClientesInativos(representanteId));
+        alertas.addAll(buscarAlertasRegioesCriticas(representanteId));
+        alertas.addAll(buscarAlertasProdutosCriticos(representanteId));
         return alertas;
     }
 
-    private List<AlertaDto> buscarAlertasClientesInativos() {
+    private List<AlertaDto> buscarAlertasClientesInativos(Long representanteId) {
         LocalDate dataLimite = LocalDate.now().minusDays(45);
         List<Cliente> clientesInativos = clienteRepository.findByUltimaCompraBefore(dataLimite);
 
         List<AlertaDto> alertas = new ArrayList<>();
         for (Cliente cliente : clientesInativos) {
+            if (representanteId != null && (cliente.getRepresentante() == null || !representanteId.equals(cliente.getRepresentante().getId()))) {
+                continue;
+            }
             alertas.add(new AlertaDto(
                 TipoAlerta.CLIENTE_INATIVO,
                 CriticidadeAlerta.MEDIA,
@@ -71,8 +78,8 @@ public class AlertaService {
         return alertas;
     }
 
-    private List<AlertaDto> buscarAlertasRegioesCriticas() {
-        List<String> regioes = regiaoAnalytics.buscarRegioesCriticas();
+    private List<AlertaDto> buscarAlertasRegioesCriticas(Long representanteId) {
+        List<String> regioes = regiaoAnalytics.buscarRegioesCriticas(representanteId);
         List<AlertaDto> alertas = new ArrayList<>();
         for (String regiao : regioes) {
             alertas.add(new AlertaDto(
@@ -88,8 +95,8 @@ public class AlertaService {
         return alertas;
     }
 
-    private List<AlertaDto> buscarAlertasProdutosCriticos() {
-        List<String> produtos = produtoAnalytics.buscarProdutosComBaixaRecompra();
+    private List<AlertaDto> buscarAlertasProdutosCriticos(Long representanteId) {
+        List<String> produtos = produtoAnalytics.buscarProdutosComBaixaRecompra(representanteId);
         List<AlertaDto> alertas = new ArrayList<>();
         for (String produto : produtos) {
             alertas.add(new AlertaDto(

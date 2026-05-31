@@ -25,6 +25,12 @@ public class AuthController {
         String token = authService.authenticate(loginRequest);
         LoginResponseDto response = new LoginResponseDto();
         response.setToken(token);
+
+        var usuario = authService.getUsuarioPorNome(loginRequest.getNomeUsuario());
+        if (usuario != null && usuario.getRepresentante() != null) {
+            response.setRepresentanteId(usuario.getRepresentante().getId());
+        }
+
         return ResponseEntity.ok(response);
     }
 }

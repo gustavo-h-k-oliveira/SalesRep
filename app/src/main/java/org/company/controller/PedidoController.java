@@ -10,6 +10,7 @@ import org.company.entity.Pedido;
 import org.company.entity.Representante;
 import org.company.entity.StatusPedido;
 import org.company.mapper.PedidoDtoMapper;
+import org.company.security.SecurityUtils;
 import org.company.service.ClienteService;
 import org.company.service.PedidoService;
 import org.company.service.RepresentanteService;
@@ -61,6 +62,10 @@ public class PedidoController {
 
     @GetMapping("/representante/{representanteId}")
     public List<PedidoResponseDto> listarPorRepresentante(@PathVariable Long representanteId) {
+        Long loggedRepresentanteId = SecurityUtils.getRepresentanteId();
+        if (loggedRepresentanteId != null) {
+            representanteId = loggedRepresentanteId;
+        }
         return pedidoService.encontrarPorRepresentante(representanteId).stream()
             .map(pedidoDtoMapper::toPedidoResponseDto)
             .toList();
@@ -124,7 +129,11 @@ public class PedidoController {
     private Pedido construirPedido(PedidoRequestDto dto) {
         Pedido pedido = new Pedido();
         pedido.setCliente(buscarCliente(dto.getClienteId()));
-        pedido.setRepresentante(buscarRepresentante(dto.getRepresentanteId()));
+        if (SecurityUtils.isRepresentante()) {
+            pedido.setRepresentante(buscarRepresentante(SecurityUtils.getRepresentanteId()));
+        } else {
+            pedido.setRepresentante(buscarRepresentante(dto.getRepresentanteId()));
+        }
         pedido.setDataEmissao(dto.getDataEmissao());
         pedido.setDataFaturamento(dto.getDataFaturamento());
         pedido.setValorTotal(dto.getValorTotal());
@@ -135,7 +144,11 @@ public class PedidoController {
 
     private void atualizarPedido(Pedido pedido, PedidoRequestDto dto) {
         pedido.setCliente(buscarCliente(dto.getClienteId()));
-        pedido.setRepresentante(buscarRepresentante(dto.getRepresentanteId()));
+        if (SecurityUtils.isRepresentante()) {
+            pedido.setRepresentante(buscarRepresentante(SecurityUtils.getRepresentanteId()));
+        } else {
+            pedido.setRepresentante(buscarRepresentante(dto.getRepresentanteId()));
+        }
         pedido.setDataEmissao(dto.getDataEmissao());
         pedido.setDataFaturamento(dto.getDataFaturamento());
         pedido.setValorTotal(dto.getValorTotal());

@@ -10,4 +10,6 @@ public class LoginResponseDto {
     
     @NotBlank
     private String token;
+
+    private Long representanteId;
 }
