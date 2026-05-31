@@ -21,8 +21,8 @@ public class JwtTokenService {
     private final long expirationMillis;
 
     public JwtTokenService(
-            @Value("${jwt.secret:change-me-secret}") String jwtSecret,
-            @Value("${jwt.expiration-ms:3600000}") long expirationMillis) {
+            @Value("${jwt.secret}") String jwtSecret,
+            @Value("${jwt.expiration-ms}") long expirationMillis) {
         this.algorithm = Algorithm.HMAC256(jwtSecret);
         this.verifier = JWT.require(algorithm).build();
         this.expirationMillis = expirationMillis;

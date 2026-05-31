@@ -3,7 +3,7 @@ package org.company.config;
 import java.util.List;
 
 import org.company.security.JwtAuthenticationFilter;
-import org.springframework.beans.factory.annotation.Value;
+// import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,15 +22,15 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final String whatsappApiUser;
-    private final String whatsappApiPassword;
+    // private final String whatsappApiUser;
+    // private final String whatsappApiPassword;
 
-    public SecurityConfig(
-            @Value("${whatsapp.api.user:admin}") String whatsappApiUser,
-            @Value("${whatsapp.api.password:admin}") String whatsappApiPassword) {
-        this.whatsappApiUser = whatsappApiUser;
-        this.whatsappApiPassword = whatsappApiPassword;
-    }
+    // public SecurityConfig(
+    //         @Value("${whatsapp.api.user:admin}") String whatsappApiUser,
+    //         @Value("${whatsapp.api.password:admin}") String whatsappApiPassword) {
+    //     this.whatsappApiUser = whatsappApiUser;
+    //     this.whatsappApiPassword = whatsappApiPassword;
+    // }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
