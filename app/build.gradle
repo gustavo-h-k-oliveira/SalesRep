@@ -50,6 +50,9 @@ dependencies {
 
     // Testes
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // JWT
+    implementation 'com.auth0:java-jwt:4.4.0'
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
