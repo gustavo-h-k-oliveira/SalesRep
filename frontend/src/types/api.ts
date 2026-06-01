@@ -14,6 +14,7 @@ export interface DashboardDto {
   alertasPendentes: number
   regioesCriticas: string[]
   produtosCriticos: string[]
+  representanteNome?: string
 }
 
 export interface AlertaDto {

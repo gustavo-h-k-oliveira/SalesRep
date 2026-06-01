@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { clearToken, getToken } from '../services/authService'
+import { clearToken } from '../services/authService'
 import { fetchDashboard } from '../services/dashboardService'
 import type { DashboardDto } from '../types/api'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const token = getToken()
   const [dashboard, setDashboard] = useState<DashboardDto | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -40,7 +39,9 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h1 className="text-3xl font-semibold text-slate-900">Dashboard</h1>
-            <p className="mt-2 text-sm text-slate-600">Bem-vindo! Você está autenticado.</p>
+            <p className="mt-2 text-sm text-slate-600">
+              Bem-vindo{dashboard?.representanteNome ? `, ${dashboard.representanteNome}` : ''}! Você está autenticado.
+            </p>
           </div>
           <div className="flex flex-wrap gap-3">
             <button
@@ -138,12 +139,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="mt-8 rounded-3xl border border-slate-200 bg-slate-50 p-6">
-          <p className="text-sm text-slate-700">Token armazenado localmente:</p>
-          <pre className="mt-3 max-h-40 overflow-auto rounded-2xl bg-white p-4 text-xs text-slate-800">
-            {token ?? 'Nenhum token encontrado'}
-          </pre>
-        </div>
       </div>
     </div>
   )

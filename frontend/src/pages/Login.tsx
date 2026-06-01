@@ -9,7 +9,6 @@ export default function LoginPage() {
   const [senha, setSenha] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [token, setToken] = useState('')
 
   useEffect(() => {
     if (isLoggedIn()) {
@@ -25,10 +24,8 @@ export default function LoginPage() {
     try {
       const response = await login({ nomeUsuario, senha })
       saveToken(response.token)
-      setToken(response.token)
       navigate('/dashboard', { replace: true })
     } catch (err) {
-      setToken('')
       setError(err instanceof Error ? err.message : 'Erro desconhecido')
     } finally {
       setLoading(false)
@@ -39,7 +36,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
         <h1 className="text-2xl font-semibold text-slate-900">Login</h1>
-        <p className="mt-2 text-sm text-slate-600">Use um usuário cadastrado para obter o token JWT.</p>
+        <p className="mt-2 text-sm text-slate-600">Use um usuário cadastrado para acessar a plataforma.</p>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
@@ -77,12 +74,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {token && (
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-900">
-            <p className="font-medium text-slate-800">JWT recebido:</p>
-            <p className="mt-2 break-all text-xs">{token}</p>
-          </div>
-        )}
       </div>
     </div>
   )
