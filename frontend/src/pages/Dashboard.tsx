@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { clearToken } from '../services/authService'
+import { clearSession, logout } from '../services/authService'
 import { fetchDashboard } from '../services/dashboardService'
 import type { DashboardDto } from '../types/api'
 
@@ -25,9 +25,13 @@ export default function DashboardPage() {
     loadDashboard()
   }, [])
 
-  const handleLogout = () => {
-    clearToken()
-    navigate('/login')
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } finally {
+      clearSession()
+      navigate('/login')
+    }
   }
 
   const formatCurrency = (value: number) =>

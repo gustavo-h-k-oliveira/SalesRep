@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { SubmitEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isLoggedIn, login, saveToken } from '../services/authService'
+import { isLoggedIn, login, saveSession } from '../services/authService'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -16,14 +16,14 @@ export default function LoginPage() {
     }
   }, [navigate])
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError('')
     setLoading(true)
 
     try {
-      const response = await login({ nomeUsuario, senha })
-      saveToken(response.token)
+      await login({ nomeUsuario, senha })
+      saveSession()
       navigate('/dashboard', { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido')

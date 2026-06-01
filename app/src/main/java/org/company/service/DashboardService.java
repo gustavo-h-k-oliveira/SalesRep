@@ -13,7 +13,6 @@ import org.company.entity.StatusPedido;
 import org.company.repository.ClienteRepository;
 import org.company.repository.PedidoRepository;
 import org.company.security.SecurityUtils;
-import org.company.service.RepresentanteService;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;

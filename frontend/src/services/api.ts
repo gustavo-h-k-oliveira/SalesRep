@@ -1,21 +1,13 @@
-import { getToken } from './authService'
-
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 
 async function apiFetch<T>(input: string, init: RequestInit = {}): Promise<T> {
-  const token = getToken()
-
   const headers = new Headers(init.headers)
   headers.set('Content-Type', 'application/json')
-
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`)
-  }
 
   const response = await fetch(`${API_BASE}${input}`, {
     ...init,
     headers,
-    credentials: 'omit',
+    credentials: 'include',
   })
 
   if (!response.ok) {

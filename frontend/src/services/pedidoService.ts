@@ -1,5 +1,5 @@
 import { apiFetch } from './api'
-import type { PedidoRequest, PedidoResponse } from '../types/api'
+import type { PedidoResponse } from '../types/api'
 
 export async function fetchPedidos(): Promise<PedidoResponse[]> {
   return apiFetch<PedidoResponse[]>('/pedidos')
@@ -34,22 +34,3 @@ export async function fetchPedidosByPeriodo(inicio: string, fim: string): Promis
   return apiFetch<PedidoResponse[]>(`/pedidos/periodo?${query}`)
 }
 
-export async function createPedido(data: PedidoRequest): Promise<PedidoResponse> {
-  return apiFetch<PedidoResponse>('/pedidos', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
-}
-
-export async function updatePedido(id: number, data: PedidoRequest): Promise<PedidoResponse> {
-  return apiFetch<PedidoResponse>(`/pedidos/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  })
-}
-
-export async function deletePedido(id: number): Promise<void> {
-  return apiFetch<void>(`/pedidos/${id}`, {
-    method: 'DELETE',
-  })
-}

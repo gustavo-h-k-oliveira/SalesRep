@@ -1,10 +1,15 @@
 package org.company.controller;
 
+import java.time.Duration;
+
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 import org.company.dto.LoginRequestDto;
 import org.company.dto.LoginResponseDto;
 import org.company.service.AuthService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,6 +36,28 @@ public class AuthController {
             response.setRepresentanteId(usuario.getRepresentante().getId());
         }
 
-        return ResponseEntity.ok(response);
+        ResponseCookie cookie = ResponseCookie.from("AUTH_TOKEN", token)
+                .httpOnly(true)
+                .path("/")
+                .maxAge(Duration.ofHours(8))
+                .sameSite("Lax")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletResponse servletResponse) {
+        ResponseCookie cookie = ResponseCookie.from("AUTH_TOKEN", "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Lax")
+                .build();
+
+        servletResponse.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        return ResponseEntity.noContent().build();
     }
 }
