@@ -38,8 +38,21 @@ public class PedidoController {
     private final RepresentanteService representanteService;
     private final PedidoDtoMapper pedidoDtoMapper;
 
+    private Long getLoggedRepresentanteId() {
+        return SecurityUtils.getRepresentanteId();
+    }
+
+    private boolean isRepresentante() {
+        return SecurityUtils.isRepresentante();
+    }
+
     @GetMapping
     public List<PedidoResponseDto> listarTodos() {
+        if (isRepresentante()) {
+            return pedidoService.encontrarPorRepresentante(getLoggedRepresentanteId()).stream()
+                .map(pedidoDtoMapper::toPedidoResponseDto)
+                .toList();
+        }
         return pedidoService.encontrarTodos().stream()
             .map(pedidoDtoMapper::toPedidoResponseDto)
             .toList();
@@ -62,7 +75,7 @@ public class PedidoController {
 
     @GetMapping("/representante/{representanteId}")
     public List<PedidoResponseDto> listarPorRepresentante(@PathVariable Long representanteId) {
-        Long loggedRepresentanteId = SecurityUtils.getRepresentanteId();
+        Long loggedRepresentanteId = getLoggedRepresentanteId();
         if (loggedRepresentanteId != null) {
             representanteId = loggedRepresentanteId;
         }
@@ -73,6 +86,11 @@ public class PedidoController {
 
     @GetMapping("/status/{status}")
     public List<PedidoResponseDto> listarPorStatus(@PathVariable StatusPedido status) {
+        if (isRepresentante()) {
+            return pedidoService.encontrarPorStatusERepresentante(status, getLoggedRepresentanteId()).stream()
+                .map(pedidoDtoMapper::toPedidoResponseDto)
+                .toList();
+        }
         return pedidoService.encontrarPorStatus(status).stream()
             .map(pedidoDtoMapper::toPedidoResponseDto)
             .toList();
@@ -80,6 +98,11 @@ public class PedidoController {
 
     @GetMapping("/faturados")
     public List<PedidoResponseDto> listarFaturados() {
+        if (isRepresentante()) {
+            return pedidoService.encontrarFaturadosPorRepresentante(getLoggedRepresentanteId()).stream()
+                .map(pedidoDtoMapper::toPedidoResponseDto)
+                .toList();
+        }
         return pedidoService.encontrarFaturados().stream()
             .map(pedidoDtoMapper::toPedidoResponseDto)
             .toList();
@@ -87,6 +110,11 @@ public class PedidoController {
 
     @GetMapping("/nao-faturados")
     public List<PedidoResponseDto> listarNaoFaturados() {
+        if (isRepresentante()) {
+            return pedidoService.encontrarPedidosNaoFaturadosPorRepresentante(getLoggedRepresentanteId()).stream()
+                .map(pedidoDtoMapper::toPedidoResponseDto)
+                .toList();
+        }
         return pedidoService.encontrarPedidosNaoFaturados().stream()
             .map(pedidoDtoMapper::toPedidoResponseDto)
             .toList();
@@ -96,6 +124,11 @@ public class PedidoController {
     public List<PedidoResponseDto> listarPorPeriodo(
             @RequestParam java.time.LocalDate inicio,
             @RequestParam java.time.LocalDate fim) {
+        if (isRepresentante()) {
+            return pedidoService.encontrarPedidosPorPeriodoERepresentante(inicio, fim, getLoggedRepresentanteId()).stream()
+                .map(pedidoDtoMapper::toPedidoResponseDto)
+                .toList();
+        }
         return pedidoService.encontrarPedidosPorPeriodo(inicio, fim).stream()
             .map(pedidoDtoMapper::toPedidoResponseDto)
             .toList();

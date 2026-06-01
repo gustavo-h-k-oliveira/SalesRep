@@ -1,4 +1,4 @@
-import { type SubmitEvent, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   fetchPedidos,
   fetchPedidosByPeriodo,
@@ -18,8 +18,8 @@ export default function PedidosPage() {
   const [filterMode, setFilterMode] = useState<FilterMode>('TODOS')
 
   useEffect(() => {
-    loadPedidos()
-  }, [])
+    loadPedidos(filterMode, inicio, fim)
+  }, [filterMode, inicio, fim])
 
   async function loadPedidos(mode: FilterMode = 'TODOS', start = inicio, end = fim) {
     setLoading(true)
@@ -69,11 +69,6 @@ export default function PedidosPage() {
     return new Date(dateString).toLocaleDateString('pt-BR')
   }
 
-  const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    await loadPedidos(filterMode, inicio, fim)
-  }
-
   const handleReset = async () => {
     setInicio('')
     setFim('')
@@ -95,7 +90,7 @@ export default function PedidosPage() {
         </div>
 
         <div className="mt-8 rounded-3xl border border-slate-200 bg-slate-50 p-6">
-          <form className="grid gap-4 lg:grid-cols-[1fr_1fr_auto]" onSubmit={handleSubmit}>
+          <form className="grid gap-4 lg:grid-cols-[1fr_1fr_auto]">
             <div className="grid gap-2">
               <label className="text-sm font-medium text-slate-700">Início</label>
               <input
@@ -131,12 +126,6 @@ export default function PedidosPage() {
 
             <div className="flex flex-wrap items-end gap-3 sm:col-span-3">
               <button
-                type="submit"
-                className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
-              >
-                Aplicar filtros
-              </button>
-              <button
                 type="button"
                 onClick={handleReset}
                 className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-100"
@@ -162,16 +151,18 @@ export default function PedidosPage() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-3xl bg-slate-50 p-6 shadow-sm">
-            <p className="text-sm text-slate-500">Faturados</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-900">{faturadosCount}</p>
+        {filterMode === 'TODOS' && (
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-3xl bg-slate-50 p-6 shadow-sm">
+              <p className="text-sm text-slate-500">Faturados</p>
+              <p className="mt-2 text-3xl font-semibold text-slate-900">{faturadosCount}</p>
+            </div>
+            <div className="rounded-3xl bg-slate-50 p-6 shadow-sm">
+              <p className="text-sm text-slate-500">Não faturados</p>
+              <p className="mt-2 text-3xl font-semibold text-slate-900">{naoFaturadosCount}</p>
+            </div>
           </div>
-          <div className="rounded-3xl bg-slate-50 p-6 shadow-sm">
-            <p className="text-sm text-slate-500">Não faturados</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-900">{naoFaturadosCount}</p>
-          </div>
-        </div>
+        )}
 
         <div className="mt-8 rounded-3xl border border-slate-200 bg-slate-50 p-6">
           {loading ? (

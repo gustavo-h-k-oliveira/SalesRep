@@ -3,7 +3,10 @@ import LoginPage from './pages/Login'
 import DashboardPage from './pages/Dashboard'
 import ClientesPage from './pages/Clientes'
 import PedidosPage from './pages/Pedidos'
+import ProdutosPage from './pages/Produtos'
+import AlertasPage from './pages/Alertas'
 import ProtectedRoute from './pages/ProtectedRoute'
+import AppLayout from './layouts/AppLayout'
 
 function App() {
   return (
@@ -11,29 +14,18 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route
-          path="/dashboard"
           element={
             <ProtectedRoute>
-              <DashboardPage />
+              <AppLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/clientes"
-          element={
-            <ProtectedRoute>
-              <ClientesPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/pedidos"
-          element={
-            <ProtectedRoute>
-              <PedidosPage />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/clientes" element={<ClientesPage />} />
+          <Route path="/pedidos" element={<PedidosPage />} />
+          <Route path="/produtos" element={<ProdutosPage />} />
+          <Route path="/alertas" element={<AlertasPage />} />
+        </Route>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

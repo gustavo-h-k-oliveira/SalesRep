@@ -47,20 +47,6 @@ export default function DashboardPage() {
               Bem-vindo{dashboard?.representanteNome ? `, ${dashboard.representanteNome}` : ''}! Você está autenticado.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => navigate('/clientes')}
-              className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
-            >
-              Clientes prioritários
-            </button>
-            <button
-              onClick={handleLogout}
-              className="rounded-2xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-500"
-            >
-              Sair
-            </button>
-          </div>
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">

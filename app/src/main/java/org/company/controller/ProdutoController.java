@@ -7,6 +7,7 @@ import org.company.dto.ProdutoRequestDto;
 import org.company.dto.ProdutoResponseDto;
 import org.company.entity.Produto;
 import org.company.mapper.ProdutoDtoMapper;
+import org.company.security.SecurityUtils;
 import org.company.service.ProdutoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -29,8 +30,21 @@ public class ProdutoController {
     private final ProdutoService produtoService;
     private final ProdutoDtoMapper produtoDtoMapper;
 
+    private Long getLoggedRepresentanteId() {
+        return SecurityUtils.getRepresentanteId();
+    }
+
+    private boolean isRepresentante() {
+        return SecurityUtils.isRepresentante();
+    }
+
     @GetMapping
     public List<ProdutoResponseDto> listarTodos() {
+        if (isRepresentante()) {
+            return produtoService.encontrarPorRepresentante(getLoggedRepresentanteId()).stream()
+                .map(produtoDtoMapper::toProdutoResponseDto)
+                .toList();
+        }
         return produtoService.encontrarTodos().stream()
             .map(produtoDtoMapper::toProdutoResponseDto)
             .toList();
@@ -54,6 +68,9 @@ public class ProdutoController {
 
     @GetMapping("/criticos")
     public List<String> listarProdutosCriticos() {
+        if (isRepresentante()) {
+            return produtoService.buscarProdutosCriticos(getLoggedRepresentanteId());
+        }
         return produtoService.buscarProdutosCriticos();
     }
 

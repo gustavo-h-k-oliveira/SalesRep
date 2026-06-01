@@ -38,16 +38,34 @@ public class PedidoService {
         return pedidoRepository.findByStatus(status);
     }
 
+    public List<Pedido> encontrarPorStatusERepresentante(StatusPedido status, Long representanteId) {
+        return pedidoRepository.findByRepresentanteIdAndStatus(representanteId, status);
+    }
+
     public List<Pedido> encontrarFaturados() {
         return pedidoRepository.findByStatus(StatusPedido.FATURADO);
+    }
+
+    public List<Pedido> encontrarFaturadosPorRepresentante(Long representanteId) {
+        return pedidoRepository.findByRepresentanteIdAndStatus(representanteId, StatusPedido.FATURADO);
     }
 
     public List<Pedido> encontrarPedidosNaoFaturados() {
         return pedidoRepository.findByStatusNot(StatusPedido.FATURADO);
     }
 
+    public List<Pedido> encontrarPedidosNaoFaturadosPorRepresentante(Long representanteId) {
+        return pedidoRepository.findByRepresentanteId(representanteId).stream()
+            .filter(pedido -> pedido.getStatus() != StatusPedido.FATURADO)
+            .toList();
+    }
+
     public List<Pedido> encontrarPedidosPorPeriodo(LocalDate inicio, LocalDate fim) {
         return pedidoRepository.findByDataEmissaoBetween(inicio, fim);
+    }
+
+    public List<Pedido> encontrarPedidosPorPeriodoERepresentante(LocalDate inicio, LocalDate fim, Long representanteId) {
+        return pedidoRepository.findByRepresentanteIdAndDataEmissaoBetween(representanteId, inicio, fim);
     }
 
     // Métodos de manipulação
