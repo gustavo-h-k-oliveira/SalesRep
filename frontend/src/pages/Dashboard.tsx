@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { clearSession, logout } from '../services/authService'
 import { fetchDashboard } from '../services/dashboardService'
 import type { DashboardDto } from '../types/api'
 
 export default function DashboardPage() {
-  const navigate = useNavigate()
   const [dashboard, setDashboard] = useState<DashboardDto | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -24,15 +21,6 @@ export default function DashboardPage() {
 
     loadDashboard()
   }, [])
-
-  const handleLogout = async () => {
-    try {
-      await logout()
-    } finally {
-      clearSession()
-      navigate('/login')
-    }
-  }
 
   const formatCurrency = (value: number) =>
     value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
