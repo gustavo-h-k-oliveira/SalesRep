@@ -25,8 +25,13 @@ public class ClienteAnalyticsService {
     private final ClienteDtoMapper clienteDtoMapper;
 
     public List<ClientePrioritarioDto> buscarClientesPrioritarios() {
+        return buscarClientesPrioritarios(null);
+    }
 
-        return clienteRepository.findAll().stream()
+    public List<ClientePrioritarioDto> buscarClientesPrioritarios(Long representanteId) {
+        return (representanteId == null
+            ? clienteRepository.findAll()
+            : clienteRepository.findByRepresentanteId(representanteId)).stream()
             .map(cliente -> new ClienteScore(cliente, clienteAnalytics.calcularScore(cliente)))
             .filter(clienteScore -> clienteScore.score >= 80)
             .sorted(Comparator.comparingDouble((ClienteScore clienteScore) -> clienteScore.score).reversed())
@@ -37,6 +42,18 @@ public class ClienteAnalyticsService {
                 clienteAnalytics.calcularTotalPedidos(clienteScore.cliente)
             ))
             .collect(Collectors.toList());
+    }
+
+    public ClientePerfilDto buscarPerfil(Long clienteId, Long representanteId) {
+        return clienteRepository.findById(clienteId)
+            .filter(cliente -> representanteId == null || (cliente.getRepresentante() != null && representanteId.equals(cliente.getRepresentante().getId())))
+            .map(cliente -> clienteDtoMapper.toClientePerfilDto(
+                cliente,
+                clienteAnalytics.calcularTicketMedio(cliente),
+                clienteAnalytics.calcularTotalPedidos(cliente),
+                clienteAnalytics.calcularFaturamentoTotal(cliente)
+            ))
+            .orElse(null);
     }
 
     public ClientePerfilDto buscarPerfil(Long clienteId) {

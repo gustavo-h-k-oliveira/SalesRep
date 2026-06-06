@@ -50,9 +50,24 @@ public class Cliente {
     private @NotNull StatusCliente status;
 
     public void atualizarStatusPorUltimaCompra() {
-        this.status = getDiasSemCompra() >= 45
-            ? StatusCliente.INATIVO
-            : StatusCliente.ATIVO;
+        if (estaEmRecuperacaoPorPedido()) {
+            this.status = StatusCliente.RECUPERACAO;
+        } else {
+            this.status = getDiasSemCompra() >= 45
+                ? StatusCliente.INATIVO
+                : StatusCliente.ATIVO;
+        }
+    }
+
+    private boolean estaEmRecuperacaoPorPedido() {
+        if (pedidos == null || pedidos.isEmpty()) {
+            return false;
+        }
+
+        return pedidos.stream().anyMatch(pedido ->
+            pedido.getStatus() == StatusPedido.EMITIDO
+            || pedido.getAutorizacaoComercial() == StatusAutorizacaoComercial.AVALIANDO
+        );
     }
 
     // Métodos de consulta

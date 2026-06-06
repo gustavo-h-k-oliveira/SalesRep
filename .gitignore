@@ -34,3 +34,4 @@ todo
 
 application.properties
 *.csv
+*.sql

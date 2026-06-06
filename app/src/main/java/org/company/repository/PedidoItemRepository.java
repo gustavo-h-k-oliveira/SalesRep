@@ -10,4 +10,7 @@ public interface PedidoItemRepository extends JpaRepository<PedidoItem, Long> {
     List<PedidoItem> findByPedidoId(Long pedidoId);
     
     List<PedidoItem> findByProdutoId(Long produtoId);
+
+    List<PedidoItem> findByPedido_RepresentanteId(Long representanteId);
 }
+

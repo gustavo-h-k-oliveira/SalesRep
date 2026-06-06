@@ -12,6 +12,7 @@ import org.company.entity.Regiao;
 import org.company.entity.Representante;
 import org.company.entity.StatusCliente;
 import org.company.mapper.ClienteDtoMapper;
+import org.company.security.SecurityUtils;
 import org.company.service.ClienteAnalyticsService;
 import org.company.service.ClienteService;
 import org.company.service.RegiaoService;
@@ -64,6 +65,10 @@ public class ClienteController {
 
     @GetMapping("/representante/{representanteId}")
     public List<ClienteResponseDto> listarPorRepresentante(@PathVariable Long representanteId) {
+        Long loggedRepresentanteId = SecurityUtils.getRepresentanteId();
+        if (loggedRepresentanteId != null) {
+            representanteId = loggedRepresentanteId;
+        }
         return clienteService.encontrarPorRepresentante(representanteId).stream()
             .map(clienteDtoMapper::toClienteResponseDto)
             .toList();
@@ -85,12 +90,14 @@ public class ClienteController {
 
     @GetMapping("/prioritarios")
     public List<ClientePrioritarioDto> listarPrioritarios() {
-        return clienteAnalyticsService.buscarClientesPrioritarios();
+        Long representanteId = SecurityUtils.getRepresentanteId();
+        return clienteAnalyticsService.buscarClientesPrioritarios(representanteId);
     }
 
     @GetMapping("/{id}/perfil")
     public ResponseEntity<ClientePerfilDto> obterPerfil(@PathVariable Long id) {
-        return Optional.ofNullable(clienteAnalyticsService.buscarPerfil(id))
+        Long representanteId = SecurityUtils.getRepresentanteId();
+        return Optional.ofNullable(clienteAnalyticsService.buscarPerfil(id, representanteId))
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
@@ -124,7 +131,11 @@ public class ClienteController {
         Cliente cliente = new Cliente();
         cliente.setNome(dto.getNome());
         cliente.setRegiao(buscarRegiao(dto.getRegiaoId()));
-        cliente.setRepresentante(buscarRepresentante(dto.getRepresentanteId()));
+        if (SecurityUtils.isRepresentante()) {
+            cliente.setRepresentante(buscarRepresentante(SecurityUtils.getRepresentanteId()));
+        } else {
+            cliente.setRepresentante(buscarRepresentante(dto.getRepresentanteId()));
+        }
         cliente.setUltimaCompra(dto.getUltimaCompra());
         cliente.setStatus(dto.getStatus());
         return cliente;
@@ -133,7 +144,11 @@ public class ClienteController {
     private void atualizarCliente(Cliente cliente, ClienteRequestDto dto) {
         cliente.setNome(dto.getNome());
         cliente.setRegiao(buscarRegiao(dto.getRegiaoId()));
-        cliente.setRepresentante(buscarRepresentante(dto.getRepresentanteId()));
+        if (SecurityUtils.isRepresentante()) {
+            cliente.setRepresentante(buscarRepresentante(SecurityUtils.getRepresentanteId()));
+        } else {
+            cliente.setRepresentante(buscarRepresentante(dto.getRepresentanteId()));
+        }
         cliente.setUltimaCompra(dto.getUltimaCompra());
         cliente.setStatus(dto.getStatus());
     }

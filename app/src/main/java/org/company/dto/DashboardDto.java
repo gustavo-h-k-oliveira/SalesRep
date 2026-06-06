@@ -19,4 +19,5 @@ public class DashboardDto {
     private int alertasPendentes;
     private List<String> regioesCriticas;
     private List<String> produtosCriticos;
+    private String representanteNome;
 }

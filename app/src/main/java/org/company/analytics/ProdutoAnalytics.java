@@ -28,6 +28,10 @@ public class ProdutoAnalytics {
     }
 
     public List<String> buscarProdutosComBaixaRecompra() {
+        return buscarProdutosComBaixaRecompra(null);
+    }
+
+    public List<String> buscarProdutosComBaixaRecompra(Long representanteId) {
         LocalDate hoje = LocalDate.now();
         LocalDate periodoRecente = hoje.minusDays(30);
         LocalDate periodoAnterior = hoje.minusDays(90);
@@ -38,10 +42,12 @@ public class ProdutoAnalytics {
                 boolean teveAnterior = itens.stream()
                     .map(PedidoItem::getPedido)
                     .filter(pedido -> pedido.getDataEmissao() != null)
+                    .filter(pedido -> representanteId == null || (pedido.getRepresentante() != null && representanteId.equals(pedido.getRepresentante().getId())))
                     .anyMatch(pedido -> !pedido.getDataEmissao().isBefore(periodoAnterior) && !pedido.getDataEmissao().isAfter(hoje));
                 boolean teveRecente = itens.stream()
                     .map(PedidoItem::getPedido)
                     .filter(pedido -> pedido.getDataEmissao() != null)
+                    .filter(pedido -> representanteId == null || (pedido.getRepresentante() != null && representanteId.equals(pedido.getRepresentante().getId())))
                     .anyMatch(pedido -> !pedido.getDataEmissao().isBefore(periodoRecente) && !pedido.getDataEmissao().isAfter(hoje));
                 return teveAnterior && !teveRecente;
             })

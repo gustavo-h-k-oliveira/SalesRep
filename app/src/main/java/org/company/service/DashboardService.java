@@ -7,10 +7,12 @@ import org.company.analytics.ProdutoAnalytics;
 import org.company.analytics.RegiaoAnalytics;
 import org.company.dto.DashboardDto;
 import org.company.entity.Pedido;
+import org.company.entity.Representante;
 import org.company.entity.StatusCliente;
 import org.company.entity.StatusPedido;
 import org.company.repository.ClienteRepository;
 import org.company.repository.PedidoRepository;
+import org.company.security.SecurityUtils;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,8 @@ public class DashboardService {
     private final PedidoRepository pedidoRepository;
 
     private final ClienteRepository clienteRepository;
+
+    private final ClienteService clienteService;
     
     private final AlertaService alertaService;
     
@@ -29,25 +33,64 @@ public class DashboardService {
     
     private final ProdutoAnalytics produtoAnalytics;
 
+    private final RepresentanteService representanteService;
+
     public DashboardDto obterResumo() {
-        
-        BigDecimal faturamentoTotal = pedidoRepository.findByStatus(StatusPedido.FATURADO).stream()
-            .map(Pedido::getValorTotal)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        clienteService.atualizarStatusDeTodos();
 
-        long clientesAtivos = clienteRepository.countByStatus(StatusCliente.ATIVO);
-        long clientesInativos = clienteRepository.countByStatus(StatusCliente.INATIVO);
+        Long representanteId = SecurityUtils.getRepresentanteId();
+        boolean isRepresentante = SecurityUtils.isRepresentante();
 
-        List<String> regioesCriticas = regiaoAnalytics.buscarRegioesCriticas();
-        List<String> produtosCriticos = produtoAnalytics.buscarProdutosComBaixaRecompra();
+        BigDecimal faturamentoTotal;
+        long clientesAtivos;
+        long clientesInativos;
+        List<String> regioesCriticas;
+        List<String> produtosCriticos;
+        List<?> alertas;
+
+        if (isRepresentante) {
+            if (representanteId == null) {
+                faturamentoTotal = BigDecimal.ZERO;
+                clientesAtivos = 0;
+                clientesInativos = 0;
+                regioesCriticas = List.of();
+                produtosCriticos = List.of();
+                alertas = List.of();
+            } else {
+                faturamentoTotal = pedidoRepository.findByRepresentanteIdAndStatus(representanteId, StatusPedido.FATURADO).stream()
+                    .map(Pedido::getValorTotal)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                clientesAtivos = clienteRepository.countByRepresentanteIdAndStatus(representanteId, StatusCliente.ATIVO);
+                clientesInativos = clienteRepository.countByRepresentanteIdAndStatus(representanteId, StatusCliente.INATIVO);
+                regioesCriticas = regiaoAnalytics.buscarRegioesCriticas(representanteId);
+                produtosCriticos = produtoAnalytics.buscarProdutosComBaixaRecompra(representanteId);
+                alertas = alertaService.buscarAlertas(representanteId);
+            }
+        } else {
+            faturamentoTotal = pedidoRepository.findByStatus(StatusPedido.FATURADO).stream()
+                .map(Pedido::getValorTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            clientesAtivos = clienteRepository.countByStatus(StatusCliente.ATIVO);
+            clientesInativos = clienteRepository.countByStatus(StatusCliente.INATIVO);
+            regioesCriticas = regiaoAnalytics.buscarRegioesCriticas();
+            produtosCriticos = produtoAnalytics.buscarProdutosComBaixaRecompra();
+            alertas = alertaService.buscarAlertas();
+        }
+
+        String representanteNome = null;
+        if (isRepresentante && representanteId != null) {
+            Representante representante = representanteService.encontrarPorId(representanteId);
+            representanteNome = representante != null ? representante.getNome() : null;
+        }
 
         return new DashboardDto(
             faturamentoTotal,
             clientesAtivos,
             clientesInativos,
-            alertaService.buscarAlertas().size(),
+            alertas.size(),
             regioesCriticas,
-            produtosCriticos
+            produtosCriticos,
+            representanteNome
         );
     }
 }

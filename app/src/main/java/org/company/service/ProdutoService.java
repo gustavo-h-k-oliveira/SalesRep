@@ -27,6 +27,13 @@ public class ProdutoService {
         return produtoRepository.findAll();
     }
 
+    public List<Produto> encontrarPorRepresentante(Long representanteId) {
+        if (representanteId == null) {
+            return produtoRepository.findAll();
+        }
+        return produtoRepository.findDistinctByRepresentanteId(representanteId);
+    }
+
     public Produto encontrarPorId(Long id) {
         return produtoRepository.findById(id).orElse(null);
     }
@@ -55,6 +62,10 @@ public class ProdutoService {
 
     public java.util.List<String> buscarProdutosCriticos() {
         return produtoAnalytics.buscarProdutosComBaixaRecompra();
+    }
+
+    public java.util.List<String> buscarProdutosCriticos(Long representanteId) {
+        return produtoAnalytics.buscarProdutosComBaixaRecompra(representanteId);
     }
 }
 
