@@ -4,8 +4,8 @@ public enum StatusPedido {
     
     EMITIDO,
     APROVADO,
-    PROCESSANDO,
     FATURADO,
     CANCELADO,
-    REJEITADO
+    REJEITADO,
+    PENDENTE
 }

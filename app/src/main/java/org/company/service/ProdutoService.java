@@ -67,5 +67,13 @@ public class ProdutoService {
     public java.util.List<String> buscarProdutosCriticos(Long representanteId) {
         return produtoAnalytics.buscarProdutosComBaixaRecompra(representanteId);
     }
+
+    public java.util.List<Produto> buscarProdutosCriticosProduto() {
+        return produtoAnalytics.buscarProdutosComBaixaRecompraProduto();
+    }
+
+    public java.util.List<Produto> buscarProdutosCriticosProduto(Long representanteId) {
+        return produtoAnalytics.buscarProdutosComBaixaRecompraProduto(representanteId);
+    }
 }
 

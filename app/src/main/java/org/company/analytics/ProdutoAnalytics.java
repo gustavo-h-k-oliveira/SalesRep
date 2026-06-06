@@ -54,4 +54,31 @@ public class ProdutoAnalytics {
             .map(Produto::getDescricao)
             .toList();
     }
+
+    public List<Produto> buscarProdutosComBaixaRecompraProduto() {
+        return buscarProdutosComBaixaRecompraProduto(null);
+    }
+
+    public List<Produto> buscarProdutosComBaixaRecompraProduto(Long representanteId) {
+        LocalDate hoje = LocalDate.now();
+        LocalDate periodoRecente = hoje.minusDays(30);
+        LocalDate periodoAnterior = hoje.minusDays(90);
+
+        return produtoRepository.findAll().stream()
+            .filter(produto -> {
+                List<PedidoItem> itens = pedidoItemRepository.findByProdutoId(produto.getId());
+                boolean teveAnterior = itens.stream()
+                    .map(PedidoItem::getPedido)
+                    .filter(pedido -> pedido.getDataEmissao() != null)
+                    .filter(pedido -> representanteId == null || (pedido.getRepresentante() != null && representanteId.equals(pedido.getRepresentante().getId())))
+                    .anyMatch(pedido -> !pedido.getDataEmissao().isBefore(periodoAnterior) && !pedido.getDataEmissao().isAfter(hoje));
+                boolean teveRecente = itens.stream()
+                    .map(PedidoItem::getPedido)
+                    .filter(pedido -> pedido.getDataEmissao() != null)
+                    .filter(pedido -> representanteId == null || (pedido.getRepresentante() != null && representanteId.equals(pedido.getRepresentante().getId())))
+                    .anyMatch(pedido -> !pedido.getDataEmissao().isBefore(periodoRecente) && !pedido.getDataEmissao().isAfter(hoje));
+                return teveAnterior && !teveRecente;
+            })
+            .toList();
+    }
 }
