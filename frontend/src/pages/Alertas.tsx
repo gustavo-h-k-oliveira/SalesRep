@@ -139,7 +139,7 @@ export default function AlertasPage() {
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm">
-              <h2 className="text-xl font-semibold text-slate-900">Clientes em destaque</h2>
+              <h2 className="text-xl font-semibold text-slate-900">Alertas em destaque</h2>
               {loading ? (
                 <p className="mt-4 text-slate-600">Carregando...</p>
               ) : error ? (

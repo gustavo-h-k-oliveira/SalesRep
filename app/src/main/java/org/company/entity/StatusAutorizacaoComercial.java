@@ -2,7 +2,7 @@ package org.company.entity;
 
 public enum StatusAutorizacaoComercial {
 
-    APROVADO,
+    AUTORIZADO,
     REJEITADO,
     AVALIANDO
 }

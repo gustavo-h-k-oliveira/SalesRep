@@ -18,62 +18,77 @@ export default function PedidosPage() {
   const [filterMode, setFilterMode] = useState<FilterMode>('TODOS')
 
   useEffect(() => {
-    loadPedidos(filterMode, inicio, fim)
+    async function loadPedidos() {
+      setLoading(true)
+      setError(null)
+
+      try {
+        let data: PedidoResponse[] = []
+
+        if (inicio && fim) {
+          data = await fetchPedidosByPeriodo(inicio, fim)
+        } else if (filterMode === 'FATURADOS') {
+          data = await fetchPedidosFaturados()
+        } else if (filterMode === 'NAO_FATURADOS') {
+          data = await fetchPedidosNaoFaturados()
+        } else {
+          data = await fetchPedidos()
+        }
+
+        if (inicio && fim && filterMode !== 'TODOS') {
+          data = data.filter((pedido) =>
+            filterMode === 'FATURADOS'
+              ? pedido.status === 'FATURADO'
+              : pedido.status !== 'FATURADO'
+          )
+        }
+
+        setPedidos(data)
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Erro ao carregar pedidos'
+        )
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadPedidos()
   }, [filterMode, inicio, fim])
 
-  async function loadPedidos(mode: FilterMode = 'TODOS', start = inicio, end = fim) {
-    setLoading(true)
-    setError(null)
-
-    try {
-      let data: PedidoResponse[] = []
-
-      if (start && end) {
-        data = await fetchPedidosByPeriodo(start, end)
-      } else if (mode === 'FATURADOS') {
-        data = await fetchPedidosFaturados()
-      } else if (mode === 'NAO_FATURADOS') {
-        data = await fetchPedidosNaoFaturados()
-      } else {
-        data = await fetchPedidos()
-      }
-
-      if (start && end && mode !== 'TODOS') {
-        data = data.filter((pedido) =>
-          mode === 'FATURADOS' ? pedido.status === 'FATURADO' : pedido.status !== 'FATURADO'
-        )
-      }
-
-      setPedidos(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar pedidos')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const totalPedidos = pedidos.length
+
   const valorTotal = useMemo(
     () => pedidos.reduce((sum, pedido) => sum + pedido.valorTotal, 0),
     [pedidos]
   )
-  const ticketMedio = totalPedidos > 0 ? valorTotal / totalPedidos : 0
-  const faturadosCount = pedidos.filter((pedido) => pedido.status === 'FATURADO').length
+
+  const ticketMedio =
+    totalPedidos > 0 ? valorTotal / totalPedidos : 0
+
+  const faturadosCount = pedidos.filter(
+    (pedido) => pedido.status === 'FATURADO'
+  ).length
+
   const naoFaturadosCount = totalPedidos - faturadosCount
 
   const formatCurrency = (value: number) =>
-    value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    value.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    })
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-'
     return new Date(dateString).toLocaleDateString('pt-BR')
   }
 
-  const handleReset = async () => {
+  const handleReset = () => {
     setInicio('')
     setFim('')
     setFilterMode('TODOS')
-    await loadPedidos('TODOS', '', '')
   }
 
   return (

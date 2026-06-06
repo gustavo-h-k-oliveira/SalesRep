@@ -67,11 +67,15 @@ public class ProdutoController {
     }
 
     @GetMapping("/criticos")
-    public List<String> listarProdutosCriticos() {
+    public List<ProdutoResponseDto> listarProdutosCriticos() {
         if (isRepresentante()) {
-            return produtoService.buscarProdutosCriticos(getLoggedRepresentanteId());
+            return produtoService.buscarProdutosCriticosProduto(getLoggedRepresentanteId()).stream()
+                .map(produtoDtoMapper::toProdutoResponseDto)
+                .toList();
         }
-        return produtoService.buscarProdutosCriticos();
+        return produtoService.buscarProdutosCriticosProduto().stream()
+            .map(produtoDtoMapper::toProdutoResponseDto)
+            .toList();
     }
 
     @PostMapping
