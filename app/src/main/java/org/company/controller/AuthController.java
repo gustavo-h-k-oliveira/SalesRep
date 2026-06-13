@@ -27,25 +27,41 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequest) {
-        String token = authService.authenticate(loginRequest);
-        LoginResponseDto response = new LoginResponseDto();
-        response.setToken(token);
-
-        var usuario = authService.getUsuarioPorNome(loginRequest.getNomeUsuario());
-        if (usuario != null && usuario.getRepresentante() != null) {
-            response.setRepresentanteId(usuario.getRepresentante().getId());
+        
+        try {
+            
+            System.out.println("=".repeat(20));
+            System.out.println("ENTROU NO LOGIN");
+            System.out.println("=".repeat(20));
+    
+            String token = authService.authenticate(loginRequest);
+    
+            System.out.println("=".repeat(20));
+            System.out.println("USUÁRIO AUTENTICADO");
+            System.out.println("=".repeat(20));
+    
+            LoginResponseDto response = new LoginResponseDto();
+            response.setToken(token);
+    
+            var usuario = authService.getUsuarioPorNome(loginRequest.getNomeUsuario());
+            if (usuario != null && usuario.getRepresentante() != null) {
+                response.setRepresentanteId(usuario.getRepresentante().getId());
+            }
+    
+            ResponseCookie cookie = ResponseCookie.from("AUTH_TOKEN", token)
+                    .httpOnly(true)
+                    .path("/")
+                    .maxAge(Duration.ofHours(8))
+                    .sameSite("Lax")
+                    .build();
+    
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
         }
-
-        ResponseCookie cookie = ResponseCookie.from("AUTH_TOKEN", token)
-                .httpOnly(true)
-                .path("/")
-                .maxAge(Duration.ofHours(8))
-                .sameSite("Lax")
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(response);
     }
 
     @PostMapping("/logout")
