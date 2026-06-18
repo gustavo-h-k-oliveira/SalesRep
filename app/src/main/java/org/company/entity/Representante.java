@@ -6,6 +6,7 @@ import lombok.Setter;
 import java.util.List;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -27,7 +28,7 @@ public class Representante {
 
     private @NotBlank String nome;
     
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @Valid
     @JoinColumn(name = "regiao_id")
     private @NotNull Regiao regiao;
