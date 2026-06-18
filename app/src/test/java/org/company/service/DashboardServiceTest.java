@@ -84,7 +84,7 @@ class DashboardServiceTest {
         when(produtoAnalytics.buscarProdutosComBaixaRecompra(1L)).thenReturn(List.of());
 
         Representante representante = new Representante();
-        representante.setNome("MARCELO DE CASTRO SILVA & CIA. LTDA.");
+        representante.setNome("James Bond");
         when(representanteService.encontrarPorId(1L)).thenReturn(representante);
 
         try (MockedStatic<SecurityUtils> utilities = mockStatic(SecurityUtils.class)) {
@@ -99,7 +99,7 @@ class DashboardServiceTest {
             assertEquals(0, dto.getAlertasPendentes());
             assertEquals(0, dto.getRegioesCriticas().size());
             assertEquals(0, dto.getProdutosCriticos().size());
-            assertEquals("MARCELO DE CASTRO SILVA & CIA. LTDA.", dto.getRepresentanteNome());
+            assertEquals("James Bond", dto.getRepresentanteNome());
         }
     }
 }
