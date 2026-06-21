@@ -43,6 +43,7 @@ public class RegiaoAnalytics {
                     && percentualQueda(anterior, atual).compareTo(BigDecimal.valueOf(20)) > 0;
             })
             .map(Regiao::getNome)
+            .distinct()
             .collect(Collectors.toList());
     }
 
