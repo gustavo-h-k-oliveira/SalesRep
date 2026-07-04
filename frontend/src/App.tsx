@@ -5,6 +5,7 @@ import ClientesPage from './pages/Clientes'
 import PedidosPage from './pages/Pedidos'
 import ProdutosPage from './pages/Produtos'
 import AlertasPage from './pages/Alertas'
+import ConfiguracoesPage from './pages/Configuracoes'
 import ProtectedRoute from './pages/ProtectedRoute'
 import AppLayout from './layouts/AppLayout'
 
@@ -25,6 +26,7 @@ function App() {
           <Route path="/pedidos" element={<PedidosPage />} />
           <Route path="/produtos" element={<ProdutosPage />} />
           <Route path="/alertas" element={<AlertasPage />} />
+          <Route path="/configuracoes" element={<ConfiguracoesPage />} />
         </Route>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
