@@ -18,6 +18,9 @@ import org.company.service.ClienteService;
 import org.company.service.RegiaoService;
 import org.company.service.RepresentanteService;
 import jakarta.validation.Valid;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,10 +45,9 @@ public class ClienteController {
     private final ClienteDtoMapper clienteDtoMapper;
 
     @GetMapping
-    public List<ClienteResponseDto> listarTodos() {
-        return clienteService.encontrarTodos().stream()
-            .map(clienteDtoMapper::toClienteResponseDto)
-            .toList();
+    public Page<ClienteResponseDto> listarTodos(Pageable pageable) {
+        return clienteService.encontrarTodos(pageable)
+            .map(clienteDtoMapper::toClienteResponseDto);
     }
 
     @GetMapping("/{id}")

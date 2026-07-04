@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/health", "/error").permitAll()
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/whatsapp/teste").authenticated()
                         .anyRequest().authenticated())

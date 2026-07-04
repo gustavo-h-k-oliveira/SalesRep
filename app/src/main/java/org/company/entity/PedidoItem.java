@@ -3,6 +3,7 @@ package org.company.entity;
 import java.math.BigDecimal;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;  
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,12 +26,12 @@ public class PedidoItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private @NonNull Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @Valid
     @JoinColumn(name = "pedido_id")
     private @NotNull Pedido pedido;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @Valid
     @JoinColumn(name = "produto_id")
     private @NotNull Produto produto;

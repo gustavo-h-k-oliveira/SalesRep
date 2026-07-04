@@ -6,6 +6,8 @@ import java.util.List;
 import org.company.entity.Cliente;
 import org.company.entity.StatusCliente;
 import org.company.repository.ClienteRepository;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -17,9 +19,9 @@ public class ClienteService {
     private final ClienteRepository clienteRepository;
 
     // Métodos de consulta
-    public List<Cliente> encontrarTodos() {
+    public Page<Cliente> encontrarTodos(Pageable paginacao) {
         atualizarStatusDeTodos();
-        return clienteRepository.findAll();
+        return clienteRepository.findAll(paginacao);
     }
 
     public Cliente encontrarPorId(Long id) {
