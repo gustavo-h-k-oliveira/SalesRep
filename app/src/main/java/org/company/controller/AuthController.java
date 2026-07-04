@@ -27,16 +27,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequest) {
-        
-        System.out.println("=".repeat(20));
-        System.out.println("ENTROU NO LOGIN");
-        System.out.println("=".repeat(20));
 
         String token = authService.authenticate(loginRequest);
-
-        System.out.println("=".repeat(20));
-        System.out.println("USUÁRIO AUTENTICADO");
-        System.out.println("=".repeat(20));
 
         LoginResponseDto response = new LoginResponseDto();
         response.setToken(token);

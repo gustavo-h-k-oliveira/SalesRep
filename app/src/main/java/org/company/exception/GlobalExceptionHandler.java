@@ -16,26 +16,23 @@ public class GlobalExceptionHandler {
             BadCredentialsException ex) {
 
         ResponseError response = new ResponseError(
-            ex.getMessage(),
-            HttpStatus.BAD_REQUEST,
-            LocalDateTime.now()
-        );
-        
-        return ResponseEntity.badRequest()
+                ex.getMessage(),
+                HttpStatus.UNAUTHORIZED,
+                LocalDateTime.now());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(response);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResponseError> trataException(Exception ex) {
-    
-            ResponseError response = new ResponseError(
+
+        ResponseError response = new ResponseError(
                 ex.getMessage(),
-                HttpStatus.BAD_REQUEST,
-                LocalDateTime.now()
-            );
-    
-            return ResponseEntity.badRequest()
-            .body(response);
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                LocalDateTime.now());
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
     }
 }
-

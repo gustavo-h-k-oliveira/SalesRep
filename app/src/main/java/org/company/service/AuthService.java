@@ -18,7 +18,6 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenService jwtTokenService;
 
-    // Verifique se o banco de dados é o correto (salesrep)
     public String authenticate(LoginRequestDto loginRequest) {
 
         var usuario = usuarioBancoDeDadosService
