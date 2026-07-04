@@ -7,7 +7,7 @@ import {
   ClipboardList,
   Settings,
   LogOut,
-  Droplet,
+} from 'lucide-react'
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { clearSession, logout } from '../services/authService'
@@ -63,12 +63,13 @@ export default function AppLayout() {
     <div className="min-h-screen bg-slate-50 lg:flex">
       <aside className="border-b border-slate-100 bg-white lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:border-b-0 lg:border-r">
         <div className="flex h-full flex-col p-5">
-          <div className="flex items-center gap-2 px-2 py-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600">
-              <Droplet className="h-5 w-5 text-white" fill="currentColor" />
-            </div>
-            <span className="text-2xl font-extrabold text-blue-800">sagra</span>
-          </div>
+          <div className="flex items-center px-2 py-2">
+              <img
+                  src="/sagra-logo.png"
+                  alt="Sagra"
+                  className="h-12 w-auto max-w-[180px] object-contain"
+               />
+              </div>
 
           <nav className="mt-6 flex flex-1 flex-col gap-1">
             {navigation.map((item) => {
