@@ -67,7 +67,7 @@ export default function AppLayout() {
               src="/sagra-logo.png"
               alt="Sagra"
               className="h-12 w-auto max-w-[180px] object-contain"
-            />
+              />
             </div>
 
           <nav className="mt-6 flex flex-1 flex-col gap-1">
