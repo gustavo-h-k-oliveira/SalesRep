@@ -28,7 +28,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ResponseError> trataException(Exception ex) {
 
         ResponseError response = new ResponseError(
-                ex.getMessage(),
+                "Erro interno no servidor",
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 LocalDateTime.now());
 
