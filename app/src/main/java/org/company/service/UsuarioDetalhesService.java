@@ -1,7 +1,5 @@
 package org.company.service;
 
-import java.util.Optional;
-
 import org.company.entity.StatusUsuario;
 import org.company.entity.Usuario;
 import org.springframework.security.core.userdetails.User;
@@ -20,9 +18,9 @@ public class UsuarioDetalhesService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<Usuario> usuarioOptional = usuarioBancoDeDadosService.buscarPorNomeUsuario(username);
 
-        Usuario usuario = usuarioOptional.orElseThrow(() ->
+        Usuario usuario = usuarioBancoDeDadosService.buscarPorNomeUsuario(username)
+            .orElseThrow(() ->
                 new UsernameNotFoundException("Usuário não encontrado: " + username));
 
         return User.withUsername(usuario.getNomeUsuario())

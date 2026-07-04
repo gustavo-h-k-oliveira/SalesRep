@@ -13,8 +13,16 @@ export async function login(request: LoginRequest): Promise<LoginResponse> {
   })
 
   if (!response.ok) {
-    const message = await response.text()
-    throw new Error(message || 'Falha ao autenticar')
+    let message = "Falha ao autenticar";
+
+    try {
+      const error = await response.json();
+      message = error.message ?? message;
+    } catch {
+      message = await response.text();
+    }
+
+    throw new Error(message);
   }
 
   return response.json()

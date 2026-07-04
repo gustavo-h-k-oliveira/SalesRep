@@ -15,7 +15,6 @@ public class UsuarioBancoDeDadosService {
     private final UsuarioRepository usuarioRepository;
 
     public Optional<Usuario> buscarPorNomeUsuario(String nomeUsuario) {
-
         return usuarioRepository.findByNomeUsuario(nomeUsuario);
     }
 }

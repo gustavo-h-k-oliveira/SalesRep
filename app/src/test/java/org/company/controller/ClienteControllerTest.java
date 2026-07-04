@@ -19,6 +19,7 @@ import org.company.entity.StatusRegiao;
 import org.company.entity.Uf;
 import org.company.mapper.ClienteDtoMapper;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import jakarta.validation.ConstraintViolation;
@@ -39,6 +40,7 @@ class ClienteControllerTest {
     }
 
     @Test
+    @DisplayName("Validação de erro da requisição com cliente vazio")
     void shouldFailValidationWhenClienteRequestDtoIsMissingNome() {
         ClienteRequestDto dto = new ClienteRequestDto();
         dto.setRegiaoId(1L);
@@ -53,6 +55,7 @@ class ClienteControllerTest {
     }
 
     @Test
+    @DisplayName("Validação de clientes sem os campos de entidades aninhadas")
     void shouldMapClienteToResponseDtoWithoutNestedEntityFields() throws NoSuchFieldException {
         Regiao regiao = new Regiao();
         regiao.setId(1L);

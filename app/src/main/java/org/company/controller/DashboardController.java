@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping({"/", "/dashboard"})
+@RequestMapping({"/dashboard"})
 @RequiredArgsConstructor
 public class DashboardController {
 

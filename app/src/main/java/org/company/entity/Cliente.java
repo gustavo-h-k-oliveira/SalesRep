@@ -7,6 +7,7 @@ import java.util.List;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.JoinColumn;
@@ -31,12 +32,12 @@ public class Cliente {
 
     private @NotBlank String nome;
     
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "regiao_id")
     @Valid
     private @NotNull Regiao regiao;
     
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "representante_id")
     @Valid
     private @NotNull Representante representante;

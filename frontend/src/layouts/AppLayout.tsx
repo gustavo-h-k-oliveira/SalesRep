@@ -27,7 +27,7 @@ export default function AppLayout() {
         <div className="flex h-full flex-col p-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-300">
-              SalesRep
+              Sagra Radar
             </p>
             <h1 className="mt-3 text-2xl font-semibold text-white">Painel comercial</h1>
           </div>

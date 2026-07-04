@@ -19,19 +19,27 @@ public class AuthService {
     private final JwtTokenService jwtTokenService;
 
     public String authenticate(LoginRequestDto loginRequest) {
-        var usuario = usuarioBancoDeDadosService.buscarPorNomeUsuario(loginRequest.getNomeUsuario())
-                .orElseThrow(() -> new BadCredentialsException("Nome de usuário ou senha inválidos."));
 
-        if (usuario.getStatus() != StatusUsuario.ATIVO) {
-            throw new BadCredentialsException("Usuário inativo.");
+        var usuario = usuarioBancoDeDadosService
+                .buscarPorNomeUsuario(loginRequest.getNomeUsuario())
+                .orElseThrow(() -> {
+                    return new BadCredentialsException("Nome de usuario ou senha invalidos.");
+                });
+
+        boolean senhaValida = passwordEncoder.matches(loginRequest.getSenha(), usuario.getSenha());
+
+        if (!senhaValida || usuario.getStatus() != StatusUsuario.ATIVO) {
+            throw new BadCredentialsException("Nome de usuario ou senha invalidos.");
         }
 
-        if (!passwordEncoder.matches(loginRequest.getSenha(), usuario.getSenha())) {
-            throw new BadCredentialsException("Nome de usuário ou senha inválidos.");
-        }
+        Long representanteId = usuario.getRepresentante() != null
+                ? usuario.getRepresentante().getId()
+                : null;
 
-        Long representanteId = usuario.getRepresentante() != null ? usuario.getRepresentante().getId() : null;
-        return jwtTokenService.generateToken(usuario.getNomeUsuario(), usuario.getPapel().name(), representanteId);
+        return jwtTokenService.generateToken(
+                usuario.getNomeUsuario(),
+                usuario.getPapel().name(),
+                representanteId);
     }
 
     public Usuario getUsuarioPorNome(String nomeUsuario) {
