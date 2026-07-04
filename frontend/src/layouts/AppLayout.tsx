@@ -8,7 +8,6 @@ import {
   Settings,
   LogOut,
 } from 'lucide-react'
-} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { clearSession, logout } from '../services/authService'
 import { fetchDashboard } from '../services/dashboardService'
