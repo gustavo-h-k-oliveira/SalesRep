@@ -1,123 +1,76 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { UserCheck, Clock, AlertCircle, TriangleAlert } from 'lucide-react'
 import { fetchDashboard } from '../services/dashboardService'
-import type { DashboardDto } from '../types/api'
+import { fetchClientesPrioritarios } from '../services/clienteService'
+import { fetchPedidos } from '../services/pedidoService'
+import StatCard from '../components/ui/StatCard'
+import PriorityList from '../components/dashboard/PriorityList'
+import AttentionTable from '../components/dashboard/AttentionTable'
+import RecentOrders from '../components/dashboard/RecentOrders'
+import type { DashboardDto, ClientePrioritarioDto, PedidoResponse } from '../types/api'
+import type { ClienteAtencao, PriorityItem } from '../types/dashboard'
+
+// Limiares (em dias) usados apenas no front-end para calcular quantos
+// clientes estão "quase inativos" / "críticos". Ajuste aqui ou substitua
+// pelos valores reais assim que o back-end expuser essas contagens prontas.
+const LIMIAR_QUASE_INATIVO_DIAS = 30
+const LIMIAR_INATIVO_DIAS = 45
+
+// Heurística temporária de "prazo para o gestor": dias restantes até uma
+// escalação hipotética em 60 dias sem compra. Troque por um campo real da
+// API (prazoGestor) quando existir.
+const LIMIAR_ESCALACAO_GESTOR_DIAS = 60
+
+function calcularPrazoGestor(diasSemCompra: number): string {
+  const restante = LIMIAR_ESCALACAO_GESTOR_DIAS - diasSemCompra
+  if (restante <= 0) return 'Vencido'
+  return `${restante} dias`
+}
+
+function contarPorFaixaDeDias(clientes: ClientePrioritarioDto[]) {
+  let quaseInativos = 0
+  let criticos = 0
+
+  for (const cliente of clientes) {
+    if (cliente.diasSemCompra >= LIMIAR_QUASE_INATIVO_DIAS && cliente.diasSemCompra < LIMIAR_INATIVO_DIAS) {
+      quaseInativos += 1
+    }
+    if (cliente.diasSemCompra >= LIMIAR_ESCALACAO_GESTOR_DIAS - 7) {
+      criticos += 1
+    }
+  }
+
+  return { quaseInativos, criticos }
+}
 
 export default function DashboardPage() {
+  const navigate = useNavigate()
   const [dashboard, setDashboard] = useState<DashboardDto | null>(null)
+  const [clientesPrioritarios, setClientesPrioritarios] = useState<ClientePrioritarioDto[]>([])
+  const [pedidos, setPedidos] = useState<PedidoResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function loadDashboard() {
+    async function loadAll() {
       try {
-        const data = await fetchDashboard()
-        setDashboard(data)
+        const [dashboardData, clientesData, pedidosData] = await Promise.all([
+          fetchDashboard(),
+          fetchClientesPrioritarios(),
+          fetchPedidos(),
+        ])
+        setDashboard(dashboardData)
+        setClientesPrioritarios(clientesData)
+        setPedidos(pedidosData)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erro ao carregar o dashboard')
+        setError(err instanceof Error ? err.message : 'Erro ao carregar a visão geral')
       } finally {
         setLoading(false)
       }
     }
 
-    loadDashboard()
+    loadAll()
   }, [])
 
-  const formatCurrency = (value: number) =>
-    value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-
-  return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-6xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold text-slate-900">Dashboard</h1>
-            <p className="mt-2 text-sm text-slate-600">
-              Bem-vindo{dashboard?.representanteNome ? `, ${dashboard.representanteNome}` : ''}! Você está autenticado.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-            <h2 className="text-xl font-semibold text-slate-900">Resumo</h2>
-            {loading ? (
-              <p className="mt-4 text-slate-600">Carregando dados do dashboard...</p>
-            ) : error ? (
-              <p className="mt-4 text-rose-600">{error}</p>
-            ) : dashboard ? (
-              <div className="mt-4 space-y-4">
-                <div className="rounded-3xl bg-white p-4 shadow-sm">
-                  <p className="text-sm text-slate-500">Faturamento total</p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-900">
-                    {formatCurrency(dashboard.faturamentoTotal)}
-                  </p>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-3xl bg-white p-4 shadow-sm">
-                    <p className="text-sm text-slate-500">Clientes ativos</p>
-                    <p className="mt-2 text-3xl font-semibold text-slate-900">{dashboard.clientesAtivos}</p>
-                  </div>
-                  <div className="rounded-3xl bg-white p-4 shadow-sm">
-                    <p className="text-sm text-slate-500">Clientes inativos</p>
-                    <p className="mt-2 text-3xl font-semibold text-slate-900">{dashboard.clientesInativos}</p>
-                  </div>
-                </div>
-
-                <div className="rounded-3xl bg-white p-4 shadow-sm">
-                  <p className="text-sm text-slate-500">Alertas pendentes</p>
-                  <p className="mt-2 text-3xl font-semibold text-slate-900">
-                    {dashboard.alertasPendentes}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <p className="mt-4 text-slate-600">Nenhum dado disponível.</p>
-            )}
-          </div>
-
-          <div className="space-y-6">
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-              <h2 className="text-xl font-semibold text-slate-900">Regiões críticas</h2>
-              {loading ? (
-                <p className="mt-4 text-slate-600">Carregando...</p>
-              ) : error ? (
-                <p className="mt-4 text-rose-600">{error}</p>
-              ) : dashboard?.regioesCriticas.length ? (
-                <ul className="mt-4 space-y-3">
-                  {dashboard.regioesCriticas.map((regiao) => (
-                    <li key={regiao} className="rounded-2xl bg-white p-4 text-slate-800 shadow-sm">
-                      {regiao}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-4 text-slate-600">Nenhuma região crítica.</p>
-              )}
-            </div>
-
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-              <h2 className="text-xl font-semibold text-slate-900">Produtos críticos</h2>
-              {loading ? (
-                <p className="mt-4 text-slate-600">Carregando...</p>
-              ) : error ? (
-                <p className="mt-4 text-rose-600">{error}</p>
-              ) : dashboard?.produtosCriticos.length ? (
-                <ul className="mt-4 space-y-3">
-                  {dashboard.produtosCriticos.map((produto) => (
-                    <li key={produto} className="rounded-2xl bg-white p-4 text-slate-800 shadow-sm">
-                      {produto}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-4 text-slate-600">Nenhum produto crítico.</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  )
-}
+  const { quaseInativos, criticos } =
