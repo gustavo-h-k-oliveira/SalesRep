@@ -13,7 +13,7 @@ public class HealthController {
     @GetMapping("/")
     public String home() {
 
-        logger.info("Endpoint '/' acessado.");
+        logger.debug("Endpoint '/' acessado.");
         return "A API do SalesRep está online! 🔥";
     }
 
