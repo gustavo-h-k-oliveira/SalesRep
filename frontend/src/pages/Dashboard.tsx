@@ -1,5 +1,3 @@
-Claro. Substitua **todo** o conteúdo de `frontend/src/pages/Dashboard.tsx` por este:
-
 ```tsx
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
