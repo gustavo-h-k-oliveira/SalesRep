@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 import org.company.entity.Cliente;
-import org.company.entity.Pedido;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -29,9 +28,9 @@ public class ClienteAnalytics {
         }
 
         BigDecimal total = cliente.getPedidos().stream()
-            .map(Pedido::getValorTotal)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
+            .map(pedido -> pedido.getValorTotal())
+            .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+            
         return total.divide(BigDecimal.valueOf(cliente.getPedidos().size()), 2, RoundingMode.HALF_UP);
     }
 
@@ -45,7 +44,7 @@ public class ClienteAnalytics {
         }
 
         return cliente.getPedidos().stream()
-            .map(Pedido::getValorTotal)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+            .map(pedido -> pedido.getValorTotal())
+            .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
     }
 }
