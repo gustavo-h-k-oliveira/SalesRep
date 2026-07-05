@@ -52,12 +52,12 @@ public class ProdutoAnalytics {
         private List<Produto> obterProdutosComBaixaRecompra(Long representanteId) {
                 LocalDate hoje = LocalDate.now();
 
-                // Período "anterior": de 90 até 31 dias atrás
+                // Período "anterior": de 90 até 46 dias atrás
                 LocalDate inicioPeriodoAnterior = hoje.minusDays(90);
-                LocalDate fimPeriodoAnterior = hoje.minusDays(31);
+                LocalDate fimPeriodoAnterior = hoje.minusDays(46);
 
-                // Período recente: últimos 30 dias
-                LocalDate inicioPeriodoRecente = hoje.minusDays(30);
+                // Período recente: últimos 45 dias
+                LocalDate inicioPeriodoRecente = hoje.minusDays(45);
 
                 return produtoRepository.findAll().stream()
                                 .filter(produto -> {
@@ -83,13 +83,13 @@ public class ProdutoAnalytics {
 
                                                 LocalDate data = pedido.getDataEmissao();
 
-                                                // Entre 90 e 31 dias atrás
+                                                // Entre 90 e 46 dias atrás
                                                 if (!data.isBefore(inicioPeriodoAnterior)
                                                                 && !data.isAfter(fimPeriodoAnterior)) {
                                                         teveAnterior = true;
                                                 }
 
-                                                // Últimos 30 dias
+                                                // Últimos 45 dias
                                                 if (!data.isBefore(inicioPeriodoRecente)
                                                                 && !data.isAfter(hoje)) {
                                                         teveRecente = true;
