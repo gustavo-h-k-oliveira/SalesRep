@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.company.entity.Pedido;
-import org.company.entity.Regiao;
 import org.company.repository.PedidoRepository;
 import org.company.repository.RegiaoRepository;
 import org.springframework.stereotype.Service;
@@ -36,32 +34,34 @@ public class RegiaoAnalytics {
         Map<Long, BigDecimal> faturamentoAnterior = faturamentoPorRegiao(anteriorInicio, anteriorFim, representanteId);
 
         return regiaoRepository.findAll().stream()
-            .filter(regiao -> {
-                BigDecimal atual = faturamentoAtual.getOrDefault(regiao.getId(), BigDecimal.ZERO);
-                BigDecimal anterior = faturamentoAnterior.getOrDefault(regiao.getId(), BigDecimal.ZERO);
-                return anterior.compareTo(BigDecimal.ZERO) > 0
-                    && percentualQueda(anterior, atual).compareTo(BigDecimal.valueOf(20)) > 0;
-            })
-            .map(Regiao::getNome)
-            .distinct()
-            .collect(Collectors.toList());
+                .filter(regiao -> {
+                    BigDecimal atual = faturamentoAtual.getOrDefault(regiao.getId(), BigDecimal.ZERO);
+                    BigDecimal anterior = faturamentoAnterior.getOrDefault(regiao.getId(), BigDecimal.ZERO);
+                    return anterior.compareTo(BigDecimal.ZERO) > 0
+                            && percentualQueda(anterior, atual).compareTo(BigDecimal.valueOf(20)) > 0;
+                })
+                .map(regiao -> regiao.getNome())
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     private Map<Long, BigDecimal> faturamentoPorRegiao(LocalDate inicio, LocalDate fim, Long representanteId) {
         return pedidoRepository.findAll().stream()
-            .filter(pedido -> pedido.getDataFaturamento() != null)
-            .filter(pedido -> !pedido.getDataFaturamento().isBefore(inicio) && !pedido.getDataFaturamento().isAfter(fim))
-            .filter(Pedido::estaFaturado)
-            .filter(pedido -> representanteId == null || (pedido.getRepresentante() != null && representanteId.equals(pedido.getRepresentante().getId())))
-            .collect(Collectors.groupingBy(
-                pedido -> pedido.getCliente().getRegiao().getId(),
-                Collectors.mapping(Pedido::getValorTotal, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
-            ));
+                .filter(pedido -> pedido.getDataFaturamento() != null)
+                .filter(pedido -> !pedido.getDataFaturamento().isBefore(inicio)
+                        && !pedido.getDataFaturamento().isAfter(fim))
+                .filter(pedido -> pedido.estaFaturado())
+                .filter(pedido -> representanteId == null || (pedido.getRepresentante() != null
+                        && representanteId.equals(pedido.getRepresentante().getId())))
+                .collect(Collectors.groupingBy(
+                        pedido -> pedido.getCliente().getRegiao().getId(),
+                        Collectors.mapping(pedido -> pedido.getValorTotal(),
+                                Collectors.reducing(BigDecimal.ZERO, (a, b) -> a.add(b)))));
     }
 
     private BigDecimal percentualQueda(BigDecimal anterior, BigDecimal atual) {
         return anterior.subtract(atual)
-            .multiply(BigDecimal.valueOf(100))
-            .divide(anterior, 2, RoundingMode.HALF_UP);
+                .multiply(BigDecimal.valueOf(100))
+                .divide(anterior, 2, RoundingMode.HALF_UP);
     }
 }

@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.company.entity.Pedido;
 import org.company.entity.PedidoItem;
 import org.company.entity.Produto;
 import org.company.repository.PedidoItemRepository;
@@ -16,78 +17,92 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProdutoAnalytics {
 
-    private final PedidoItemRepository pedidoItemRepository;
-    private final ProdutoRepository produtoRepository;
+        private final PedidoItemRepository pedidoItemRepository;
+        private final ProdutoRepository produtoRepository;
 
-    public BigDecimal calcularFaturamentoPorSku(Long produtoId) {
-        List<PedidoItem> itens = pedidoItemRepository.findByProdutoId(produtoId);
+        public BigDecimal calcularFaturamentoPorSku(Long produtoId) {
+                List<PedidoItem> itens = pedidoItemRepository.findByProdutoId(produtoId);
 
-        return itens.stream()
-                .map(item -> item.getSubTotal())
-                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
-    }
+                return itens.stream()
+                                .filter(item -> item.getPedido() != null && item.getPedido().estaFaturado())
+                                .map(item -> item.getSubTotal())
+                                .filter(subTotal -> subTotal != null)
+                                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+        }
 
-    public List<String> buscarProdutosComBaixaRecompra() {
-        return buscarProdutosComBaixaRecompra(null);
-    }
+        public List<String> buscarProdutosComBaixaRecompra() {
+                return buscarProdutosComBaixaRecompra(null);
+        }
 
-    public List<String> buscarProdutosComBaixaRecompra(Long representanteId) {
-        LocalDate hoje = LocalDate.now();
-        LocalDate periodoRecente = hoje.minusDays(30);
-        LocalDate periodoAnterior = hoje.minusDays(90);
+        // TODO: Passar regra para consulta JPQL
+        public List<String> buscarProdutosComBaixaRecompra(Long representanteId) {
+                return obterProdutosComBaixaRecompra(representanteId).stream()
+                                .map(produto -> produto.getDescricao())
+                                .toList();
+        }
 
-        // TODO: Ajustar a lógica para buscar os produtos com baixa recompra
-        return produtoRepository.findAll().stream()
-                .filter(produto -> {
-                    List<PedidoItem> itens = pedidoItemRepository.findByProdutoId(produto.getId());
-                    boolean teveAnterior = itens.stream()
-                            .map(item -> item.getPedido())
-                            .filter(pedido -> pedido.getDataEmissao() != null)
-                            .filter(pedido -> representanteId == null || (pedido.getRepresentante() != null
-                                    && representanteId.equals(pedido.getRepresentante().getId())))
-                            .anyMatch(pedido -> !pedido.getDataEmissao().isBefore(periodoAnterior)
-                                    && !pedido.getDataEmissao().isAfter(hoje));
-                    boolean teveRecente = itens.stream()
-                            .map(item -> item.getPedido())
-                            .filter(pedido -> pedido.getDataEmissao() != null)
-                            .filter(pedido -> representanteId == null || (pedido.getRepresentante() != null
-                                    && representanteId.equals(pedido.getRepresentante().getId())))
-                            .anyMatch(pedido -> !pedido.getDataEmissao().isBefore(periodoRecente)
-                                    && !pedido.getDataEmissao().isAfter(hoje));
-                    return teveAnterior && !teveRecente;
-                })
-                .map(produto -> produto.getDescricao())
-                .toList();
-    }
+        public List<Produto> buscarProdutosComBaixaRecompraProduto() {
+                return buscarProdutosComBaixaRecompraProduto(null);
+        }
 
-    public List<Produto> buscarProdutosComBaixaRecompraProduto() {
-        return buscarProdutosComBaixaRecompraProduto(null);
-    }
+        public List<Produto> buscarProdutosComBaixaRecompraProduto(Long representanteId) {
+                return obterProdutosComBaixaRecompra(representanteId);
+        }
 
-    public List<Produto> buscarProdutosComBaixaRecompraProduto(Long representanteId) {
-        LocalDate hoje = LocalDate.now();
-        LocalDate periodoRecente = hoje.minusDays(30);
-        LocalDate periodoAnterior = hoje.minusDays(90);
+        private List<Produto> obterProdutosComBaixaRecompra(Long representanteId) {
+                LocalDate hoje = LocalDate.now();
 
-        return produtoRepository.findAll().stream()
-                .filter(produto -> {
-                    List<PedidoItem> itens = pedidoItemRepository.findByProdutoId(produto.getId());
-                    boolean teveAnterior = itens.stream()
-                            .map(item -> item.getPedido())
-                            .filter(pedido -> pedido.getDataEmissao() != null)
-                            .filter(pedido -> representanteId == null || (pedido.getRepresentante() != null
-                                    && representanteId.equals(pedido.getRepresentante().getId())))
-                            .anyMatch(pedido -> !pedido.getDataEmissao().isBefore(periodoAnterior)
-                                    && !pedido.getDataEmissao().isAfter(hoje));
-                    boolean teveRecente = itens.stream()
-                            .map(item -> item.getPedido())
-                            .filter(pedido -> pedido.getDataEmissao() != null)
-                            .filter(pedido -> representanteId == null || (pedido.getRepresentante() != null
-                                    && representanteId.equals(pedido.getRepresentante().getId())))
-                            .anyMatch(pedido -> !pedido.getDataEmissao().isBefore(periodoRecente)
-                                    && !pedido.getDataEmissao().isAfter(hoje));
-                    return teveAnterior && !teveRecente;
-                })
-                .toList();
-    }
+                // Período "anterior": de 90 até 31 dias atrás
+                LocalDate inicioPeriodoAnterior = hoje.minusDays(90);
+                LocalDate fimPeriodoAnterior = hoje.minusDays(31);
+
+                // Período recente: últimos 30 dias
+                LocalDate inicioPeriodoRecente = hoje.minusDays(30);
+
+                return produtoRepository.findAll().stream()
+                                .filter(produto -> {
+                                        List<PedidoItem> itens = pedidoItemRepository.findByProdutoId(produto.getId());
+
+                                        boolean teveAnterior = false;
+                                        boolean teveRecente = false;
+
+                                        for (PedidoItem item : itens) {
+                                                Pedido pedido = item.getPedido();
+
+                                                if (pedido == null || pedido.getDataEmissao() == null) {
+                                                        continue;
+                                                }
+
+                                                if (representanteId != null &&
+                                                                (pedido.getRepresentante() == null ||
+                                                                                !representanteId.equals(pedido
+                                                                                                .getRepresentante()
+                                                                                                .getId()))) {
+                                                        continue;
+                                                }
+
+                                                LocalDate data = pedido.getDataEmissao();
+
+                                                // Entre 90 e 31 dias atrás
+                                                if (!data.isBefore(inicioPeriodoAnterior)
+                                                                && !data.isAfter(fimPeriodoAnterior)) {
+                                                        teveAnterior = true;
+                                                }
+
+                                                // Últimos 30 dias
+                                                if (!data.isBefore(inicioPeriodoRecente)
+                                                                && !data.isAfter(hoje)) {
+                                                        teveRecente = true;
+                                                }
+
+                                                // Não há motivo para continuar
+                                                if (teveAnterior && teveRecente) {
+                                                        break;
+                                                }
+                                        }
+
+                                        return teveAnterior && !teveRecente;
+                                })
+                                .toList();
+        }
 }

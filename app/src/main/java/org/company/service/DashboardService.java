@@ -6,7 +6,6 @@ import java.util.List;
 import org.company.analytics.ProdutoAnalytics;
 import org.company.analytics.RegiaoAnalytics;
 import org.company.dto.DashboardDto;
-import org.company.entity.Pedido;
 import org.company.entity.Representante;
 import org.company.entity.StatusCliente;
 import org.company.entity.StatusPedido;
@@ -26,11 +25,11 @@ public class DashboardService {
     private final ClienteRepository clienteRepository;
 
     private final ClienteService clienteService;
-    
+
     private final AlertaService alertaService;
-    
+
     private final RegiaoAnalytics regiaoAnalytics;
-    
+
     private final ProdutoAnalytics produtoAnalytics;
 
     private final RepresentanteService representanteService;
@@ -57,19 +56,22 @@ public class DashboardService {
                 produtosCriticos = List.of();
                 alertas = List.of();
             } else {
-                faturamentoTotal = pedidoRepository.findByRepresentanteIdAndStatus(representanteId, StatusPedido.FATURADO).stream()
-                    .map(Pedido::getValorTotal)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-                clientesAtivos = clienteRepository.countByRepresentanteIdAndStatus(representanteId, StatusCliente.ATIVO);
-                clientesInativos = clienteRepository.countByRepresentanteIdAndStatus(representanteId, StatusCliente.INATIVO);
+                faturamentoTotal = pedidoRepository
+                        .findByRepresentanteIdAndStatus(representanteId, StatusPedido.FATURADO).stream()
+                        .map(pedido -> pedido.getValorTotal())
+                        .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+                clientesAtivos = clienteRepository.countByRepresentanteIdAndStatus(representanteId,
+                        StatusCliente.ATIVO);
+                clientesInativos = clienteRepository.countByRepresentanteIdAndStatus(representanteId,
+                        StatusCliente.INATIVO);
                 regioesCriticas = regiaoAnalytics.buscarRegioesCriticas(representanteId);
                 produtosCriticos = produtoAnalytics.buscarProdutosComBaixaRecompra(representanteId);
                 alertas = alertaService.buscarAlertas(representanteId);
             }
         } else {
             faturamentoTotal = pedidoRepository.findByStatus(StatusPedido.FATURADO).stream()
-                .map(Pedido::getValorTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    .map(pedido -> pedido.getValorTotal())
+                    .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
             clientesAtivos = clienteRepository.countByStatus(StatusCliente.ATIVO);
             clientesInativos = clienteRepository.countByStatus(StatusCliente.INATIVO);
             regioesCriticas = regiaoAnalytics.buscarRegioesCriticas();
@@ -84,13 +86,12 @@ public class DashboardService {
         }
 
         return new DashboardDto(
-            faturamentoTotal,
-            clientesAtivos,
-            clientesInativos,
-            alertas.size(),
-            regioesCriticas,
-            produtosCriticos,
-            representanteNome
-        );
+                faturamentoTotal,
+                clientesAtivos,
+                clientesInativos,
+                alertas.size(),
+                regioesCriticas,
+                produtosCriticos,
+                representanteNome);
     }
 }
