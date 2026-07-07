@@ -8,9 +8,11 @@ import org.company.dto.ProdutoResponseDto;
 import org.company.entity.Produto;
 import org.company.mapper.ProdutoDtoMapper;
 import org.company.security.SecurityUtils;
+import org.company.security.UsuarioPrincipal;
 import org.company.service.ProdutoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,43 +41,43 @@ public class ProdutoController {
     }
 
     @GetMapping
-    public List<ProdutoResponseDto> listarTodos() {
-        if (isRepresentante()) {
-            return produtoService.encontrarPorRepresentante(getLoggedRepresentanteId()).stream()
-                .map(produtoDtoMapper::toProdutoResponseDto)
-                .toList();
+    public List<ProdutoResponseDto> listarTodos(@AuthenticationPrincipal UsuarioPrincipal principal) {
+        if (principal.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_REPRESENTANTE"))) {
+            return produtoService.encontrarPorRepresentante(principal.getRepresentanteId()).stream()
+                    .map(produtoDtoMapper::toProdutoResponseDto)
+                    .toList();
         }
         return produtoService.encontrarTodos().stream()
-            .map(produtoDtoMapper::toProdutoResponseDto)
-            .toList();
+                .map(produtoDtoMapper::toProdutoResponseDto)
+                .toList();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProdutoResponseDto> obterPorId(@PathVariable Long id) {
         return Optional.ofNullable(produtoService.encontrarPorId(id))
-            .map(produtoDtoMapper::toProdutoResponseDto)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+                .map(produtoDtoMapper::toProdutoResponseDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/sku/{sku}")
     public ResponseEntity<ProdutoResponseDto> obterPorSku(@PathVariable String sku) {
         return Optional.ofNullable(produtoService.encontrarPorSku(sku))
-            .map(produtoDtoMapper::toProdutoResponseDto)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+                .map(produtoDtoMapper::toProdutoResponseDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/criticos")
     public List<ProdutoResponseDto> listarProdutosCriticos() {
         if (isRepresentante()) {
             return produtoService.buscarProdutosCriticosProduto(getLoggedRepresentanteId()).stream()
-                .map(produtoDtoMapper::toProdutoResponseDto)
-                .toList();
+                    .map(produtoDtoMapper::toProdutoResponseDto)
+                    .toList();
         }
         return produtoService.buscarProdutosCriticosProduto().stream()
-            .map(produtoDtoMapper::toProdutoResponseDto)
-            .toList();
+                .map(produtoDtoMapper::toProdutoResponseDto)
+                .toList();
     }
 
     @PostMapping
@@ -85,7 +87,8 @@ public class ProdutoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProdutoResponseDto> atualizar(@PathVariable Long id, @Valid @RequestBody ProdutoRequestDto produtoDto) {
+    public ResponseEntity<ProdutoResponseDto> atualizar(@PathVariable Long id,
+            @Valid @RequestBody ProdutoRequestDto produtoDto) {
         Produto existente = produtoService.encontrarPorId(id);
         if (existente == null) {
             return ResponseEntity.notFound().build();

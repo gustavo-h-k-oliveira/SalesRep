@@ -3,9 +3,9 @@ package org.company.config;
 import java.util.List;
 
 import org.company.security.JwtAuthenticationFilter;
-// import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -19,16 +19,17 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     // private final String whatsappApiUser;
     // private final String whatsappApiPassword;
 
     // public SecurityConfig(
-    //         @Value("${whatsapp.api.user:admin}") String whatsappApiUser,
-    //         @Value("${whatsapp.api.password:admin}") String whatsappApiPassword) {
-    //     this.whatsappApiUser = whatsappApiUser;
-    //     this.whatsappApiPassword = whatsappApiPassword;
+    // @Value("${whatsapp.api.user:admin}") String whatsappApiUser,
+    // @Value("${whatsapp.api.password:admin}") String whatsappApiPassword) {
+    // this.whatsappApiUser = whatsappApiUser;
+    // this.whatsappApiPassword = whatsappApiPassword;
     // }
 
     @Bean

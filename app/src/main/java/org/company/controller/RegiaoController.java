@@ -15,6 +15,7 @@ import org.company.mapper.RepresentanteDtoMapper;
 import org.company.service.RegiaoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,47 +40,50 @@ public class RegiaoController {
     @GetMapping
     public List<RegiaoResponseDto> listarTodos() {
         return regiaoService.encontrarTodos().stream()
-            .map(regiaoDtoMapper::toRegiaoResponseDto)
-            .toList();
+                .map(regiaoDtoMapper::toRegiaoResponseDto)
+                .toList();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<RegiaoResponseDto> obterPorId(@PathVariable Long id) {
         return Optional.ofNullable(regiaoService.encontrarPorId(id))
-            .map(regiaoDtoMapper::toRegiaoResponseDto)
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+                .map(regiaoDtoMapper::toRegiaoResponseDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/uf/{uf}")
     public List<RegiaoResponseDto> listarPorUf(@PathVariable Uf uf) {
         return regiaoService.encontrarPorUf(uf).stream()
-            .map(regiaoDtoMapper::toRegiaoResponseDto)
-            .toList();
+                .map(regiaoDtoMapper::toRegiaoResponseDto)
+                .toList();
     }
 
     @GetMapping("/{id}/clientes")
     public List<ClienteResponseDto> listarClientes(@PathVariable Long id) {
         return regiaoService.encontrarClientesPorRegiao(id).stream()
-            .map(clienteDtoMapper::toClienteResponseDto)
-            .toList();
+                .map(clienteDtoMapper::toClienteResponseDto)
+                .toList();
     }
 
     @GetMapping("/{id}/representantes")
     public List<RepresentanteResponseDto> listarRepresentantes(@PathVariable Long id) {
         return regiaoService.encontrarRepresentantesPorRegiao(id).stream()
-            .map(representanteDtoMapper::toRepresentanteResponseDto)
-            .toList();
+                .map(representanteDtoMapper::toRepresentanteResponseDto)
+                .toList();
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('GESTOR')")
     public ResponseEntity<RegiaoResponseDto> criar(@Valid @RequestBody RegiaoRequestDto regiaoDto) {
         Regiao salvo = regiaoService.salvar(construirRegiao(regiaoDto));
         return ResponseEntity.ok(regiaoDtoMapper.toRegiaoResponseDto(salvo));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<RegiaoResponseDto> atualizar(@PathVariable Long id, @Valid @RequestBody RegiaoRequestDto regiaoDto) {
+    @PreAuthorize("hasRole('GESTOR')")
+    public ResponseEntity<RegiaoResponseDto> atualizar(@PathVariable Long id,
+            @Valid @RequestBody RegiaoRequestDto regiaoDto) {
         Regiao existente = regiaoService.encontrarPorId(id);
         if (existente == null) {
             return ResponseEntity.notFound().build();
@@ -106,6 +110,7 @@ public class RegiaoController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('GESTOR')")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
         regiaoService.deletar(id);
         return ResponseEntity.noContent().build();
