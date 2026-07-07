@@ -1,4 +1,5 @@
 import type { LoginRequest, LoginResponse } from '../types/api'
+import { apiFetch } from './api'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 
@@ -29,9 +30,8 @@ export async function login(request: LoginRequest): Promise<LoginResponse> {
 }
 
 export async function logout(): Promise<void> {
-  await fetch(`${API_BASE}/auth/logout`, {
+  await apiFetch('/auth/logout', {
     method: 'POST',
-    credentials: 'include',
   })
 }
 
