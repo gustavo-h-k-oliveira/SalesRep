@@ -4,10 +4,21 @@ import type {
   ClienteRequest,
   ClientePerfilDto,
   ClientePrioritarioDto,
+  PageResponse,
 } from '../types/api'
 
 export async function fetchClientes(): Promise<ClienteResponse[]> {
-  return apiFetch<ClienteResponse[]>('/clientes')
+  const page = await apiFetch<PageResponse<ClienteResponse>>('/clientes?page=0&size=100')
+  return page.content
+}
+
+export async function fetchClientesPage(page = 0, size = 20): Promise<PageResponse<ClienteResponse>> {
+  const query = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+  }).toString()
+
+  return apiFetch<PageResponse<ClienteResponse>>(`/clientes?${query}`)
 }
 
 export async function fetchClienteById(id: number): Promise<ClienteResponse> {
