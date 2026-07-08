@@ -1,61 +1,81 @@
 import { useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  AlertTriangle,
-  ArrowUp,
-  BarChart3,
-  Bell,
-  Clock,
-  Eye,
-  UserCheck,
-} from 'lucide-react'
 import { fetchDashboard } from '../services/dashboardService'
 import { fetchClientesPrioritarios } from '../services/clienteService'
 import { fetchPedidos } from '../services/pedidoService'
 import type { DashboardDto, ClientePrioritarioDto, PedidoResponse } from '../types/api'
 
-const LIMIAR_QUASE_INATIVO_DIAS = 30
+const LIMIAR_ATENCAO_DIAS = 30
 const LIMIAR_INATIVO_DIAS = 45
-const LIMIAR_GESTOR_DIAS = 60
+
+interface VendaMensal {
+  label: string
+  total: number
+}
+
+interface AlertaComercial {
+  title: string
+  description: string
+  tone: 'red' | 'amber' | 'blue'
+}
 
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL',
+    maximumFractionDigits: 0,
   })
 }
 
-function prazoGestor(diasSemCompra: number) {
-  const diasRestantes = LIMIAR_GESTOR_DIAS - diasSemCompra
-  return diasRestantes <= 0 ? 'Vencido' : `${diasRestantes} dias`
+function formatMonth(date: Date) {
+  const label = new Intl.DateTimeFormat('pt-BR', { month: 'short' })
+    .format(date)
+    .replace('.', '')
+
+  return label.charAt(0).toUpperCase() + label.slice(1)
 }
 
-function statusCliente(cliente: ClientePrioritarioDto) {
-  if (cliente.diasSemCompra >= LIMIAR_GESTOR_DIAS - 7) return 'Crítico'
-  if (cliente.diasSemCompra >= LIMIAR_INATIVO_DIAS) return 'Inativo'
-  if (cliente.diasSemCompra >= LIMIAR_QUASE_INATIVO_DIAS) return 'Quase inativo'
-  return cliente.status
+function getPotencial(cliente: ClientePrioritarioDto) {
+  if (cliente.score >= 80 || cliente.ticketMedio >= 4000) return 'Alto'
+  if (cliente.score >= 50 || cliente.ticketMedio >= 1500) return 'Médio'
+  return 'Baixo'
 }
 
-function statusClienteClasses(status: string) {
-  if (status === 'Crítico') return 'bg-red-50 text-red-600'
-  if (status === 'Inativo') return 'bg-orange-50 text-orange-600'
-  if (status === 'Quase inativo') return 'bg-amber-50 text-amber-600'
-  return 'bg-emerald-50 text-emerald-600'
-}
-
-function statusPedidoClasses(status: string) {
-  if (status === 'FATURADO') return 'bg-emerald-50 text-emerald-600'
-  if (status === 'ENVIADO') return 'bg-green-50 text-green-600'
-  if (status === 'EM_ANALISE' || status === 'EM ANÁLISE') return 'bg-amber-50 text-amber-600'
+function getPotencialClass(potencial: string) {
+  if (potencial === 'Alto') return 'bg-emerald-50 text-emerald-700'
+  if (potencial === 'Médio') return 'bg-amber-50 text-amber-700'
   return 'bg-slate-100 text-slate-600'
 }
 
-function statusPedidoLabel(status: string) {
-  if (status === 'FATURADO') return 'Faturado'
-  if (status === 'ENVIADO') return 'Enviado'
-  if (status === 'EM_ANALISE') return 'Em análise'
-  return status
+function getPrioridadeTone(cliente: ClientePrioritarioDto) {
+  if (cliente.diasSemCompra >= LIMIAR_INATIVO_DIAS) return 'red'
+  if (cliente.diasSemCompra >= LIMIAR_ATENCAO_DIAS) return 'amber'
+  return 'green'
+}
+
+function getPrioridadeLabel(cliente: ClientePrioritarioDto) {
+  if (cliente.diasSemCompra >= LIMIAR_INATIVO_DIAS) return 'Reativar cliente'
+  if (cliente.diasSemCompra >= LIMIAR_ATENCAO_DIAS) return 'Prevenir inatividade'
+  return 'Explorar potencial'
+}
+
+function getVendasMensais(pedidos: PedidoResponse[]): VendaMensal[] {
+  const meses = new Map<string, VendaMensal>()
+
+  for (const pedido of pedidos) {
+    const date = new Date(pedido.dataEmissao)
+    if (Number.isNaN(date.getTime())) continue
+
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+    const current = meses.get(key) ?? { label: formatMonth(date), total: 0 }
+    meses.set(key, { ...current, total: current.total + pedido.valorTotal })
+  }
+
+  return [...meses.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-4)
+    .map(([, value]) => value)
 }
 
 export default function DashboardPage() {
@@ -88,347 +108,392 @@ export default function DashboardPage() {
     loadAll()
   }, [])
 
-  const clientesQuaseInativos = useMemo(
-    () =>
-      clientesPrioritarios.filter(
-        (cliente) =>
-          cliente.diasSemCompra >= LIMIAR_QUASE_INATIVO_DIAS &&
-          cliente.diasSemCompra < LIMIAR_INATIVO_DIAS
-      ).length,
+  const clientesSemCompra30 = useMemo(
+    () => clientesPrioritarios.filter((cliente) => cliente.diasSemCompra >= LIMIAR_ATENCAO_DIAS),
     [clientesPrioritarios]
   )
 
-  const clientesCriticos = useMemo(
+  const prioridades = useMemo(
     () =>
-      clientesPrioritarios.filter(
-        (cliente) => cliente.diasSemCompra >= LIMIAR_GESTOR_DIAS - 7
-      ).length,
+      [...clientesPrioritarios]
+        .sort((a, b) => b.diasSemCompra - a.diasSemCompra || b.score - a.score)
+        .slice(0, 5),
     [clientesPrioritarios]
   )
 
-  const clientesAtencao = useMemo(
+  const rankingClientes = useMemo(
     () =>
-      clientesPrioritarios
-        .filter((cliente) => cliente.diasSemCompra >= LIMIAR_QUASE_INATIVO_DIAS)
-        .sort((a, b) => b.diasSemCompra - a.diasSemCompra)
-        .slice(0, 3),
+      [...clientesPrioritarios]
+        .sort((a, b) => b.score - a.score || b.ticketMedio - a.ticketMedio)
+        .slice(0, 6),
     [clientesPrioritarios]
   )
 
-  const pedidosRecentes = useMemo(() => pedidos.slice(0, 3), [pedidos])
+  const vendasMensais = useMemo(() => getVendasMensais(pedidos), [pedidos])
+
+  const potencialRecuperacao = useMemo(
+    () => clientesSemCompra30.reduce((total, cliente) => total + cliente.ticketMedio, 0),
+    [clientesSemCompra30]
+  )
+
+  const alertasComerciais = useMemo<AlertaComercial[]>(() => {
+    if (!dashboard) return []
+
+    const alertas: AlertaComercial[] = []
+
+    if (dashboard.clientesInativos > 0) {
+      alertas.push({
+        title: `${dashboard.clientesInativos} clientes inativos`,
+        description: 'Clientes passaram de 45 dias sem compra e precisam de contato.',
+        tone: 'red',
+      })
+    }
+
+    if (dashboard.regioesCriticas.length > 0) {
+      alertas.push({
+        title: 'Regiões críticas',
+        description: `${dashboard.regioesCriticas.slice(0, 2).join(', ')} exigem acompanhamento comercial.`,
+        tone: 'amber',
+      })
+    }
+
+    if (dashboard.produtosCriticos.length > 0) {
+      alertas.push({
+        title: 'Produtos com baixa recompra',
+        description: `${dashboard.produtosCriticos.slice(0, 2).join(', ')} aparecem como ponto de atenção.`,
+        tone: 'blue',
+      })
+    }
+
+    if (alertas.length === 0) {
+      alertas.push({
+        title: 'Carteira sem alertas críticos',
+        description: 'Não há mudanças relevantes exigindo ação imediata agora.',
+        tone: 'blue',
+      })
+    }
+
+    return alertas
+  }, [dashboard])
+
+  const principalRegiao = dashboard?.regioesCriticas[0] ?? 'sua carteira'
+  const principalProduto = dashboard?.produtosCriticos[0] ?? 'produtos recorrentes'
 
   return (
     <div className="space-y-6">
-      <section className="rounded-sm bg-slate-50 px-2 py-1">
-        <div className="mb-6">
-          <h1 className="m-0 text-4xl font-extrabold tracking-normal text-slate-950">
-            Visão Geral
-          </h1>
-          <p className="mt-2 text-base text-slate-500">
-            Prioridades da sua carteira comercial hoje
-          </p>
-        </div>
+      <header>
+        <h1 className="m-0 text-3xl font-extrabold tracking-normal text-slate-950 sm:text-4xl">
+          Visão Geral
+        </h1>
+        <p className="mt-2 text-base text-slate-500">
+          Recomendações para priorizar sua carteira comercial hoje
+        </p>
+      </header>
 
-        {loading ? (
-          <div className="rounded-lg border border-slate-100 bg-white p-6 text-slate-500 shadow-sm">
-            Carregando visão geral...
-          </div>
-        ) : error ? (
-          <div className="rounded-lg border border-red-100 bg-white p-6 text-red-600 shadow-sm">
-            {error}
-          </div>
-        ) : dashboard ? (
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            <MetricCard
+      {loading ? (
+        <StateCard message="Carregando visão geral..." />
+      ) : error ? (
+        <StateCard message={error} tone="error" />
+      ) : dashboard ? (
+        <>
+          <section className="rounded-2xl border border-sky-100 bg-sky-50 p-6">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-wide text-sky-700">
+                  Resumo do dia
+                </p>
+                <h2 className="mt-2 text-2xl font-extrabold tracking-normal text-slate-950">
+                  Comece pelos clientes com maior risco de perda
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/clientes')}
+                className="rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-sky-700"
+              >
+                Ver clientes
+              </button>
+            </div>
+
+            <ul className="mt-5 grid gap-3 text-sm text-slate-700 lg:grid-cols-2">
+              <SummaryItem>
+                Há <strong>{clientesSemCompra30.length} clientes</strong> sem compras há mais de 30 dias.
+              </SummaryItem>
+              <SummaryItem>
+                <strong>{principalRegiao}</strong> concentra atenção comercial neste momento.
+              </SummaryItem>
+              <SummaryItem>
+                <strong>{principalProduto}</strong> aparece como oportunidade de recompra.
+              </SummaryItem>
+              <SummaryItem>
+                Recuperar esses clientes representa cerca de <strong>{formatCurrency(potencialRecuperacao)}</strong> em potencial.
+              </SummaryItem>
+            </ul>
+          </section>
+
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <KpiCard
+              title="Faturamento do mês"
+              value={formatCurrency(dashboard.faturamentoTotal)}
+              subtitle="pedidos faturados"
+              tone="blue"
+            />
+            <KpiCard
               title="Clientes ativos"
               value={dashboard.clientesAtivos}
               subtitle="compraram recentemente"
-              icon={UserCheck}
-              color="green"
+              tone="green"
             />
-            <MetricCard
-              title="Quase inativos"
-              value={clientesQuaseInativos}
-              subtitle="próximos de 45 dias"
-              icon={Clock}
-              color="amber"
-            />
-            <MetricCard
-              title="Inativos"
+            <KpiCard
+              title="Clientes inativos"
               value={dashboard.clientesInativos}
               subtitle="45+ dias sem compra"
-              icon={AlertTriangle}
-              color="orange"
+              tone="orange"
             />
-            <MetricCard
-              title="Críticos"
-              value={clientesCriticos}
-              subtitle="próximos do gestor"
-              icon={AlertTriangle}
-              color="red"
+            <KpiCard
+              title="Oportunidades"
+              value={dashboard.alertasPendentes}
+              subtitle="ações comerciais abertas"
+              tone="purple"
             />
-          </div>
-        ) : null}
-      </section>
+          </section>
 
-      {!loading && !error && dashboard && (
-        <>
-          <section className="rounded-lg border border-slate-100 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-xl font-bold tracking-normal text-slate-950">
-              Prioridades de hoje
-            </h2>
+          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-4">
+              <p className="text-sm font-bold uppercase tracking-wide text-sky-600">Prioridades</p>
+              <h2 className="mt-1 text-xl font-bold tracking-normal text-slate-950">
+                Clientes que precisam de atenção
+              </h2>
+            </div>
 
-            <div className="space-y-2">
-              <PriorityRow
-                icon={ArrowUp}
-                level="Alta"
-                description={`${clientesCriticos} clientes faltam menos de 7 dias para ir ao gestor`}
-                actionLabel="Ver agora"
-                color="red"
-                onClick={() => navigate('/clientes')}
-              />
-              <PriorityRow
-                icon={BarChart3}
-                level="Média"
-                description={`${dashboard.clientesInativos} clientes estão inativos há mais de 45 dias`}
-                actionLabel="Ver inativos"
-                color="orange"
-                onClick={() => navigate('/clientes')}
-              />
-              <PriorityRow
-                icon={Bell}
-                level="Atenção"
-                description={`${clientesQuaseInativos} clientes estão próximos de virar inativos`}
-                actionLabel="Ver clientes"
-                color="amber"
-                onClick={() => navigate('/clientes')}
-              />
+            <div className="space-y-3">
+              {prioridades.length ? (
+                prioridades.map((cliente) => (
+                  <PriorityItem
+                    key={cliente.id}
+                    cliente={cliente}
+                    onClick={() => navigate('/clientes')}
+                  />
+                ))
+              ) : (
+                <p className="rounded-xl border border-slate-200 p-4 text-sm text-slate-500">
+                  Nenhuma prioridade encontrada para hoje.
+                </p>
+              )}
             </div>
           </section>
 
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,1fr)]">
-            <section className="rounded-lg border border-slate-100 bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-xl font-bold tracking-normal text-slate-950">
-                Clientes que exigem atenção
-              </h2>
+          <section className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
+            <SalesChart data={vendasMensais} />
+            <CommercialAlerts alerts={alertasComerciais} />
+          </section>
 
-              <div className="overflow-x-auto rounded-lg border border-slate-100">
-                <table className="min-w-full text-left text-sm">
-                  <thead className="bg-slate-50 text-slate-950">
-                    <tr>
-                      <th className="px-4 py-3 font-semibold">Cliente</th>
-                      <th className="px-4 py-3 font-semibold">Cidade/UF</th>
-                      <th className="px-4 py-3 font-semibold">Dias sem compra</th>
-                      <th className="px-4 py-3 font-semibold">Status</th>
-                      <th className="px-4 py-3 font-semibold">Prazo gestor</th>
-                      <th className="px-4 py-3 font-semibold">Ação</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 bg-white text-slate-700">
-                    {clientesAtencao.length ? (
-                      clientesAtencao.map((cliente) => {
-                        const status = statusCliente(cliente)
-
-                        return (
-                          <tr key={cliente.id}>
-                            <td className="px-4 py-4 font-medium text-slate-800">
-                              {cliente.nome}
-                            </td>
-                            <td className="px-4 py-4">-</td>
-                            <td className="px-4 py-4">{cliente.diasSemCompra} dias</td>
-                            <td className="px-4 py-4">
-                              <span
-                                className={`rounded-md px-3 py-1 text-xs font-bold ${statusClienteClasses(status)}`}
-                              >
-                                {status}
-                              </span>
-                            </td>
-                            <td className="px-4 py-4 font-bold text-orange-500">
-                              {prazoGestor(cliente.diasSemCompra)}
-                            </td>
-                            <td className="px-4 py-4">
-                              <button
-                                type="button"
-                                onClick={() => navigate('/clientes')}
-                                className="inline-flex items-center gap-2 rounded-md border border-blue-200 px-3 py-1.5 text-sm font-bold text-blue-600 transition hover:bg-blue-50"
-                              >
-                                <Eye className="h-4 w-4" />
-                                Ver cliente
-                              </button>
-                            </td>
-                          </tr>
-                        )
-                      })
-                    ) : (
-                      <tr>
-                        <td className="px-4 py-4 text-slate-500" colSpan={6}>
-                          Nenhum cliente exigindo atenção no momento.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-xl font-bold tracking-normal text-slate-950">
+                  Ranking de clientes prioritários
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Ordenado por potencial e risco de ficar sem recompra.
+                </p>
               </div>
-            </section>
-
-            <section className="rounded-lg border border-slate-100 bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-xl font-bold tracking-normal text-slate-950">
-                Últimos pedidos
-              </h2>
-
-              <div className="overflow-hidden rounded-lg border border-slate-100">
-                {pedidosRecentes.length ? (
-                  pedidosRecentes.map((pedido) => (
-                    <div
-                      key={pedido.id}
-                      className="grid grid-cols-[90px_1fr_auto_auto] items-center gap-4 border-b border-slate-100 px-4 py-3 last:border-b-0"
-                    >
-                      <span className="font-bold text-blue-600">
-                        #{String(pedido.id).padStart(6, '0')}
-                      </span>
-                      <span className="truncate text-slate-700">{pedido.clienteNome}</span>
-                      <span className="font-medium text-slate-800">
-                        {formatCurrency(pedido.valorTotal)}
-                      </span>
-                      <span
-                        className={`rounded-md px-3 py-1 text-xs font-bold ${statusPedidoClasses(pedido.status)}`}
-                      >
-                        {statusPedidoLabel(pedido.status)}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="px-4 py-4 text-sm text-slate-500">Nenhum pedido recente.</p>
-                )}
-              </div>
-
               <button
                 type="button"
-                onClick={() => navigate('/pedidos')}
-                className="mt-4 text-sm font-bold text-blue-600 transition hover:text-blue-700"
+                onClick={() => navigate('/clientes')}
+                className="text-sm font-bold text-sky-600 transition hover:text-sky-700"
               >
-                Ver todos os pedidos →
+                Ver todos
               </button>
-            </section>
-          </div>
+            </div>
+
+            <div className="overflow-x-auto rounded-xl border border-slate-200">
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-slate-50 text-slate-950">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold">Cliente</th>
+                    <th className="px-4 py-3 font-semibold">Última compra</th>
+                    <th className="px-4 py-3 font-semibold">Ticket médio</th>
+                    <th className="px-4 py-3 font-semibold">Potencial</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 bg-white text-slate-700">
+                  {rankingClientes.length ? (
+                    rankingClientes.map((cliente) => {
+                      const potencial = getPotencial(cliente)
+
+                      return (
+                        <tr
+                          key={cliente.id}
+                          className="cursor-pointer transition hover:bg-slate-50"
+                          onClick={() => navigate('/clientes')}
+                        >
+                          <td className="px-4 py-4 font-medium text-slate-900">{cliente.nome}</td>
+                          <td className="px-4 py-4">{cliente.diasSemCompra} dias</td>
+                          <td className="px-4 py-4">{formatCurrency(cliente.ticketMedio)}</td>
+                          <td className="px-4 py-4">
+                            <span className={`rounded-md px-3 py-1 text-xs font-bold ${getPotencialClass(potencial)}`}>
+                              {potencial}
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  ) : (
+                    <tr>
+                      <td className="px-4 py-4 text-slate-500" colSpan={4}>
+                        Nenhum cliente prioritário encontrado.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
         </>
+      ) : (
+        <StateCard message="Nenhum dado disponível para a visão geral." />
       )}
     </div>
   )
 }
 
-interface MetricCardProps {
-  title: string
-  value: number
-  subtitle: string
-  icon: typeof UserCheck
-  color: 'green' | 'amber' | 'orange' | 'red'
-}
-
-const metricStyles = {
-  green: {
-    border: 'border-l-green-500',
-    iconBg: 'bg-green-50',
-    iconText: 'text-green-500',
-    value: 'text-green-500',
-  },
-  amber: {
-    border: 'border-l-amber-400',
-    iconBg: 'bg-amber-50',
-    iconText: 'text-amber-500',
-    value: 'text-amber-500',
-  },
-  orange: {
-    border: 'border-l-orange-500',
-    iconBg: 'bg-orange-50',
-    iconText: 'text-orange-500',
-    value: 'text-orange-500',
-  },
-  red: {
-    border: 'border-l-red-500',
-    iconBg: 'bg-red-50',
-    iconText: 'text-red-500',
-    value: 'text-red-500',
-  },
-}
-
-function MetricCard({ title, value, subtitle, icon: Icon, color }: MetricCardProps) {
-  const styles = metricStyles[color]
-
+function SummaryItem({ children }: { children: ReactNode }) {
   return (
-    <article
-      className={`flex min-h-[150px] items-center gap-7 rounded-lg border border-slate-100 border-l-4 bg-white p-6 shadow-sm ${styles.border}`}
-    >
-      <div
-        className={`flex h-24 w-24 shrink-0 items-center justify-center rounded-full ${styles.iconBg}`}
-      >
-        <Icon className={`h-12 w-12 ${styles.iconText}`} strokeWidth={1.8} />
-      </div>
-      <div className="min-w-0">
-        <h3 className="text-base font-bold text-slate-950">{title}</h3>
-        <p className={`mt-3 text-3xl font-extrabold ${styles.value}`}>{value}</p>
-        <p className="mt-2 text-base text-slate-500">{subtitle}</p>
-      </div>
+    <li className="rounded-xl border border-sky-100 bg-white px-4 py-3 leading-relaxed">
+      {children}
+    </li>
+  )
+}
+
+interface KpiCardProps {
+  title: string
+  value: number | string
+  subtitle: string
+  tone: 'blue' | 'green' | 'orange' | 'purple'
+}
+
+const kpiStyles = {
+  blue: 'border-l-sky-500 text-sky-600',
+  green: 'border-l-emerald-500 text-emerald-600',
+  orange: 'border-l-orange-500 text-orange-600',
+  purple: 'border-l-violet-500 text-violet-600',
+}
+
+function KpiCard({ title, value, subtitle, tone }: KpiCardProps) {
+  return (
+    <article className={`rounded-2xl border border-slate-200 border-l-4 bg-white p-5 shadow-sm ${kpiStyles[tone].split(' ')[0]}`}>
+      <p className="text-sm font-medium text-slate-500">{title}</p>
+      <p className={`mt-2 text-3xl font-extrabold ${kpiStyles[tone].split(' ')[1]}`}>{value}</p>
+      <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
     </article>
   )
 }
 
-interface PriorityRowProps {
-  icon: typeof ArrowUp
-  level: string
-  description: string
-  actionLabel: string
-  color: 'red' | 'orange' | 'amber'
+interface PriorityItemProps {
+  cliente: ClientePrioritarioDto
   onClick: () => void
 }
 
-const priorityStyles = {
-  red: {
-    iconBg: 'bg-red-50',
-    iconText: 'text-red-500',
-    level: 'text-red-500',
-    button: 'bg-red-500 hover:bg-red-600',
-  },
-  orange: {
-    iconBg: 'bg-orange-50',
-    iconText: 'text-orange-500',
-    level: 'text-orange-500',
-    button: 'bg-orange-500 hover:bg-orange-600',
-  },
-  amber: {
-    iconBg: 'bg-amber-50',
-    iconText: 'text-amber-500',
-    level: 'text-amber-500',
-    button: 'bg-amber-400 hover:bg-amber-500',
-  },
+const priorityToneClasses = {
+  red: 'border-red-100 bg-red-50 text-red-600',
+  amber: 'border-amber-100 bg-amber-50 text-amber-600',
+  green: 'border-emerald-100 bg-emerald-50 text-emerald-600',
 }
 
-function PriorityRow({
-  icon: Icon,
-  level,
-  description,
-  actionLabel,
-  color,
-  onClick,
-}: PriorityRowProps) {
-  const styles = priorityStyles[color]
+function PriorityItem({ cliente, onClick }: PriorityItemProps) {
+  const tone = getPrioridadeTone(cliente)
 
   return (
-    <div className="grid gap-4 rounded-lg border border-slate-100 px-4 py-3 sm:grid-cols-[64px_140px_1fr_auto] sm:items-center">
-      <div
-        className={`flex h-12 w-12 items-center justify-center rounded-md ${styles.iconBg}`}
-      >
-        <Icon className={`h-6 w-6 ${styles.iconText}`} />
+    <button
+      type="button"
+      onClick={onClick}
+      className="grid w-full gap-3 rounded-xl border border-slate-200 px-4 py-4 text-left transition hover:border-sky-200 hover:bg-sky-50 sm:grid-cols-[1fr_auto] sm:items-center"
+    >
+      <div className="flex items-start gap-3">
+        <span className={`mt-1 h-3 w-3 shrink-0 rounded-full ${tone === 'red' ? 'bg-red-500' : tone === 'amber' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+        <div>
+          <p className="font-bold text-slate-950">{cliente.nome}</p>
+          <p className="mt-1 text-sm text-slate-500">
+            {cliente.diasSemCompra} dias sem comprar - ticket médio {formatCurrency(cliente.ticketMedio)}
+          </p>
+        </div>
       </div>
-      <p className={`text-lg font-extrabold ${styles.level}`}>{level}</p>
-      <p className="text-sm text-slate-600">{description}</p>
-      <button
-        type="button"
-        onClick={onClick}
-        className={`rounded-md px-7 py-2.5 text-sm font-bold text-white transition ${styles.button}`}
-      >
-        {actionLabel}
-      </button>
+      <span className={`rounded-md border px-3 py-1 text-xs font-bold ${priorityToneClasses[tone]}`}>
+        {getPrioridadeLabel(cliente)}
+      </span>
+    </button>
+  )
+}
+
+function SalesChart({ data }: { data: VendaMensal[] }) {
+  const maxValue = Math.max(...data.map((item) => item.total), 1)
+
+  return (
+    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mb-5">
+        <p className="text-sm font-bold uppercase tracking-wide text-sky-600">Desempenho</p>
+        <h2 className="mt-1 text-xl font-bold tracking-normal text-slate-950">
+          Vendas dos últimos meses
+        </h2>
+      </div>
+
+      {data.length ? (
+        <div className="space-y-4">
+          {data.map((item) => (
+            <div key={item.label} className="grid grid-cols-[48px_1fr_auto] items-center gap-3">
+              <span className="text-sm font-medium text-slate-500">{item.label}</span>
+              <div className="h-4 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full bg-sky-600"
+                  style={{ width: `${Math.max((item.total / maxValue) * 100, 8)}%` }}
+                />
+              </div>
+              <span className="text-sm font-bold text-slate-700">{formatCurrency(item.total)}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-xl border border-slate-200 p-4 text-sm text-slate-500">
+          Ainda não há pedidos suficientes para montar o gráfico.
+        </p>
+      )}
+    </section>
+  )
+}
+
+const alertToneClasses = {
+  red: 'border-red-100 bg-red-50 text-red-600',
+  amber: 'border-amber-100 bg-amber-50 text-amber-600',
+  blue: 'border-sky-100 bg-sky-50 text-sky-600',
+}
+
+function CommercialAlerts({ alerts }: { alerts: AlertaComercial[] }) {
+  return (
+    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mb-5">
+        <p className="text-sm font-bold uppercase tracking-wide text-sky-600">Atenção</p>
+        <h2 className="mt-1 text-xl font-bold tracking-normal text-slate-950">
+          Alertas comerciais
+        </h2>
+      </div>
+
+      <div className="space-y-3">
+        {alerts.map((alert) => (
+          <div key={alert.title} className={`rounded-xl border p-4 ${alertToneClasses[alert.tone]}`}>
+            <p className="font-bold">{alert.title}</p>
+            <p className="mt-1 text-sm text-slate-600">{alert.description}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function StateCard({ message, tone = 'default' }: { message: string; tone?: 'default' | 'error' }) {
+  return (
+    <div className={`rounded-2xl border bg-white p-6 shadow-sm ${tone === 'error' ? 'border-red-100 text-red-600' : 'border-slate-200 text-slate-500'}`}>
+      {message}
     </div>
   )
 }
