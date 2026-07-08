@@ -30,9 +30,13 @@ export async function login(request: LoginRequest): Promise<LoginResponse> {
 }
 
 export async function logout(): Promise<void> {
-  await apiFetch('/auth/logout', {
-    method: 'POST',
-  })
+  try {
+    await apiFetch('/auth/logout', {
+      method: 'POST',
+    })
+  } catch (err) {
+    console.warn('Erro ao chamar endpoint de logout:', err)
+  }
 }
 
 export function saveSession(representanteId?: number) {

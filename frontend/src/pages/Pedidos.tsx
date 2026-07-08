@@ -6,6 +6,14 @@ import {
   fetchPedidosNaoFaturados,
 } from '../services/pedidoService'
 import type { PedidoResponse } from '../types/api'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 type FilterMode = 'TODOS' | 'FATURADOS' | 'NAO_FATURADOS'
 
@@ -180,41 +188,50 @@ export default function PedidosPage() {
         )}
 
         <div className="mt-8 rounded-3xl border border-slate-200 bg-slate-50 p-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold text-slate-900">Lista de pedidos</h2>
+              <p className="mt-1 text-sm text-slate-600">
+                Todos os itens retornados por <span className="font-medium">/pedidos</span>.
+              </p>
+            </div>
+          </div>
+
           {loading ? (
-            <p className="text-slate-600">Carregando pedidos...</p>
+            <p className="mt-4 text-slate-600">Carregando pedidos...</p>
           ) : error ? (
-            <p className="text-rose-600">{error}</p>
+            <p className="mt-4 text-rose-600">{error}</p>
           ) : pedidos.length ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200 text-left text-sm text-slate-700">
-                <thead className="bg-slate-100 text-slate-900">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">Pedido</th>
-                    <th className="px-4 py-3 font-medium">Emissão</th>
-                    <th className="px-4 py-3 font-medium">Cliente</th>
-                    <th className="px-4 py-3 font-medium">Representante</th>
-                    <th className="px-4 py-3 font-medium">Status</th>
-                    <th className="px-4 py-3 font-medium">Valor</th>
-                    <th className="px-4 py-3 font-medium">Autorização</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 bg-white">
+            <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50/75 hover:bg-slate-50/75">
+                    <TableHead>Pedido</TableHead>
+                    <TableHead>Emissão</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Representante</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Autorização</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {pedidos.map((pedido) => (
-                    <tr key={pedido.id}>
-                      <td className="px-4 py-4">{pedido.id}</td>
-                      <td className="px-4 py-4">{formatDate(pedido.dataEmissao)}</td>
-                      <td className="px-4 py-4">{pedido.clienteNome}</td>
-                      <td className="px-4 py-4">{pedido.representanteNome}</td>
-                      <td className="px-4 py-4">{pedido.status}</td>
-                      <td className="px-4 py-4">{formatCurrency(pedido.valorTotal)}</td>
-                      <td className="px-4 py-4">{pedido.autorizacaoComercial || '-'}</td>
-                    </tr>
+                    <TableRow key={pedido.id} className="hover:bg-slate-50/50">
+                      <TableCell className="font-semibold text-slate-500">{pedido.id}</TableCell>
+                      <TableCell>{formatDate(pedido.dataEmissao)}</TableCell>
+                      <TableCell className="font-medium text-slate-900">{pedido.clienteNome}</TableCell>
+                      <TableCell>{pedido.representanteNome}</TableCell>
+                      <TableCell>{pedido.status}</TableCell>
+                      <TableCell className="font-medium">{formatCurrency(pedido.valorTotal)}</TableCell>
+                      <TableCell>{pedido.autorizacaoComercial || '-'}</TableCell>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           ) : (
-            <p className="text-slate-600">Nenhum pedido encontrado.</p>
+            <p className="mt-4 text-slate-600">Nenhum pedido encontrado.</p>
           )}
         </div>
       </div>

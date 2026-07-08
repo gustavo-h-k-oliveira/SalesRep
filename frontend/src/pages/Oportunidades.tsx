@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { Navigate } from 'react-router-dom'
+import { isRepresentante } from '../services/authService'
 import { fetchAlertas } from '../services/alertaService'
 import type { AlertaDto } from '../types/api'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
@@ -16,6 +18,11 @@ import {
 } from '@/components/ui/dialog'
 
 export default function OportunidadesPage() {
+  const representative = isRepresentante()
+  if (!representative) {
+    return <Navigate to="/alertas" replace />
+  }
+
   const [oportunidades, setOportunidades] = useState<AlertaDto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -171,7 +178,7 @@ export default function OportunidadesPage() {
             </div>
           ) : oportunidades.length ? (
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {oportunidades.map((opt) => {
+              {oportunidades.map((opt, index) => {
                 // Style configurations based on opportunity type
                 const styleConfig = {
                   CLIENTE_INATIVO: {
@@ -213,7 +220,7 @@ export default function OportunidadesPage() {
 
                 return (
                   <Card
-                    key={`${opt.clienteId}-${opt.dataGeracao}-${opt.tipo}`}
+                    key={`${opt.clienteId || 'null'}-${opt.tipo}-${index}`}
                     className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-slate-300 hover:shadow-md flex flex-col justify-between"
                   >
                     <div>

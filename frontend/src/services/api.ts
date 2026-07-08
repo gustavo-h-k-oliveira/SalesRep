@@ -27,6 +27,15 @@ async function apiFetch<T>(input: string, init: RequestInit = {}): Promise<T> {
     credentials: 'include',
   })
 
+  if (response.status === 401 || response.status === 403) {
+    localStorage.removeItem('loggedIn')
+    localStorage.removeItem('representanteId')
+    if (window.location.pathname !== '/login') {
+      window.location.href = '/login'
+      return null as unknown as T
+    }
+  }
+
   if (!response.ok) {
     const text = await response.text()
     throw new Error(text || response.statusText)

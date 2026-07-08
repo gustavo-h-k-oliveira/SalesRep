@@ -60,7 +60,7 @@ export default function ClientesPage() {
             <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs">
               <Table>
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="bg-slate-50/75 hover:bg-slate-50/75">
                     <TableHead className="w-[80px]">ID</TableHead>
                     <TableHead>Nome</TableHead>
                     <TableHead>Status</TableHead>

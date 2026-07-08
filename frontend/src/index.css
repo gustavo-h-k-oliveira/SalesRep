@@ -120,6 +120,7 @@ code {
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
   }
+
   :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
@@ -154,6 +155,7 @@ code {
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
   }
+
   .dark {
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
@@ -187,12 +189,8 @@ code {
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
   }
-  * {
-    @apply border-border;
-  }
+
   body {
     @apply bg-background text-foreground;
-  }
-  html {
   }
 }
