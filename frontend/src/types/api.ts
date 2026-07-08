@@ -5,6 +5,7 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string
+  representanteId?: number
 }
 
 export interface DashboardDto {

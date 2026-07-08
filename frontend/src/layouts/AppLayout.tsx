@@ -1,16 +1,19 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { clearSession, logout } from '../services/authService'
-
-const navigation = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/clientes', label: 'Clientes' },
-  { to: '/pedidos', label: 'Pedidos' },
-  { to: '/produtos', label: 'Produtos' },
-  { to: '/alertas', label: 'Alertas' },
-]
+import { clearSession, logout, isRepresentante } from '../services/authService'
 
 export default function AppLayout() {
   const navigate = useNavigate()
+  const representative = isRepresentante()
+
+  const navigation = [
+    { to: '/dashboard', label: 'Dashboard' },
+    { to: '/clientes', label: 'Clientes' },
+    { to: '/pedidos', label: 'Pedidos' },
+    { to: '/produtos', label: 'Produtos' },
+    representative
+      ? { to: '/oportunidades', label: 'Oportunidades' }
+      : { to: '/alertas', label: 'Alertas' },
+  ]
 
   const handleLogout = async () => {
     try {

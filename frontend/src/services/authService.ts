@@ -35,8 +35,11 @@ export async function logout(): Promise<void> {
   })
 }
 
-export function saveSession() {
+export function saveSession(representanteId?: number) {
   localStorage.setItem('loggedIn', 'true')
+  if (representanteId !== undefined && representanteId !== null) {
+    localStorage.setItem('representanteId', String(representanteId))
+  }
 }
 
 export function isLoggedIn() {
@@ -45,4 +48,14 @@ export function isLoggedIn() {
 
 export function clearSession() {
   localStorage.removeItem('loggedIn')
+  localStorage.removeItem('representanteId')
+}
+
+export function getRepresentanteId(): number | null {
+  const id = localStorage.getItem('representanteId')
+  return id ? parseInt(id, 10) : null
+}
+
+export function isRepresentante(): boolean {
+  return getRepresentanteId() !== null
 }
