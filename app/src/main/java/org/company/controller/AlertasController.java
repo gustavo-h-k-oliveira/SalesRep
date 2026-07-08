@@ -14,12 +14,13 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/alertas")
 @RequiredArgsConstructor
-public class AlertasController {
+public class AlertaController {
 
     private final AlertaService alertaService;
 
     @GetMapping
     public List<AlertaDto> listarAlertas() {
-        return alertaService.buscarAlertas(SecurityUtils.getRepresentanteId());
+        Long representanteId = SecurityUtils.getRepresentanteId();
+        return alertaService.buscarAlertas(representanteId);
     }
 }
