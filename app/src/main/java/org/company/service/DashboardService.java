@@ -1,6 +1,7 @@
 package org.company.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.company.analytics.ProdutoAnalytics;
@@ -26,11 +27,11 @@ public class DashboardService {
     private final ClienteRepository clienteRepository;
 
     private final ClienteService clienteService;
-    
+
     private final AlertaService alertaService;
-    
+
     private final RegiaoAnalytics regiaoAnalytics;
-    
+
     private final ProdutoAnalytics produtoAnalytics;
 
     private final RepresentanteService representanteService;
@@ -57,9 +58,9 @@ public class DashboardService {
                 produtosCriticos = List.of();
                 alertas = List.of();
             } else {
-                faturamentoTotal = pedidoRepository.findByRepresentanteIdAndStatus(representanteId, StatusPedido.FATURADO).stream()
-                    .map(Pedido::getValorTotal)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+                faturamentoTotal = calcularFaturamentoDoMes(
+                    pedidoRepository.findByRepresentanteIdAndStatus(representanteId, StatusPedido.FATURADO)
+                );
                 clientesAtivos = clienteRepository.countByRepresentanteIdAndStatus(representanteId, StatusCliente.ATIVO);
                 clientesInativos = clienteRepository.countByRepresentanteIdAndStatus(representanteId, StatusCliente.INATIVO);
                 regioesCriticas = regiaoAnalytics.buscarRegioesCriticas(representanteId);
@@ -67,9 +68,7 @@ public class DashboardService {
                 alertas = alertaService.buscarAlertas(representanteId);
             }
         } else {
-            faturamentoTotal = pedidoRepository.findByStatus(StatusPedido.FATURADO).stream()
-                .map(Pedido::getValorTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            faturamentoTotal = calcularFaturamentoDoMes(pedidoRepository.findByStatus(StatusPedido.FATURADO));
             clientesAtivos = clienteRepository.countByStatus(StatusCliente.ATIVO);
             clientesInativos = clienteRepository.countByStatus(StatusCliente.INATIVO);
             regioesCriticas = regiaoAnalytics.buscarRegioesCriticas();
@@ -92,5 +91,20 @@ public class DashboardService {
             produtosCriticos,
             representanteNome
         );
+    }
+
+    private BigDecimal calcularFaturamentoDoMes(List<Pedido> pedidosFaturados) {
+        LocalDate inicioDoMes = LocalDate.now().withDayOfMonth(1);
+        LocalDate hoje = LocalDate.now();
+
+        return pedidosFaturados.stream()
+            .filter(pedido -> {
+                LocalDate dataFaturamento = pedido.getDataFaturamento();
+                return dataFaturamento != null
+                    && !dataFaturamento.isBefore(inicioDoMes)
+                    && !dataFaturamento.isAfter(hoje);
+            })
+            .map(Pedido::getValorTotal)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
