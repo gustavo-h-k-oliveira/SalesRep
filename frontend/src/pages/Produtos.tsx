@@ -75,43 +75,34 @@ export default function ProdutosPage() {
         </div>
 
         <div className="mt-8 grid gap-4 lg:grid-cols-[1.35fr_1fr]">
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-semibold text-slate-900">Catálogo de produtos</h2>
-                <p className="mt-1 text-sm text-slate-600">Todos os itens retornados por <span className="font-medium">/produtos</span>.</p>
-              </div>
-            </div>
-
-            {loading ? (
-              <p className="mt-4 text-slate-600">Carregando produtos...</p>
-            ) : error ? (
-              <p className="mt-4 text-rose-600">{error}</p>
-            ) : produtos.length ? (
-              <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-slate-50/75 hover:bg-slate-50/75">
-                      <TableHead>ID</TableHead>
-                      <TableHead>SKU</TableHead>
-                      <TableHead>Descrição</TableHead>
+          {loading ? (
+            <p className="text-slate-600">Carregando produtos...</p>
+          ) : error ? (
+            <p className="text-rose-600">{error}</p>
+          ) : produtos.length ? (
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50/75 hover:bg-slate-50/75">
+                    <TableHead>ID</TableHead>
+                    <TableHead>SKU</TableHead>
+                    <TableHead>Descrição</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {produtos.map((produto) => (
+                    <TableRow key={produto.id} className="hover:bg-slate-50/50">
+                      <TableCell className="font-semibold text-slate-500">{produto.id}</TableCell>
+                      <TableCell>{formatSku(produto.sku)}</TableCell>
+                      <TableCell className="font-medium text-slate-900">{produto.descricao}</TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {produtos.map((produto) => (
-                      <TableRow key={produto.id} className="hover:bg-slate-50/50">
-                        <TableCell className="font-semibold text-slate-500">{produto.id}</TableCell>
-                        <TableCell>{formatSku(produto.sku)}</TableCell>
-                        <TableCell className="font-medium text-slate-900">{produto.descricao}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              <p className="mt-4 text-slate-600">Nenhum produto encontrado.</p>
-            )}
-          </div>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <p className="text-slate-600">Nenhum produto encontrado.</p>
+          )}
 
           <div className="space-y-4">
             <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm">

@@ -187,53 +187,42 @@ export default function PedidosPage() {
           </div>
         )}
 
-        <div className="mt-8 rounded-3xl border border-slate-200 bg-slate-50 p-6">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold text-slate-900">Lista de pedidos</h2>
-              <p className="mt-1 text-sm text-slate-600">
-                Todos os itens retornados por <span className="font-medium">/pedidos</span>.
-              </p>
-            </div>
-          </div>
-
-          {loading ? (
-            <p className="mt-4 text-slate-600">Carregando pedidos...</p>
-          ) : error ? (
-            <p className="mt-4 text-rose-600">{error}</p>
-          ) : pedidos.length ? (
-            <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-slate-50/75 hover:bg-slate-50/75">
-                    <TableHead>Pedido</TableHead>
-                    <TableHead>Emissão</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Representante</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Autorização</TableHead>
+        {loading ? (
+          <p className="mt-8 text-slate-600">Carregando pedidos...</p>
+        ) : error ? (
+          <p className="mt-8 text-rose-600">{error}</p>
+        ) : pedidos.length ? (
+          <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50/75 hover:bg-slate-50/75">
+                  <TableHead>Pedido</TableHead>
+                  <TableHead>Emissão</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Representante</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Valor</TableHead>
+                  <TableHead>Autorização</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pedidos.map((pedido) => (
+                  <TableRow key={pedido.id} className="hover:bg-slate-50/50">
+                    <TableCell className="font-semibold text-slate-500">{pedido.id}</TableCell>
+                    <TableCell>{formatDate(pedido.dataEmissao)}</TableCell>
+                    <TableCell className="font-medium text-slate-900">{pedido.clienteNome}</TableCell>
+                    <TableCell>{pedido.representanteNome}</TableCell>
+                    <TableCell>{pedido.status}</TableCell>
+                    <TableCell className="font-medium">{formatCurrency(pedido.valorTotal)}</TableCell>
+                    <TableCell>{pedido.autorizacaoComercial || '-'}</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pedidos.map((pedido) => (
-                    <TableRow key={pedido.id} className="hover:bg-slate-50/50">
-                      <TableCell className="font-semibold text-slate-500">{pedido.id}</TableCell>
-                      <TableCell>{formatDate(pedido.dataEmissao)}</TableCell>
-                      <TableCell className="font-medium text-slate-900">{pedido.clienteNome}</TableCell>
-                      <TableCell>{pedido.representanteNome}</TableCell>
-                      <TableCell>{pedido.status}</TableCell>
-                      <TableCell className="font-medium">{formatCurrency(pedido.valorTotal)}</TableCell>
-                      <TableCell>{pedido.autorizacaoComercial || '-'}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <p className="mt-4 text-slate-600">Nenhum pedido encontrado.</p>
-          )}
-        </div>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <p className="mt-8 text-slate-600">Nenhum pedido encontrado.</p>
+        )}
       </div>
     </div>
   )
