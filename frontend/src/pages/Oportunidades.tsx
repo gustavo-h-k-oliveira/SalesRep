@@ -1,6 +1,19 @@
 import { useEffect, useState } from 'react'
 import { fetchAlertas } from '../services/alertaService'
 import type { AlertaDto } from '../types/api'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 
 export default function OportunidadesPage() {
   const [oportunidades, setOportunidades] = useState<AlertaDto[]>([])
@@ -90,44 +103,56 @@ export default function OportunidadesPage() {
 
         {/* KPIs Cards */}
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          <div className="rounded-3xl border border-slate-100 bg-slate-50/50 p-6 transition-all hover:bg-slate-50">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-500">Reativação de Clientes</span>
-              <span className="rounded-full bg-amber-100 p-2 text-amber-700">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                </svg>
-              </span>
-            </div>
-            <p className="mt-4 text-3xl font-semibold text-slate-900">{clientesInativos}</p>
-            <p className="mt-1 text-xs text-slate-400">Clientes sem compra há +45 dias</p>
-          </div>
+          <Card className="rounded-3xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-all">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardDescription className="text-sm font-medium text-slate-500">Reativação de Clientes</CardDescription>
+                <span className="rounded-full bg-amber-100 p-2 text-amber-700">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                  </svg>
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold text-slate-900">{clientesInativos}</p>
+              <p className="mt-1 text-xs text-slate-400">Clientes sem compra há +45 dias</p>
+            </CardContent>
+          </Card>
 
-          <div className="rounded-3xl border border-slate-100 bg-slate-50/50 p-6 transition-all hover:bg-slate-50">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-500">Estímulo de Recompra</span>
-              <span className="rounded-full bg-emerald-100 p-2 text-emerald-700">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
-                </svg>
-              </span>
-            </div>
-            <p className="mt-4 text-3xl font-semibold text-slate-900">{baixaRecompra}</p>
-            <p className="mt-1 text-xs text-slate-400">Baixo índice de recompra de SKUs</p>
-          </div>
+          <Card className="rounded-3xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-all">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardDescription className="text-sm font-medium text-slate-500">Estímulo de Recompra</CardDescription>
+                <span className="rounded-full bg-emerald-100 p-2 text-emerald-700">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
+                  </svg>
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold text-slate-900">{baixaRecompra}</p>
+              <p className="mt-1 text-xs text-slate-400">Baixo índice de recompra de SKUs</p>
+            </CardContent>
+          </Card>
 
-          <div className="rounded-3xl border border-slate-100 bg-slate-50/50 p-6 transition-all hover:bg-slate-50">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-500">Foco Regional</span>
-              <span className="rounded-full bg-sky-100 p-2 text-sky-700">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                </svg>
-              </span>
-            </div>
-            <p className="mt-4 text-3xl font-semibold text-slate-900">{regioesCriticas}</p>
-            <p className="mt-1 text-xs text-slate-400">Regiões com queda de faturamento</p>
-          </div>
+          <Card className="rounded-3xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-all">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardDescription className="text-sm font-medium text-slate-500">Foco Regional</CardDescription>
+                <span className="rounded-full bg-sky-100 p-2 text-sky-700">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                  </svg>
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold text-slate-900">{regioesCriticas}</p>
+              <p className="mt-1 text-xs text-slate-400">Regiões com queda de faturamento</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Opportunities List */}
@@ -152,9 +177,8 @@ export default function OportunidadesPage() {
                   CLIENTE_INATIVO: {
                     badge: 'Cliente Inativo',
                     badgeStyle: 'bg-amber-50 text-amber-700 border-amber-200/50',
-                    gradient: 'from-amber-500/10 to-transparent',
                     icon: (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.8 2.8a1 1 0 101.414-1.414L11 9.586V6z" clipRule="evenodd" />
                       </svg>
                     ),
@@ -162,9 +186,8 @@ export default function OportunidadesPage() {
                   PRODUTO_BAIXA_RECOMPRA: {
                     badge: 'Baixa Recompra',
                     badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
-                    gradient: 'from-emerald-500/10 to-transparent',
                     icon: (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L10 10.586 13.586 7H12z" clipRule="evenodd" />
                       </svg>
                     ),
@@ -172,9 +195,8 @@ export default function OportunidadesPage() {
                   REGIAO_CRITICA: {
                     badge: 'Queda de Região',
                     badgeStyle: 'bg-sky-50 text-sky-700 border-sky-200/50',
-                    gradient: 'from-sky-500/10 to-transparent',
                     icon: (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-sky-600" viewBox="0 0 20 20" fill="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-sky-600" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                       </svg>
                     ),
@@ -182,35 +204,34 @@ export default function OportunidadesPage() {
                 }[opt.tipo] || {
                   badge: 'Oportunidade',
                   badgeStyle: 'bg-sky-50 text-sky-700 border-sky-200/50',
-                  gradient: 'from-sky-500/10 to-transparent',
                   icon: (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-sky-600" viewBox="0 0 20 20" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-sky-600" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                     </svg>
                   ),
                 }
 
                 return (
-                  <article
+                  <Card
                     key={`${opt.clienteId}-${opt.dataGeracao}-${opt.tipo}`}
-                    className={`relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-slate-300 hover:shadow-md flex flex-col justify-between`}
+                    className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-slate-300 hover:shadow-md flex flex-col justify-between"
                   >
                     <div>
                       {/* Badge Row */}
                       <div className="flex items-center justify-between">
-                        <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${styleConfig.badgeStyle}`}>
+                        <Badge variant="outline" className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full ${styleConfig.badgeStyle}`}>
                           {styleConfig.icon}
                           {styleConfig.badge}
-                        </span>
+                        </Badge>
                         <span className="text-xs text-slate-400 font-medium">
                           {formatDate(opt.dataGeracao)}
                         </span>
                       </div>
 
                       {/* Client Info */}
-                      <h3 className="mt-4 text-lg font-semibold text-slate-900 line-clamp-1">
+                      <CardTitle className="mt-4 text-lg font-semibold text-slate-900 line-clamp-1">
                         {opt.clienteNome || 'Região Comercial'}
-                      </h3>
+                      </CardTitle>
                       
                       {/* Description */}
                       <p className="mt-2 text-sm text-slate-600 leading-relaxed min-h-[40px]">
@@ -224,18 +245,19 @@ export default function OportunidadesPage() {
                         Status: <span className="font-semibold text-slate-600">{opt.status}</span>
                       </div>
                       
-                      <button
+                      <Button
                         type="button"
                         onClick={() => handleOpenContactModal(opt)}
-                        className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-slate-800 shadow-sm focus:outline-none"
+                        size="sm"
+                        className="rounded-2xl"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
                         </svg>
                         Iniciar Atendimento
-                      </button>
+                      </Button>
                     </div>
-                  </article>
+                  </Card>
                 )
               })}
             </div>
@@ -251,29 +273,16 @@ export default function OportunidadesPage() {
         </div>
       </div>
 
-      {/* Interactive Action Modal */}
-      {selectedOpt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm">
-          <div className="w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between bg-slate-50 px-6 py-4 border-b border-slate-100">
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900">Contatar Cliente</h3>
-                <p className="text-xs text-slate-500 mt-0.5">{selectedOpt.clienteNome || 'Ação Comercial'}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedOpt(null)}
-                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </div>
+      {/* Interactive Action Modal (ShadCN Dialog) */}
+      <Dialog open={selectedOpt !== null} onOpenChange={(open) => { if (!open) setSelectedOpt(null) }}>
+        {selectedOpt && (
+          <DialogContent className="max-w-lg rounded-3xl p-6">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-semibold text-slate-900">Contatar Cliente</DialogTitle>
+              <DialogDescription className="text-xs text-slate-500 mt-0.5">{selectedOpt.clienteNome || 'Ação Comercial'}</DialogDescription>
+            </DialogHeader>
 
-            {/* Modal Body */}
-            <div className="p-6 space-y-5">
+            <div className="space-y-5 my-4">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Tipo de Oportunidade
@@ -289,12 +298,12 @@ export default function OportunidadesPage() {
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Telefone do Cliente
                 </label>
-                <input
+                <Input
                   type="text"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Ex: 5514981704947 (Código do país + DDD + Número)"
-                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-sky-400 focus:outline-none"
+                  className="mt-2 rounded-2xl border border-slate-200 bg-white"
                 />
                 <span className="text-[10px] text-slate-400 mt-1 block">
                   Caso o telefone não seja preenchido, redirecionaremos para o WhatsApp Web para escolher o contato manualmente.
@@ -306,52 +315,53 @@ export default function OportunidadesPage() {
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Mensagem Recomendada
                   </label>
-                  <button
-                    type="button"
+                  <Button
+                    variant="link"
+                    size="xs"
                     onClick={() => navigator.clipboard.writeText(message)}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-600 hover:text-sky-800 focus:outline-none"
+                    className="text-sky-600 hover:text-sky-800"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                       <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
                       <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
                     </svg>
                     Copiar
-                  </button>
+                  </Button>
                 </div>
-                <textarea
+                <Textarea
                   rows={4}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-800 leading-relaxed focus:border-sky-400 focus:outline-none resize-none"
+                  className="mt-2 rounded-2xl border border-slate-200 bg-white p-4"
                 />
               </div>
             </div>
 
-            {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 bg-slate-50 px-6 py-4 border-t border-slate-100">
-              <button
+            <DialogFooter className="gap-2">
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => setSelectedOpt(null)}
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                className="rounded-2xl border border-slate-200"
               >
                 Cancelar
-              </button>
+              </Button>
               
-              <button
+              <Button
                 type="button"
                 onClick={handleSendWhatsApp}
-                className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-5 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-700 shadow-sm focus:outline-none"
+                className="bg-emerald-600 text-white hover:bg-emerald-700 rounded-2xl"
               >
                 {/* WhatsApp Logo */}
-                <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
+                <svg className="h-4 w-4 mr-1 fill-current" viewBox="0 0 24 24">
                   <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.5-5.729-1.448L0 24zm6.59-4.846c1.666.988 3.396 1.472 5.351 1.474 5.4 0 9.795-4.39 9.8-9.795.002-2.617-1.01-5.079-2.852-6.924C17.062 2.066 14.6 1.05 11.996 1.05c-5.4 0-9.8 4.4-9.802 9.81-.001 1.848.476 3.654 1.383 5.267l-.999 3.648 3.734-.98-.265.158z" />
                 </svg>
                 Conversar no WhatsApp
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   )
 }

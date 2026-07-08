@@ -14,10 +14,11 @@ public class ClienteAnalytics {
         double frequencia = calcularTotalPedidos(cliente);
         long diasSemCompra = cliente.getDiasSemCompra();
 
-        double score = 100
-            - (diasSemCompra * 0.5)
-            + Math.min(ticketMedio, 10000) * 0.01
-            + frequencia * 2;
+        // Combina o valor do cliente (ticket e frequencia) com a urgência de atenção (dias sem compra)
+        double scoreValioso = Math.min(ticketMedio, 10000) * 0.005 + (frequencia * 1.0);
+        double scoreUrgencia = Math.min(diasSemCompra, 90) * 0.5;
+
+        double score = scoreValioso + scoreUrgencia;
 
         return Math.max(0, Math.min(100, score));
     }
