@@ -4,6 +4,13 @@ import type { DashboardDto, ClientePrioritarioDto, PedidoResponse, Representante
 import { fetchClientesPrioritarios } from '../services/clienteService'
 import { fetchPedidos } from '../services/pedidoService'
 import { fetchRepresentantes } from '../services/representanteService'
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import type { ChartConfig } from '@/components/ui/chart'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart'
 import {
   UsersIcon,
   ShieldWarningIcon,
@@ -13,6 +20,13 @@ import {
   ArrowRightIcon,
   UserIcon,
 } from '@phosphor-icons/react'
+
+const chartConfig = {
+  valor: {
+    label: 'Faturamento',
+    color: '#10b981',
+  },
+} satisfies ChartConfig
 
 interface DashboardGestorProps {
   data: DashboardDto
@@ -94,10 +108,6 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
       }
     })
   }, [pedidos, data])
-
-  const maxVendaMes = useMemo(() => {
-    return Math.max(...vendasUltimosMeses.map((v) => v.valor), 1)
-  }, [vendasUltimosMeses])
 
   // 3. Ranking de Representantes (Calculado com base em faturamento faturado de pedidos)
   const rankingRepresentantes = useMemo(() => {
@@ -263,29 +273,57 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
 
             {/* Gráfico de Vendas Consolidado */}
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
-              <div>
+              <div className="mb-6">
                 <h2 className="text-lg font-bold text-slate-900">Gráfico de vendas consolidado</h2>
                 <p className="text-xs text-slate-500">Faturamento geral faturado mensal</p>
               </div>
 
-              <div className="mt-8 space-y-4">
-                {vendasUltimosMeses.map((item) => {
-                  const percent = Math.min((item.valor / maxVendaMes) * 100, 100)
-                  return (
-                    <div key={item.mes} className="flex items-center gap-4">
-                      <span className="w-10 text-sm font-semibold text-slate-600">{item.mes}</span>
-                      <div className="flex-1 h-8 rounded-lg bg-slate-100 overflow-hidden">
-                        <div
-                          style={{ width: `${percent}%` }}
-                          className="h-full rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 transition-all duration-500"
-                        />
-                      </div>
-                      <span className="w-24 text-right text-sm font-bold text-slate-900">
-                        {formatCurrency(item.valor)}
-                      </span>
-                    </div>
-                  )
-                })}
+              <div className="h-[220px] w-full">
+                <ChartContainer config={chartConfig} className="h-full w-full">
+                  <AreaChart
+                    accessibilityLayer
+                    data={vendasUltimosMeses}
+                    margin={{
+                      left: 0,
+                      right: 10,
+                      top: 10,
+                      bottom: 0,
+                    }}
+                  >
+                    <defs>
+                      <linearGradient id="colorValorGestor" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-slate-100" />
+                    <XAxis
+                      dataKey="mes"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      className="text-slate-400 font-semibold"
+                    />
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      tickFormatter={(value) => `R$ ${Math.round(value / 1000)}k`}
+                      className="text-slate-400 font-semibold"
+                    />
+                    <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent indicator="line" labelFormatter={(value) => `Mês: ${value}`} />}
+                    />
+                    <Area
+                      dataKey="valor"
+                      type="monotone"
+                      fill="url(#colorValorGestor)"
+                      stroke="#10b981"
+                      strokeWidth={2}
+                    />
+                  </AreaChart>
+                </ChartContainer>
               </div>
             </div>
 

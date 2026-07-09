@@ -3,6 +3,19 @@ import { Navigate } from 'react-router-dom'
 import { isRepresentante } from '../services/authService'
 import { fetchAlertas } from '../services/alertaService'
 import type { AlertaDto } from '../types/api'
+import {
+  LightningIcon,
+  UsersIcon,
+  ShoppingBagIcon,
+  MapPinIcon,
+  ClockIcon,
+  TrendUpIcon,
+  InfoIcon,
+  ChatTextIcon,
+  CheckCircleIcon,
+  CopyIcon,
+  WhatsappLogoIcon,
+} from '@phosphor-icons/react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -101,9 +114,7 @@ export default function OportunidadesPage() {
             </p>
           </div>
           <div className="flex items-center gap-2 rounded-2xl bg-sky-50 px-4 py-2 text-sky-700">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 animate-pulse" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-            </svg>
+            <LightningIcon className="h-5 w-5 animate-pulse" />
             <span className="text-xs font-semibold uppercase tracking-wider">{total} Oportunidades Ativas</span>
           </div>
         </div>
@@ -115,9 +126,7 @@ export default function OportunidadesPage() {
               <div className="flex items-center justify-between">
                 <CardDescription className="text-sm font-medium text-slate-500">Reativação de Clientes</CardDescription>
                 <span className="rounded-full bg-amber-100 p-2 text-amber-700">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                  </svg>
+                  <UsersIcon className="h-5 w-5" />
                 </span>
               </div>
             </CardHeader>
@@ -132,9 +141,7 @@ export default function OportunidadesPage() {
               <div className="flex items-center justify-between">
                 <CardDescription className="text-sm font-medium text-slate-500">Estímulo de Recompra</CardDescription>
                 <span className="rounded-full bg-emerald-100 p-2 text-emerald-700">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
-                  </svg>
+                  <ShoppingBagIcon className="h-5 w-5" />
                 </span>
               </div>
             </CardHeader>
@@ -149,9 +156,7 @@ export default function OportunidadesPage() {
               <div className="flex items-center justify-between">
                 <CardDescription className="text-sm font-medium text-slate-500">Foco Regional</CardDescription>
                 <span className="rounded-full bg-sky-100 p-2 text-sky-700">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                  </svg>
+                  <MapPinIcon className="h-5 w-5" />
                 </span>
               </div>
             </CardHeader>
@@ -184,38 +189,22 @@ export default function OportunidadesPage() {
                   CLIENTE_INATIVO: {
                     badge: 'Cliente Inativo',
                     badgeStyle: 'bg-amber-50 text-amber-700 border-amber-200/50',
-                    icon: (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.8 2.8a1 1 0 101.414-1.414L11 9.586V6z" clipRule="evenodd" />
-                      </svg>
-                    ),
+                    icon: <ClockIcon className="h-4 w-4 text-amber-600" />,
                   },
                   PRODUTO_BAIXA_RECOMPRA: {
                     badge: 'Baixa Recompra',
                     badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
-                    icon: (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L10 10.586 13.586 7H12z" clipRule="evenodd" />
-                      </svg>
-                    ),
+                    icon: <TrendUpIcon className="h-4 w-4 text-emerald-600" />,
                   },
                   REGIAO_CRITICA: {
                     badge: 'Queda de Região',
                     badgeStyle: 'bg-sky-50 text-sky-700 border-sky-200/50',
-                    icon: (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-sky-600" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                      </svg>
-                    ),
+                    icon: <MapPinIcon className="h-4 w-4 text-sky-600" />,
                   },
                 }[opt.tipo] || {
                   badge: 'Oportunidade',
                   badgeStyle: 'bg-sky-50 text-sky-700 border-sky-200/50',
-                  icon: (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-sky-600" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                    </svg>
-                  ),
+                  icon: <InfoIcon className="h-4 w-4 text-sky-600" />,
                 }
 
                 return (
@@ -258,9 +247,7 @@ export default function OportunidadesPage() {
                         size="sm"
                         className="rounded-2xl"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
-                        </svg>
+                        <ChatTextIcon className="h-4 w-4 mr-1" />
                         Iniciar Atendimento
                       </Button>
                     </div>
@@ -270,9 +257,7 @@ export default function OportunidadesPage() {
             </div>
           ) : (
             <div className="mt-6 rounded-3xl border border-slate-200 border-dashed bg-slate-50/50 p-12 text-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
+              <CheckCircleIcon className="mx-auto h-12 w-12 text-slate-400" />
               <h3 className="mt-4 text-sm font-semibold text-slate-900">Tudo limpo por aqui!</h3>
               <p className="mt-1 text-xs text-slate-500">Você não tem oportunidades pendentes no momento. Continue com o bom trabalho!</p>
             </div>
@@ -328,10 +313,7 @@ export default function OportunidadesPage() {
                     onClick={() => navigator.clipboard.writeText(message)}
                     className="text-sky-600 hover:text-sky-800"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-                      <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
-                    </svg>
+                    <CopyIcon className="h-3.5 w-3.5 mr-1" />
                     Copiar
                   </Button>
                 </div>
@@ -359,10 +341,7 @@ export default function OportunidadesPage() {
                 onClick={handleSendWhatsApp}
                 className="bg-emerald-600 text-white hover:bg-emerald-700 rounded-2xl"
               >
-                {/* WhatsApp Logo */}
-                <svg className="h-4 w-4 mr-1 fill-current" viewBox="0 0 24 24">
-                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.5-5.729-1.448L0 24zm6.59-4.846c1.666.988 3.396 1.472 5.351 1.474 5.4 0 9.795-4.39 9.8-9.795.002-2.617-1.01-5.079-2.852-6.924C17.062 2.066 14.6 1.05 11.996 1.05c-5.4 0-9.8 4.4-9.802 9.81-.001 1.848.476 3.654 1.383 5.267l-.999 3.648 3.734-.98-.265.158z" />
-                </svg>
+                <WhatsappLogoIcon className="h-4 w-4 mr-1" />
                 Conversar no WhatsApp
               </Button>
             </DialogFooter>
