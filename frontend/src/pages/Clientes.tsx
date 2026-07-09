@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { fetchClientesPrioritarios } from '../services/clienteService'
 import type { ClientePrioritarioDto } from '../types/api'
 import {
@@ -74,7 +75,11 @@ export default function ClientesPage() {
                   {clientes.map((cliente) => (
                     <TableRow key={cliente.id} className="hover:bg-slate-50/50">
                       <TableCell className="font-semibold text-slate-500">{cliente.id}</TableCell>
-                      <TableCell className="font-medium text-slate-900">{cliente.nome}</TableCell>
+                      <TableCell className="font-medium text-slate-900">
+                        <Link to={`/clientes/${cliente.id}`} className="text-indigo-600 hover:text-indigo-900 hover:underline">
+                          {cliente.nome}
+                        </Link>
+                      </TableCell>
                       <TableCell>
                         <Badge
                           variant="outline"
