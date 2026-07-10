@@ -98,7 +98,7 @@ export default function OportunidadesPage() {
     const url = cleanPhone 
       ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`
       : `https://wa.me/?text=${encodeURIComponent(message)}`
-    window.open(url, '_blank')
+    window.open(url, '_blank', 'noopener,noreferrer')
     setSelectedOpt(null)
   }
 

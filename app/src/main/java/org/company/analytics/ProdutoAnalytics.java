@@ -69,7 +69,8 @@ public class ProdutoAnalytics {
                                         for (PedidoItem item : itens) {
                                                 Pedido pedido = item.getPedido();
 
-                                                if (pedido == null || pedido.getDataEmissao() == null) {
+                                                if (pedido == null || pedido.getDataEmissao() == null
+                                                                || !pedido.estaFaturado()) {
                                                         continue;
                                                 }
 

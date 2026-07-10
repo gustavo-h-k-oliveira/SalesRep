@@ -114,7 +114,7 @@ export default function DashboardRepresentante({ data }: DashboardRepresentanteP
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50/50 p-6">
         <div className="flex flex-col items-center gap-4 text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-650 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
           <p className="text-sm font-medium text-slate-600">Carregando painel do representante...</p>
         </div>
       </div>

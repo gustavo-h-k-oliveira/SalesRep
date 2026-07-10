@@ -56,8 +56,10 @@ export function clearSession() {
 }
 
 export function getRepresentanteId(): number | null {
-  const id = localStorage.getItem('representanteId')
-  return id ? parseInt(id, 10) : null
+  const raw = localStorage.getItem('representanteId')
+  if (!raw) return null
+  const parsed = Number.parseInt(raw, 10)
+  return Number.isNaN(parsed) ? null : parsed
 }
 
 export function isRepresentante(): boolean {

@@ -82,7 +82,7 @@ export default function ClientePerfilPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50/50 p-6">
         <div className="flex flex-col items-center gap-4 text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-sky-505 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-sky-500 border-t-transparent" />
           <p className="text-sm font-medium text-slate-600">Carregando perfil do cliente...</p>
         </div>
       </div>
@@ -112,7 +112,7 @@ export default function ClientePerfilPage() {
   return (
     <div className="min-h-screen bg-slate-50/50 p-6">
       <div className="mx-auto max-w-6xl space-y-8">
-        
+
         {/* Top bar & Back button */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <button
@@ -126,13 +126,12 @@ export default function ClientePerfilPage() {
           <div className="flex items-center gap-3">
             <Badge
               variant="outline"
-              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                perfil.status === 'ATIVO'
+              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${perfil.status === 'ATIVO'
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                   : perfil.status === 'INATIVO'
-                  ? 'bg-rose-50 text-rose-700 border-rose-200'
-                  : 'bg-amber-50 text-amber-700 border-amber-200'
-              }`}
+                    ? 'bg-rose-50 text-rose-700 border-rose-200'
+                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                }`}
             >
               {perfil.status === 'ATIVO' && 'Ativo'}
               {perfil.status === 'INATIVO' && 'Inativo'}
@@ -161,11 +160,10 @@ export default function ClientePerfilPage() {
             <div className="flex flex-col gap-2 sm:flex-row">
               <button
                 onClick={handleAgendarVisita}
-                className={`relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-300 ${
-                  visitaAgendada
+                className={`relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-300 ${visitaAgendada
                     ? 'bg-emerald-600 hover:bg-emerald-700'
                     : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-md'
-                }`}
+                  }`}
               >
                 {visitaAgendada ? (
                   <>
@@ -185,7 +183,7 @@ export default function ClientePerfilPage() {
 
         {/* KPIs do Cliente */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          
+
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between text-slate-500">
               <span className="text-sm font-medium">Faturamento Acumulado</span>
@@ -222,13 +220,12 @@ export default function ClientePerfilPage() {
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between text-slate-500">
               <span className="text-sm font-medium">Dias Sem Comprar</span>
-              <div className={`rounded-2xl p-2.5 ${
-                perfil.diasSemCompra >= 45 
-                  ? 'bg-rose-50 text-rose-600' 
-                  : perfil.diasSemCompra >= 30 
-                  ? 'bg-amber-50 text-amber-600' 
-                  : 'bg-emerald-50 text-emerald-600'
-              }`}>
+              <div className={`rounded-2xl p-2.5 ${perfil.diasSemCompra >= 45
+                  ? 'bg-rose-50 text-rose-600'
+                  : perfil.diasSemCompra >= 30
+                    ? 'bg-amber-50 text-amber-600'
+                    : 'bg-emerald-50 text-emerald-600'
+                }`}>
                 <HeartbeatIcon className="h-4 w-4" />
               </div>
             </div>
@@ -240,7 +237,7 @@ export default function ClientePerfilPage() {
 
         {/* Layout Grid Secundário */}
         <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-          
+
           {/* Histórico de Pedidos */}
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="border-b border-slate-100 pb-4">
@@ -268,11 +265,10 @@ export default function ClientePerfilPage() {
                           <TableCell>
                             <Badge
                               variant="outline"
-                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
-                                pedido.status === 'FATURADO'
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${pedido.status === 'FATURADO'
                                   ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
                                   : 'bg-amber-50 text-amber-700 border-amber-100'
-                              }`}
+                                }`}
                             >
                               {pedido.status}
                             </Badge>
