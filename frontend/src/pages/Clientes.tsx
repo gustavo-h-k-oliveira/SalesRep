@@ -43,8 +43,7 @@ export default function ClientesPage() {
   )
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-6xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="mx-auto max-w-6xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-slate-100 pb-6">
           <div>
             <h1 className="text-3xl font-semibold text-slate-900">Carteira de Clientes</h1>
@@ -146,6 +145,5 @@ export default function ClientesPage() {
           )}
         </div>
       </div>
-    </div>
   )
 }

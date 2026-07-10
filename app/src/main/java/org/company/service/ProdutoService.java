@@ -57,7 +57,15 @@ public class ProdutoService {
 
     // Método de cálculo
     public BigDecimal calcularFaturamentoPorSku(Long produtoId) {
-        return produtoAnalytics.calcularFaturamentoPorSku(produtoId);
+        return produtoAnalytics.calcularFaturamentoPorSku(produtoId, null);
+    }
+
+    public BigDecimal calcularFaturamentoPorSku(Long produtoId, Long representanteId) {
+        return produtoAnalytics.calcularFaturamentoPorSku(produtoId, representanteId);
+    }
+
+    public java.util.Map<Long, BigDecimal> obterFaturamentosDosProdutos(Long representanteId) {
+        return produtoAnalytics.obterFaturamentosDosProdutos(representanteId);
     }
 
     public java.util.List<String> buscarProdutosCriticos() {

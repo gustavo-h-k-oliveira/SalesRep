@@ -122,8 +122,7 @@ export default function DashboardRepresentante({ data }: DashboardRepresentanteP
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6">
-      <div className="mx-auto max-w-6xl space-y-8">
+    <div className="mx-auto max-w-6xl space-y-8">
         
         {/* Banner de Boas-vindas */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-800 p-8 text-white shadow-xl">
@@ -314,8 +313,8 @@ export default function DashboardRepresentante({ data }: DashboardRepresentanteP
             
             {/* 3. Alertas Comerciais */}
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
-              <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
-                <ShieldWarningIcon className="h-5 w-5 text-amber-500" />
+              <div className="flex items-start gap-2 border-b border-slate-100 pb-4">
+                <ShieldWarningIcon className="h-5 w-5 text-amber-500 mt-0.5" />
                 <div>
                   <h2 className="text-base font-bold text-slate-900">Alertas Comerciais</h2>
                   <p className="text-xxs text-slate-500">Mudanças importantes de comportamento</p>
@@ -383,6 +382,5 @@ export default function DashboardRepresentante({ data }: DashboardRepresentanteP
         </div>
 
       </div>
-    </div>
   )
 }

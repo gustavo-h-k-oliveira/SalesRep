@@ -145,8 +145,7 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6">
-      <div className="mx-auto max-w-6xl space-y-8">
+    <div className="mx-auto max-w-6xl space-y-8">
         
         {/* Banner do Gestor */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-700 to-cyan-800 p-8 text-white shadow-xl">
@@ -334,8 +333,8 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
             
             {/* Regiões Críticas */}
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
-              <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
-                <MapPinIcon className="h-5 w-5 text-emerald-600" />
+              <div className="flex items-start gap-2 border-b border-slate-100 pb-4">
+                <MapPinIcon className="h-5 w-5 text-emerald-600 mt-0.5" />
                 <div>
                   <h2 className="text-base font-bold text-slate-900">Regiões Críticas</h2>
                   <p className="text-xxs text-slate-500">Regiões com taxas elevadas de queda de recompra</p>
@@ -360,8 +359,8 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
 
             {/* Ranking de Representantes */}
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
-              <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
-                <UserIcon className="h-5 w-5 text-teal-600" />
+              <div className="flex items-start gap-2 border-b border-slate-100 pb-4">
+                <UserIcon className="h-5 w-5 text-teal-600 mt-0.5" />
                 <div>
                   <h2 className="text-base font-bold text-slate-900">Ranking de Representantes</h2>
                   <p className="text-xxs text-slate-500">Total de faturamento consolidado faturado</p>
@@ -397,6 +396,5 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
         </div>
 
       </div>
-    </div>
   )
 }

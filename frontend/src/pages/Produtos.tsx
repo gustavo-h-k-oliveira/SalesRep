@@ -42,10 +42,11 @@ export default function ProdutosPage() {
   }, [produtos, produtosCriticos])
 
   const formatSku = (sku: string) => sku || '-'
+  const formatCurrency = (value: number) =>
+    (value ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-6xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="mx-auto max-w-6xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="text-3xl font-semibold text-slate-900">Produtos</h1>
@@ -87,6 +88,7 @@ export default function ProdutosPage() {
                     <TableHead>ID</TableHead>
                     <TableHead>SKU</TableHead>
                     <TableHead>Descrição</TableHead>
+                    <TableHead className="text-right">Faturamento</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -95,6 +97,9 @@ export default function ProdutosPage() {
                       <TableCell className="font-semibold text-slate-500">{produto.id}</TableCell>
                       <TableCell>{formatSku(produto.sku)}</TableCell>
                       <TableCell className="font-medium text-slate-900">{produto.descricao}</TableCell>
+                      <TableCell className="text-right font-semibold text-slate-900">
+                        {formatCurrency(produto.faturamento)}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -124,7 +129,12 @@ export default function ProdutosPage() {
                   {produtosCriticos.map((produto) => (
                     <div key={produto.id} className="rounded-2xl bg-white p-4 shadow-sm">
                       <p className="font-medium text-slate-900">{produto.descricao}</p>
-                      <p className="mt-1 text-sm text-slate-500">SKU: {formatSku(produto.sku)}</p>
+                      <div className="mt-1 flex items-center justify-between text-sm text-slate-500">
+                        <span>SKU: {formatSku(produto.sku)}</span>
+                        <span className="font-semibold text-slate-900">
+                          {formatCurrency(produto.faturamento)}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -135,6 +145,5 @@ export default function ProdutosPage() {
           </div>
         </div>
       </div>
-    </div>
   )
 }

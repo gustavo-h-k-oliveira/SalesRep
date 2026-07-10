@@ -50,21 +50,11 @@ public class RegiaoAnalytics {
         }
 
         private Map<Long, BigDecimal> faturamentoPorRegiao(LocalDate inicio, LocalDate fim, Long representanteId) {
-                return pedidoRepository.findAll().stream()
-                                .filter(pedido -> pedido.getDataFaturamento() != null)
-                                .filter(pedido -> !pedido.getDataFaturamento().isBefore(inicio)
-                                                && !pedido.getDataFaturamento().isAfter(fim))
-                                .filter(pedido -> pedido.estaFaturado())
-                                .filter(pedido -> representanteId == null || (pedido.getRepresentante() != null
-                                                && representanteId.equals(pedido.getRepresentante().getId())))
-                                .filter(pedido -> pedido.getCliente() != null
-                                                && pedido.getCliente().getRegiao() != null
-                                                && pedido.getValorTotal() != null)
-                                .collect(Collectors.groupingBy(
-                                                pedido -> pedido.getCliente().getRegiao().getId(),
-                                                Collectors.mapping(pedido -> pedido.getValorTotal(),
-                                                                Collectors.reducing(BigDecimal.ZERO,
-                                                                                (a, b) -> a.add(b)))));
+                List<Object[]> results = pedidoRepository.findFaturamentoPorRegiao(inicio, fim, representanteId);
+                return results.stream().collect(Collectors.toMap(
+                                row -> (Long) row[0],
+                                row -> (BigDecimal) row[1]
+                ));
         }
 
         private BigDecimal percentualQueda(BigDecimal anterior, BigDecimal atual) {

@@ -8,7 +8,6 @@ import org.company.analytics.RegiaoAnalytics;
 import org.company.dto.DashboardDto;
 import org.company.entity.Representante;
 import org.company.entity.StatusCliente;
-import org.company.entity.StatusPedido;
 import org.company.repository.ClienteRepository;
 import org.company.repository.PedidoRepository;
 import org.company.security.SecurityUtils;
@@ -56,10 +55,7 @@ public class DashboardService {
                 produtosCriticos = List.of();
                 alertas = List.of();
             } else {
-                faturamentoTotal = pedidoRepository
-                        .findByRepresentanteIdAndStatus(representanteId, StatusPedido.FATURADO).stream()
-                        .map(pedido -> pedido.getValorTotal())
-                        .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+                faturamentoTotal = pedidoRepository.sumFaturamentoTotalByRepresentanteId(representanteId);
                 clientesAtivos = clienteRepository.countByRepresentanteIdAndStatus(representanteId,
                         StatusCliente.ATIVO);
                 clientesInativos = clienteRepository.countByRepresentanteIdAndStatus(representanteId,
@@ -69,9 +65,7 @@ public class DashboardService {
                 alertas = alertaService.buscarAlertas(representanteId);
             }
         } else {
-            faturamentoTotal = pedidoRepository.findByStatus(StatusPedido.FATURADO).stream()
-                    .map(pedido -> pedido.getValorTotal())
-                    .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+            faturamentoTotal = pedidoRepository.sumFaturamentoTotal();
             clientesAtivos = clienteRepository.countByStatus(StatusCliente.ATIVO);
             clientesInativos = clienteRepository.countByStatus(StatusCliente.INATIVO);
             regioesCriticas = regiaoAnalytics.buscarRegioesCriticas();

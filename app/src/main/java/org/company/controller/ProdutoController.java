@@ -42,13 +42,19 @@ public class ProdutoController {
 
     @GetMapping
     public List<ProdutoResponseDto> listarTodos(@AuthenticationPrincipal UsuarioPrincipal principal) {
+        Long representanteId = null;
+        List<Produto> produtos;
         if (principal.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_REPRESENTANTE"))) {
-            return produtoService.encontrarPorRepresentante(principal.getRepresentanteId()).stream()
-                    .map(produtoDtoMapper::toProdutoResponseDto)
-                    .toList();
+            representanteId = principal.getRepresentanteId();
+            produtos = produtoService.encontrarPorRepresentante(representanteId);
+        } else {
+            produtos = produtoService.encontrarTodos();
         }
-        return produtoService.encontrarTodos().stream()
-                .map(produtoDtoMapper::toProdutoResponseDto)
+
+        java.util.Map<Long, java.math.BigDecimal> faturamentos = produtoService.obterFaturamentosDosProdutos(representanteId);
+
+        return produtos.stream()
+                .map(produto -> produtoDtoMapper.toProdutoResponseDto(produto, faturamentos.getOrDefault(produto.getId(), java.math.BigDecimal.ZERO)))
                 .toList();
     }
 
@@ -70,13 +76,15 @@ public class ProdutoController {
 
     @GetMapping("/criticos")
     public List<ProdutoResponseDto> listarProdutosCriticos() {
-        if (isRepresentante()) {
-            return produtoService.buscarProdutosCriticosProduto(getLoggedRepresentanteId()).stream()
-                    .map(produtoDtoMapper::toProdutoResponseDto)
-                    .toList();
-        }
-        return produtoService.buscarProdutosCriticosProduto().stream()
-                .map(produtoDtoMapper::toProdutoResponseDto)
+        Long representanteId = isRepresentante() ? getLoggedRepresentanteId() : null;
+        List<Produto> produtos = isRepresentante() 
+                ? produtoService.buscarProdutosCriticosProduto(representanteId)
+                : produtoService.buscarProdutosCriticosProduto();
+        
+        java.util.Map<Long, java.math.BigDecimal> faturamentos = produtoService.obterFaturamentosDosProdutos(representanteId);
+
+        return produtos.stream()
+                .map(produto -> produtoDtoMapper.toProdutoResponseDto(produto, faturamentos.getOrDefault(produto.getId(), java.math.BigDecimal.ZERO)))
                 .toList();
     }
 

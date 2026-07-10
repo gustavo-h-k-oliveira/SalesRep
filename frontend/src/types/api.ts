@@ -84,6 +84,7 @@ export interface ProdutoResponse {
   id: number
   sku: string
   descricao: string
+  faturamento: number
 }
 
 export interface ProdutoRequest {

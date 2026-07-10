@@ -57,8 +57,7 @@ export default function AlertasPage() {
     })
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-6xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="mx-auto max-w-6xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="text-3xl font-semibold text-slate-900">Alertas</h1>
@@ -167,6 +166,5 @@ export default function AlertasPage() {
           </div>
         </div>
       </div>
-    </div>
   )
 }
