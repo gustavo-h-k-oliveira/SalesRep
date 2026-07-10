@@ -1,4 +1,5 @@
 import type { LoginRequest, LoginResponse } from '../types/api'
+import { apiFetch } from './api'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 
@@ -29,14 +30,20 @@ export async function login(request: LoginRequest): Promise<LoginResponse> {
 }
 
 export async function logout(): Promise<void> {
-  await fetch(`${API_BASE}/auth/logout`, {
-    method: 'POST',
-    credentials: 'include',
-  })
+  try {
+    await apiFetch('/auth/logout', {
+      method: 'POST',
+    })
+  } catch (err) {
+    console.warn('Erro ao chamar endpoint de logout:', err)
+  }
 }
 
-export function saveSession() {
+export function saveSession(representanteId?: number) {
   localStorage.setItem('loggedIn', 'true')
+  if (representanteId !== undefined && representanteId !== null) {
+    localStorage.setItem('representanteId', String(representanteId))
+  }
 }
 
 export function isLoggedIn() {
@@ -45,4 +52,16 @@ export function isLoggedIn() {
 
 export function clearSession() {
   localStorage.removeItem('loggedIn')
+  localStorage.removeItem('representanteId')
+}
+
+export function getRepresentanteId(): number | null {
+  const raw = localStorage.getItem('representanteId')
+  if (!raw) return null
+  const parsed = Number.parseInt(raw, 10)
+  return Number.isNaN(parsed) ? null : parsed
+}
+
+export function isRepresentante(): boolean {
+  return getRepresentanteId() !== null
 }

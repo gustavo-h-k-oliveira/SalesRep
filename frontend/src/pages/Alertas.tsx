@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Navigate } from 'react-router-dom'
+import { isRepresentante } from '../services/authService'
 import { fetchAlertas } from '../services/alertaService'
 import type { AlertaDto } from '../types/api'
 
@@ -9,6 +11,11 @@ const criticidadeLabel: Record<string, string> = {
 }
 
 export default function AlertasPage() {
+  const representative = isRepresentante()
+  if (representative) {
+    return <Navigate to="/oportunidades" replace />
+  }
+
   const [alertas, setAlertas] = useState<AlertaDto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -91,8 +98,8 @@ export default function AlertasPage() {
               <p className="mt-4 text-rose-600">{error}</p>
             ) : alertasRecentes.length ? (
               <div className="mt-4 space-y-4">
-                {alertasRecentes.map((alerta) => (
-                  <article key={`${alerta.clienteId}-${alerta.dataGeracao}-${alerta.tipo}`} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                {alertasRecentes.map((alerta, index) => (
+                  <article key={`${alerta.clienteId || 'null'}-${alerta.tipo}-${index}`} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                       <div>
                         <p className="inline-flex rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-rose-700">
@@ -146,8 +153,8 @@ export default function AlertasPage() {
                 <p className="mt-4 text-rose-600">{error}</p>
               ) : alertasRecentes.length ? (
                 <ul className="mt-4 space-y-3">
-                  {alertasRecentes.map((alerta) => (
-                    <li key={`${alerta.clienteId}-${alerta.tipo}`} className="rounded-2xl bg-white p-4 shadow-sm">
+                  {alertasRecentes.map((alerta, index) => (
+                    <li key={`${alerta.clienteId || 'null'}-${alerta.tipo}-${index}-destaque`} className="rounded-2xl bg-white p-4 shadow-sm">
                       <p className="font-medium text-slate-900">{alerta.clienteNome}</p>
                       <p className="mt-1 text-sm text-slate-600">{alerta.descricao}</p>
                     </li>

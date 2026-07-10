@@ -33,7 +33,6 @@ public class ClienteAnalyticsService {
             ? clienteRepository.findAll()
             : clienteRepository.findByRepresentanteId(representanteId)).stream()
             .map(cliente -> new ClienteScore(cliente, clienteAnalytics.calcularScore(cliente)))
-            .filter(clienteScore -> clienteScore.score >= 80)
             .sorted(Comparator.comparingDouble((ClienteScore clienteScore) -> clienteScore.score).reversed())
             .map(clienteScore -> clienteDtoMapper.toClientePrioritarioDto(
                 clienteScore.cliente,

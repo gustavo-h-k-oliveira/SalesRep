@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { fetchProdutos, fetchProdutosCriticos } from '../services/produtoService'
 import type { ProdutoResponse } from '../types/api'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 export default function ProdutosPage() {
   const [produtos, setProdutos] = useState<ProdutoResponse[]>([])
@@ -67,43 +75,34 @@ export default function ProdutosPage() {
         </div>
 
         <div className="mt-8 grid gap-4 lg:grid-cols-[1.35fr_1fr]">
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-semibold text-slate-900">Catálogo de produtos</h2>
-                <p className="mt-1 text-sm text-slate-600">Todos os itens retornados por <span className="font-medium">/produtos</span>.</p>
-              </div>
+          {loading ? (
+            <p className="text-slate-600">Carregando produtos...</p>
+          ) : error ? (
+            <p className="text-rose-600">{error}</p>
+          ) : produtos.length ? (
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50/75 hover:bg-slate-50/75">
+                    <TableHead>ID</TableHead>
+                    <TableHead>SKU</TableHead>
+                    <TableHead>Descrição</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {produtos.map((produto) => (
+                    <TableRow key={produto.id} className="hover:bg-slate-50/50">
+                      <TableCell className="font-semibold text-slate-500">{produto.id}</TableCell>
+                      <TableCell>{formatSku(produto.sku)}</TableCell>
+                      <TableCell className="font-medium text-slate-900">{produto.descricao}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-
-            {loading ? (
-              <p className="mt-4 text-slate-600">Carregando produtos...</p>
-            ) : error ? (
-              <p className="mt-4 text-rose-600">{error}</p>
-            ) : produtos.length ? (
-              <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                <table className="min-w-full divide-y divide-slate-200 text-left text-sm text-slate-700">
-                  <thead className="bg-slate-100 text-slate-900">
-                    <tr>
-                      <th className="px-4 py-3 font-medium">ID</th>
-                      <th className="px-4 py-3 font-medium">SKU</th>
-                      <th className="px-4 py-3 font-medium">Descrição</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 bg-white">
-                    {produtos.map((produto) => (
-                      <tr key={produto.id}>
-                        <td className="px-4 py-4">{produto.id}</td>
-                        <td className="px-4 py-4">{formatSku(produto.sku)}</td>
-                        <td className="px-4 py-4">{produto.descricao}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="mt-4 text-slate-600">Nenhum produto encontrado.</p>
-            )}
-          </div>
+          ) : (
+            <p className="text-slate-600">Nenhum produto encontrado.</p>
+          )}
 
           <div className="space-y-4">
             <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm">

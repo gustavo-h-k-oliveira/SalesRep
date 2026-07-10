@@ -2,9 +2,11 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import LoginPage from './pages/Login'
 import DashboardPage from './pages/Dashboard'
 import ClientesPage from './pages/Clientes'
+import ClientePerfilPage from './pages/ClientePerfil'
 import PedidosPage from './pages/Pedidos'
 import ProdutosPage from './pages/Produtos'
 import AlertasPage from './pages/Alertas'
+import OportunidadesPage from './pages/Oportunidades'
 import ProtectedRoute from './pages/ProtectedRoute'
 import AppLayout from './layouts/AppLayout'
 
@@ -22,9 +24,11 @@ function App() {
         >
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/clientes" element={<ClientesPage />} />
+          <Route path="/clientes/:id" element={<ClientePerfilPage />} />
           <Route path="/pedidos" element={<PedidosPage />} />
           <Route path="/produtos" element={<ProdutosPage />} />
           <Route path="/alertas" element={<AlertasPage />} />
+          <Route path="/oportunidades" element={<OportunidadesPage />} />
         </Route>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />

@@ -2,12 +2,17 @@ package org.company.controller;
 
 import java.time.Duration;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 import org.company.dto.LoginRequestDto;
 import org.company.dto.LoginResponseDto;
+import org.company.entity.TipoEvento;
+import org.company.security.SecurityUtils;
+import org.company.security.UsuarioPrincipal;
 import org.company.service.AuthService;
+import org.company.service.LogAuditoriaService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -24,11 +29,14 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 
     private final AuthService authService;
+    private final LogAuditoriaService logAuditoriaService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequest) {
+    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequest, HttpServletRequest request) {
 
         String token = authService.authenticate(loginRequest);
+
+        logAuditoriaService.registrarAcesso(loginRequest.getNomeUsuario(), TipoEvento.LOGIN, request);
 
         LoginResponseDto response = new LoginResponseDto();
         response.setToken(token);
@@ -51,7 +59,12 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletResponse servletResponse) {
+    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse servletResponse) {
+        UsuarioPrincipal user = SecurityUtils.getCurrentUser();
+        if (user != null) {
+            logAuditoriaService.registrarAcesso(user.getUsername(), TipoEvento.LOGOUT, request);
+        }
+
         ResponseCookie cookie = ResponseCookie.from("AUTH_TOKEN", "")
                 .httpOnly(true)
                 .path("/")
@@ -63,3 +76,4 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 }
+

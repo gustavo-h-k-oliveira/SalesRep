@@ -35,24 +35,31 @@ class ClienteAnalyticsServiceTest {
     private ClienteAnalyticsService clienteAnalyticsService;
 
     @Test
-    void buscarClientesPrioritarios_deveRetornarApenasClientesComScoreAcimaDe80() {
+    void buscarClientesPrioritarios_deveRetornarTodosOsClientesOrdenadosPorScore() {
         Cliente cliente1 = org.mockito.Mockito.mock(Cliente.class);
         Cliente cliente2 = org.mockito.Mockito.mock(Cliente.class);
 
         when(clienteAnalytics.calcularScore(cliente1)).thenReturn(75.0);
         when(clienteAnalytics.calcularScore(cliente2)).thenReturn(90.0);
+        when(clienteAnalytics.calcularTicketMedio(cliente1)).thenReturn(BigDecimal.valueOf(1000));
+        when(clienteAnalytics.calcularTotalPedidos(cliente1)).thenReturn(5);
         when(clienteAnalytics.calcularTicketMedio(cliente2)).thenReturn(BigDecimal.valueOf(5000));
         when(clienteAnalytics.calcularTotalPedidos(cliente2)).thenReturn(10);
+        
         when(clienteDtoMapper.toClientePrioritarioDto(cliente2, 90.0, BigDecimal.valueOf(5000), 10))
             .thenReturn(new ClientePrioritarioDto(2L, "Cliente 2", 90.0, 10, BigDecimal.valueOf(5000), 10, "ATIVO"));
+        when(clienteDtoMapper.toClientePrioritarioDto(cliente1, 75.0, BigDecimal.valueOf(1000), 5))
+            .thenReturn(new ClientePrioritarioDto(1L, "Cliente 1", 75.0, 5, BigDecimal.valueOf(1000), 5, "ATIVO"));
 
         when(clienteRepository.findAll()).thenReturn(List.of(cliente1, cliente2));
 
         var resultado = clienteAnalyticsService.buscarClientesPrioritarios();
 
-        assertEquals(1, resultado.size());
+        assertEquals(2, resultado.size());
         assertEquals(90.0, resultado.get(0).getScore());
         assertEquals("Cliente 2", resultado.get(0).getNome());
+        assertEquals(75.0, resultado.get(1).getScore());
+        assertEquals("Cliente 1", resultado.get(1).getNome());
     }
 
     @Test

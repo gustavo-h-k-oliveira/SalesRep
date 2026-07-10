@@ -22,8 +22,8 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      await login({ nomeUsuario, senha })
-      saveSession()
+      const response = await login({ nomeUsuario, senha })
+      saveSession(response.representanteId)
       navigate('/dashboard', { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido')
