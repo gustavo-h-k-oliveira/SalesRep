@@ -17,19 +17,20 @@ public class AuthService {
     private final UsuarioBancoDeDadosService usuarioBancoDeDadosService;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenService jwtTokenService;
+    private final EmailService emailService;
 
     public String authenticate(LoginRequestDto loginRequest) {
 
         var usuario = usuarioBancoDeDadosService
-                .buscarPorNomeUsuario(loginRequest.getNomeUsuario())
+                .buscarPorEmail(loginRequest.getEmail())
                 .orElseThrow(() -> {
-                    return new BadCredentialsException("Nome de usuario ou senha invalidos.");
+                    return new BadCredentialsException("E-mail ou senha inválidos.");
                 });
 
         boolean senhaValida = passwordEncoder.matches(loginRequest.getSenha(), usuario.getSenha());
 
         if (!senhaValida || usuario.getStatus() != StatusUsuario.ATIVO) {
-            throw new BadCredentialsException("Nome de usuario ou senha invalidos.");
+            throw new BadCredentialsException("E-mail ou senha inválidos.");
         }
 
         Long representanteId = usuario.getRepresentante() != null
@@ -42,7 +43,29 @@ public class AuthService {
                 representanteId);
     }
 
+    public Usuario getUsuarioPorEmail(String email) {
+        return usuarioBancoDeDadosService.buscarPorEmail(email).orElse(null);
+    }
+
     public Usuario getUsuarioPorNome(String nomeUsuario) {
         return usuarioBancoDeDadosService.buscarPorNomeUsuario(nomeUsuario).orElse(null);
+    }
+
+    public void recuperarSenha(String email) {
+        Usuario usuario = usuarioBancoDeDadosService.buscarPorEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("E-mail não cadastrado no sistema."));
+
+        String token = jwtTokenService.generatePasswordResetToken(usuario.getEmail());
+        emailService.enviarEmailRecuperacao(usuario.getEmail(), token);
+    }
+
+    public void redefinirSenha(String token, String novaSenha) {
+        String email = jwtTokenService.getEmailFromResetToken(token);
+        
+        Usuario usuario = usuarioBancoDeDadosService.buscarPorEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário associado ao token não encontrado."));
+
+        usuario.setSenha(passwordEncoder.encode(novaSenha));
+        usuarioBancoDeDadosService.salvar(usuario);
     }
 }

@@ -1,5 +1,5 @@
 export interface LoginRequest {
-  nomeUsuario: string
+  email: string
   senha: string
   lembreMe?: boolean
 }

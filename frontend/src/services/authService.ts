@@ -39,6 +39,58 @@ export async function logout(): Promise<void> {
   }
 }
 
+export async function recuperarSenha(email: string): Promise<void> {
+  const response = await fetch(`${API_BASE}/auth/recuperar-senha`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email }),
+  })
+
+  if (!response.ok) {
+    let message = "Falha ao enviar solicitação de recuperação"
+    try {
+      const error = await response.json()
+      message = error.message ?? message
+    } catch {
+      try {
+        const text = await response.text()
+        message = text || message
+      } catch {
+        // ignorar se falhar ao ler texto
+      }
+    }
+    throw new Error(message)
+  }
+}
+
+export async function redefinirSenha(token: string, novaSenha: string): Promise<void> {
+  const response = await fetch(`${API_BASE}/auth/redefinir-senha`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ token, novaSenha }),
+  })
+
+  if (!response.ok) {
+    let message = "Falha ao redefinir senha"
+    try {
+      const error = await response.json()
+      message = error.message ?? message
+    } catch {
+      try {
+        const text = await response.text()
+        message = text || message
+      } catch {
+        // ignorar se falhar ao ler texto
+      }
+    }
+    throw new Error(message)
+  }
+}
+
 export function saveSession(representanteId?: number, remember = false) {
   if (remember) {
     localStorage.setItem('loggedIn', 'true')

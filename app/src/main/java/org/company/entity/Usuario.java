@@ -28,6 +28,9 @@ public class Usuario {
     @Column(name = "nome_usuario", unique = true, nullable = false)
     private @NotBlank String nomeUsuario;
 
+    @Column(name = "email", unique = true, nullable = false)
+    private @NotBlank String email;
+
     @Column(name = "senha", nullable = false, length = 255)
     private @NotBlank String senha;
 
