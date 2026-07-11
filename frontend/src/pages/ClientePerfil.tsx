@@ -110,7 +110,7 @@ export default function ClientePerfilPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
+    <div className="w-full space-y-8">
 
         {/* Top bar & Back button */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

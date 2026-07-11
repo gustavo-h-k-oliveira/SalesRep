@@ -122,7 +122,7 @@ export default function DashboardRepresentante({ data }: DashboardRepresentanteP
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
+    <div className="w-full space-y-8">
 
       {/* Banner de Boas-vindas */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-800 p-8 text-white shadow-xl">

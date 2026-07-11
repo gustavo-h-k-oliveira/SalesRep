@@ -145,7 +145,7 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
+    <div className="w-full space-y-8">
 
       {/* Banner do Gestor */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-700 to-cyan-800 p-8 text-white shadow-xl">

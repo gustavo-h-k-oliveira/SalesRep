@@ -104,7 +104,7 @@ export default function OportunidadesPage() {
 
   return (
     <>
-      <div className="mx-auto max-w-6xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+      <div className="w-full rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
         {/* Header */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-slate-100 pb-6">
           <div>
