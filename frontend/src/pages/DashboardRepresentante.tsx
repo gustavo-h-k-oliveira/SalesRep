@@ -167,41 +167,49 @@ export default function DashboardRepresentante({ data }: DashboardRepresentanteP
       </div>
 
       {/* 1. Grade de Métricas Principais (KPIs) */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
-        <div className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-xs hover:shadow-md transition-all duration-300">
+        <div className="group rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-sm font-medium">Faturamento no Mês</span>
             <CurrencyDollarIcon className="h-5 w-5 text-indigo-600" />
           </div>
-          <p className="mt-4 text-2xl font-bold text-slate-900">{formatCurrency(data.faturamentoTotal)}</p>
+          <p className="mt-4 text-lg sm:text-2xl font-bold tracking-tight text-slate-900 truncate" title={formatCurrency(data.faturamentoTotal)}>
+            {formatCurrency(data.faturamentoTotal)}
+          </p>
           <p className="mt-1 text-xs text-slate-500">Pedidos faturados acumulados</p>
         </div>
 
-        <div className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-xs hover:shadow-md transition-all duration-300">
+        <div className="group rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-sm font-medium">Clientes Ativos</span>
             <UsersIcon className="h-5 w-5 text-emerald-600" />
           </div>
-          <p className="mt-4 text-2xl font-bold text-slate-900">{data.clientesAtivos}</p>
+          <p className="mt-4 text-lg sm:text-2xl font-bold tracking-tight text-slate-900 truncate" title={String(data.clientesAtivos)}>
+            {data.clientesAtivos}
+          </p>
           <p className="mt-1 text-xs text-slate-500">Compras regulares frequentes</p>
         </div>
 
-        <div className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-xs hover:shadow-md transition-all duration-300">
+        <div className="group rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-sm font-medium">Clientes Inativos</span>
             <UsersIcon className="h-5 w-5 text-amber-600" />
           </div>
-          <p className="mt-4 text-2xl font-bold text-slate-900">{data.clientesInativos}</p>
+          <p className="mt-4 text-lg sm:text-2xl font-bold tracking-tight text-slate-900 truncate" title={String(data.clientesInativos)}>
+            {data.clientesInativos}
+          </p>
           <p className="mt-1 text-xs text-slate-500">Sem compras recentes na base</p>
         </div>
 
-        <div className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-xs hover:shadow-md transition-all duration-300">
+        <div className="group rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between text-slate-500">
             <span className="text-sm font-medium">Oportunidades</span>
             <WarningCircleIcon className="h-5 w-5 text-rose-600" />
           </div>
-          <p className="mt-4 text-2xl font-bold text-slate-900">{data.alertasPendentes}</p>
+          <p className="mt-4 text-lg sm:text-2xl font-bold tracking-tight text-slate-900 truncate" title={String(data.alertasPendentes)}>
+            {data.alertasPendentes}
+          </p>
           <p className="mt-1 text-xs text-slate-500">Alertas comerciais gerados</p>
         </div>
 
