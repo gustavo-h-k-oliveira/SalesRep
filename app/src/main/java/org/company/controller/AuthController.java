@@ -32,7 +32,8 @@ public class AuthController {
     private final LogAuditoriaService logAuditoriaService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequest, HttpServletRequest request) {
+    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequest,
+            HttpServletRequest request) {
 
         String token = authService.authenticate(loginRequest);
 
@@ -46,10 +47,13 @@ public class AuthController {
             response.setRepresentanteId(usuario.getRepresentante().getId());
         }
 
+        long maxAgeSeconds = (loginRequest.getLembreMe() != null && loginRequest.getLembreMe()) ? 15 * 24 * 60 * 60L
+                : 8 * 60 * 60L;
+
         ResponseCookie cookie = ResponseCookie.from("AUTH_TOKEN", token)
                 .httpOnly(true)
                 .path("/")
-                .maxAge(Duration.ofHours(8))
+                .maxAge(Duration.ofSeconds(maxAgeSeconds))
                 .sameSite("Lax")
                 .build();
 
@@ -76,4 +80,3 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 }
-

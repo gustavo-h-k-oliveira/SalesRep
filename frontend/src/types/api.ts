@@ -1,6 +1,7 @@
 export interface LoginRequest {
   nomeUsuario: string
   senha: string
+  lembreMe?: boolean
 }
 
 export interface LoginResponse {

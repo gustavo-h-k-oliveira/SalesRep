@@ -7,12 +7,19 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const [nomeUsuario, setNomeUsuario] = useState('')
   const [senha, setSenha] = useState('')
+  const [lembreMe, setLembreMe] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (isLoggedIn()) {
       navigate('/dashboard', { replace: true })
+    } else {
+      const savedUser = localStorage.getItem('rememberedUsername')
+      if (savedUser) {
+        setNomeUsuario(savedUser)
+        setLembreMe(true)
+      }
     }
   }, [navigate])
 
@@ -22,8 +29,13 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const response = await login({ nomeUsuario, senha })
-      saveSession(response.representanteId)
+      const response = await login({ nomeUsuario, senha, lembreMe })
+      saveSession(response.representanteId, lembreMe)
+      if (lembreMe) {
+        localStorage.setItem('rememberedUsername', nomeUsuario)
+      } else {
+        localStorage.removeItem('rememberedUsername')
+      }
       navigate('/dashboard', { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido')
@@ -61,6 +73,18 @@ export default function LoginPage() {
               placeholder="••••••••"
               required
             />
+          </div>
+
+          <div className="flex items-center">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={lembreMe}
+                onChange={(event) => setLembreMe(event.target.checked)}
+                className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500"
+              />
+              <span className="text-sm font-medium text-slate-700">Lembre-se de mim</span>
+            </label>
           </div>
 
           {error && <p className="text-sm text-rose-600">{error}</p>}
