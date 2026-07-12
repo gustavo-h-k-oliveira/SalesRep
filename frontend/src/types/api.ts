@@ -161,3 +161,10 @@ export interface PedidoItemResponse {
   precoUnitario: number
   subTotal: number
 }
+
+export interface ProdutoRecomendadoDto {
+  id: number
+  sku: string
+  descricao: string
+  justificativa: string
+}

@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { fetchClientePerfil } from '../services/clienteService'
+import { fetchClientePerfil, fetchRecomendacoesByCliente } from '../services/clienteService'
 import { fetchPedidosByCliente } from '../services/pedidoService'
-import { fetchProdutos } from '../services/produtoService'
-import type { ClientePerfilDto, PedidoResponse, ProdutoResponse } from '../types/api'
+import type { ClientePerfilDto, PedidoResponse, ProdutoRecomendadoDto } from '../types/api'
 import { Badge } from '@/components/ui/badge'
 import {
   Table,
@@ -33,7 +32,7 @@ export default function ClientePerfilPage() {
 
   const [perfil, setPerfil] = useState<ClientePerfilDto | null>(null)
   const [pedidos, setPedidos] = useState<PedidoResponse[]>([])
-  const [produtos, setProdutos] = useState<ProdutoResponse[]>([])
+  const [produtos, setProdutos] = useState<ProdutoRecomendadoDto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [visitaAgendada, setVisitaAgendada] = useState(false)
@@ -47,14 +46,14 @@ export default function ClientePerfilPage() {
 
     async function loadClienteData() {
       try {
-        const [perfilData, pedidosData, produtosData] = await Promise.all([
+        const [perfilData, pedidosData, recomendacoesData] = await Promise.all([
           fetchClientePerfil(clienteId!),
           fetchPedidosByCliente(clienteId!),
-          fetchProdutos(),
+          fetchRecomendacoesByCliente(clienteId!),
         ])
         setPerfil(perfilData)
         setPedidos(pedidosData)
-        setProdutos(produtosData)
+        setProdutos(recomendacoesData)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erro ao carregar dados do cliente')
       } finally {
@@ -298,9 +297,9 @@ export default function ClientePerfilPage() {
             <div className="space-y-3">
               {produtos.slice(0, 3).map((produto, index) => {
                 const colors = [
-                  { bg: 'bg-indigo-50 text-indigo-600', desc: 'Queda de recompra na região' },
-                  { bg: 'bg-teal-50 text-teal-600', desc: 'Item crítico no estoque do cliente' },
-                  { bg: 'bg-amber-50 text-amber-600', desc: 'Sugerido para completar ticket médio' }
+                  { bg: 'bg-indigo-50 text-indigo-600' },
+                  { bg: 'bg-teal-50 text-teal-600' },
+                  { bg: 'bg-amber-50 text-amber-600' }
                 ]
                 const colorConfig = colors[index % colors.length]
                 return (
@@ -310,7 +309,7 @@ export default function ClientePerfilPage() {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-slate-900">{produto.descricao}</p>
-                      <p className="text-xs text-slate-500">{colorConfig.desc}</p>
+                      <p className="text-xs text-slate-500">{produto.justificativa}</p>
                     </div>
                   </div>
                 )

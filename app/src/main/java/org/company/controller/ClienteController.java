@@ -7,6 +7,7 @@ import org.company.dto.ClientePerfilDto;
 import org.company.dto.ClientePrioritarioDto;
 import org.company.dto.ClienteRequestDto;
 import org.company.dto.ClienteResponseDto;
+import org.company.dto.ProdutoRecomendadoDto;
 import org.company.entity.Cliente;
 import org.company.entity.Regiao;
 import org.company.entity.Representante;
@@ -102,6 +103,12 @@ public class ClienteController {
         return Optional.ofNullable(clienteAnalyticsService.buscarPerfil(id, representanteId))
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/recomendacoes")
+    public List<ProdutoRecomendadoDto> obterRecomendacoes(@PathVariable Long id) {
+        Long representanteId = SecurityUtils.getRepresentanteId();
+        return clienteAnalyticsService.obterRecomendacoes(id, representanteId);
     }
 
     @PostMapping

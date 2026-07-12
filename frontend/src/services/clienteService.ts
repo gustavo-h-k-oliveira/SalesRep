@@ -4,6 +4,7 @@ import type {
   ClienteRequest,
   ClientePerfilDto,
   ClientePrioritarioDto,
+  ProdutoRecomendadoDto,
 } from '../types/api'
 
 export async function fetchClientes(): Promise<ClienteResponse[]> {
@@ -56,4 +57,8 @@ export async function deleteCliente(id: number): Promise<void> {
   return apiFetch<void>(`/clientes/${id}`, {
     method: 'DELETE',
   })
+}
+
+export async function fetchRecomendacoesByCliente(clienteId: number): Promise<ProdutoRecomendadoDto[]> {
+  return apiFetch<ProdutoRecomendadoDto[]>(`/clientes/${clienteId}/recomendacoes`)
 }
