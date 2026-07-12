@@ -325,7 +325,7 @@ export default function DashboardRepresentante({ data }: DashboardRepresentanteP
               <ShieldWarningIcon className="h-5 w-5 text-amber-500 mt-0.5" />
               <div>
                 <h2 className="text-base font-bold text-slate-900">Alertas Comerciais</h2>
-                <p className="text-xxs text-slate-500">Mudanças importantes de comportamento</p>
+                <p className="text-xs text-slate-500">Mudanças importantes de comportamento</p>
               </div>
             </div>
 
@@ -354,7 +354,7 @@ export default function DashboardRepresentante({ data }: DashboardRepresentanteP
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
             <div>
               <h2 className="text-base font-bold text-slate-900">Ranking de Clientes</h2>
-              <p className="text-xxs text-slate-500">Maiores potenciais e recopa de carteira</p>
+              <p className="text-xs text-slate-500">Maiores potenciais e recopa de carteira</p>
             </div>
 
             <div className="mt-4 overflow-hidden rounded-2xl border border-slate-150 bg-white">
