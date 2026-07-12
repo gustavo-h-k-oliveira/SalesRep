@@ -8,6 +8,7 @@ import org.company.repository.LogAuditoriaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Async;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -16,6 +17,7 @@ public class LogAuditoriaService {
 
     private final LogAuditoriaRepository logAuditoriaRepository;
 
+    @Async
     public void registrarAcesso(String username, TipoEvento evento, HttpServletRequest request) {
         LogAuditoria log = new LogAuditoria();
         log.setUsername(username);
