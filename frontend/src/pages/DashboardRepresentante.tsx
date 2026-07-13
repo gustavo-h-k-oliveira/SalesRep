@@ -88,7 +88,7 @@ export default function DashboardRepresentante({ data }: DashboardRepresentanteP
     const faturados = pedidos.filter((p) => p.status === 'FATURADO')
     const mesesMap: { [key: string]: number } = {}
 
-    // Ordenar e pegar os últimos 4 meses
+    // Ordenar e pegar os últimos meses
     const nomesMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
     faturados.forEach((p) => {
@@ -97,18 +97,21 @@ export default function DashboardRepresentante({ data }: DashboardRepresentanteP
       mesesMap[nomeMes] = (mesesMap[nomeMes] || 0) + p.valorTotal
     })
 
-    // Caso não tenhamos pedidos suficientes, mockamos alguns meses com base no faturamento real
-    const meses = ['Jan', 'Fev', 'Mar', 'Abr']
-    const baseVal = data.faturamentoTotal / 4
+    const hoje = new Date()
+    const ultimosMeses: string[] = []
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1)
+      ultimosMeses.push(nomesMeses[d.getMonth()])
+    }
 
-    return meses.map((mes, idx) => {
-      const valor = mesesMap[mes] || baseVal * (0.8 + idx * 0.15) // Distribuição proporcional
+    return ultimosMeses.map((mes) => {
+      const valor = mesesMap[mes] || 0
       return {
         mes,
         valor,
       }
     })
-  }, [pedidos, data])
+  }, [pedidos])
 
   if (loading) {
     return (

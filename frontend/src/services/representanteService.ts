@@ -4,6 +4,7 @@ import type {
   RepresentanteResponse,
   ClienteResponse,
   PedidoResponse,
+  AlertaDto,
 } from '../types/api'
 
 export async function fetchRepresentantes(): Promise<RepresentanteResponse[]> {
@@ -24,6 +25,10 @@ export async function fetchRepresentanteClientes(id: number): Promise<ClienteRes
 
 export async function fetchRepresentantePedidos(id: number): Promise<PedidoResponse[]> {
   return apiFetch<PedidoResponse[]>(`/representantes/${id}/pedidos`)
+}
+
+export async function fetchRepresentanteAlertas(id: number): Promise<AlertaDto[]> {
+  return apiFetch<AlertaDto[]>(`/representantes/${id}/alertas`)
 }
 
 export async function createRepresentante(data: RepresentanteRequest): Promise<RepresentanteResponse> {

@@ -14,8 +14,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectPortal,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 type FilterMode = 'TODOS' | 'FATURADOS' | 'NAO_FATURADOS'
+
+const filterModeItems = [
+  { value: 'TODOS', label: 'Todos' },
+  { value: 'FATURADOS', label: 'Faturados' },
+  { value: 'NAO_FATURADOS', label: 'Não Faturados' },
+]
 
 export default function PedidosPage() {
   const [pedidos, setPedidos] = useState<PedidoResponse[]>([])
@@ -101,127 +115,130 @@ export default function PedidosPage() {
 
   return (
     <div className="w-full rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold text-slate-900">Pedidos</h1>
-            <p className="mt-2 text-sm text-slate-600">
-              Esta página mostra pedidos disponíveis pela API. Filtros suportados:
-              período e faturamento.
-            </p>
-          </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-semibold text-slate-900">Pedidos</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Esta página mostra pedidos disponíveis pela API. Filtros suportados:
+            período e faturamento.
+          </p>
         </div>
-
-        <div className="mt-8 rounded-3xl border border-slate-200 bg-slate-50 p-6">
-          <form className="grid gap-4 lg:grid-cols-[1fr_1fr_auto]">
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-slate-700">Início</label>
-              <input
-                type="date"
-                value={inicio}
-                onChange={(event) => setInicio(event.target.value)}
-                className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900"
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-slate-700">Fim</label>
-              <input
-                type="date"
-                value={fim}
-                onChange={(event) => setFim(event.target.value)}
-                className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900"
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <label className="text-sm font-medium text-slate-700">Filtrar</label>
-              <select
-                value={filterMode}
-                onChange={(event) => setFilterMode(event.target.value as FilterMode)}
-                className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900"
-              >
-                <option value="TODOS">Todos</option>
-                <option value="FATURADOS">Faturados</option>
-                <option value="NAO_FATURADOS">Não faturados</option>
-              </select>
-            </div>
-
-            <div className="flex flex-wrap items-end gap-3 sm:col-span-3">
-              <button
-                type="button"
-                onClick={handleReset}
-                className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-100"
-              >
-                Limpar filtros
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          <div className="rounded-3xl bg-slate-50 p-6 shadow-sm">
-            <p className="text-sm text-slate-500">Pedidos</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-900">{totalPedidos}</p>
-          </div>
-          <div className="rounded-3xl bg-slate-50 p-6 shadow-sm">
-            <p className="text-sm text-slate-500">Valor total</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-900">{formatCurrency(valorTotal)}</p>
-          </div>
-          <div className="rounded-3xl bg-slate-50 p-6 shadow-sm">
-            <p className="text-sm text-slate-500">Ticket médio</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-900">{formatCurrency(ticketMedio)}</p>
-          </div>
-        </div>
-
-        {filterMode === 'TODOS' && (
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <div className="rounded-3xl bg-slate-50 p-6 shadow-sm">
-              <p className="text-sm text-slate-500">Faturados</p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">{faturadosCount}</p>
-            </div>
-            <div className="rounded-3xl bg-slate-50 p-6 shadow-sm">
-              <p className="text-sm text-slate-500">Não faturados</p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">{naoFaturadosCount}</p>
-            </div>
-          </div>
-        )}
-
-        {loading ? (
-          <p className="mt-8 text-slate-600">Carregando pedidos...</p>
-        ) : error ? (
-          <p className="mt-8 text-rose-600">{error}</p>
-        ) : pedidos.length ? (
-          <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-slate-50/75 hover:bg-slate-50/75">
-                  <TableHead>Pedido</TableHead>
-                  <TableHead>Emissão</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Representante</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Autorização</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pedidos.map((pedido) => (
-                  <TableRow key={pedido.id} className="hover:bg-slate-50/50">
-                    <TableCell className="font-semibold text-slate-500">{pedido.id}</TableCell>
-                    <TableCell>{formatDate(pedido.dataEmissao)}</TableCell>
-                    <TableCell className="font-medium text-slate-900">{pedido.clienteNome}</TableCell>
-                    <TableCell>{pedido.representanteNome}</TableCell>
-                    <TableCell>{pedido.status}</TableCell>
-                    <TableCell className="font-medium">{formatCurrency(pedido.valorTotal)}</TableCell>
-                    <TableCell>{pedido.autorizacaoComercial || '-'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        ) : (
-          <p className="mt-8 text-slate-600">Nenhum pedido encontrado.</p>
-        )}
       </div>
+
+      <div className="mt-8 rounded-3xl border border-slate-200 bg-slate-50 p-6">
+        <form className="grid gap-4 lg:grid-cols-[1fr_1fr_auto]">
+          <div className="grid gap-2">
+            <label className="text-sm font-medium text-slate-700">Início</label>
+            <input
+              type="date"
+              value={inicio}
+              onChange={(event) => setInicio(event.target.value)}
+              className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900"
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <label className="text-sm font-medium text-slate-700">Fim</label>
+            <input
+              type="date"
+              value={fim}
+              onChange={(event) => setFim(event.target.value)}
+              className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900"
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <label className="text-sm font-medium text-slate-700">Filtrar</label>
+            <Select value={filterMode} onValueChange={(val) => setFilterMode(val as FilterMode)} items={filterModeItems}>
+              <SelectTrigger className="w-full bg-white border-slate-300 rounded-2xl h-11 px-4 text-sm font-medium text-slate-900">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectPortal>
+                <SelectContent className="rounded-2xl border-slate-200 bg-white shadow-lg p-1 text-slate-750">
+                  <SelectItem value="TODOS">Todos</SelectItem>
+                  <SelectItem value="FATURADOS">Faturados</SelectItem>
+                  <SelectItem value="NAO_FATURADOS">NÃO FATURADO</SelectItem>
+                </SelectContent>
+              </SelectPortal>
+            </Select>
+          </div>
+
+          <div className="flex flex-wrap items-end gap-3 sm:col-span-3">
+            <button
+              type="button"
+              onClick={handleReset}
+              className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-100"
+            >
+              Limpar filtros
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        <div className="rounded-3xl bg-slate-50 p-6 shadow-sm">
+          <p className="text-sm text-slate-500">Pedidos</p>
+          <p className="mt-2 text-3xl font-semibold text-slate-900">{totalPedidos}</p>
+        </div>
+        <div className="rounded-3xl bg-slate-50 p-6 shadow-sm">
+          <p className="text-sm text-slate-500">Valor total</p>
+          <p className="mt-2 text-3xl font-semibold text-slate-900">{formatCurrency(valorTotal)}</p>
+        </div>
+        <div className="rounded-3xl bg-slate-50 p-6 shadow-sm">
+          <p className="text-sm text-slate-500">Ticket médio</p>
+          <p className="mt-2 text-3xl font-semibold text-slate-900">{formatCurrency(ticketMedio)}</p>
+        </div>
+      </div>
+
+      {filterMode === 'TODOS' && (
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <div className="rounded-3xl bg-slate-50 p-6 shadow-sm">
+            <p className="text-sm text-slate-500">Faturados</p>
+            <p className="mt-2 text-3xl font-semibold text-slate-900">{faturadosCount}</p>
+          </div>
+          <div className="rounded-3xl bg-slate-50 p-6 shadow-sm">
+            <p className="text-sm text-slate-500">Não faturados</p>
+            <p className="mt-2 text-3xl font-semibold text-slate-900">{naoFaturadosCount}</p>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <p className="mt-8 text-slate-600">Carregando pedidos...</p>
+      ) : error ? (
+        <p className="mt-8 text-rose-600">{error}</p>
+      ) : pedidos.length ? (
+        <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50/75 hover:bg-slate-50/75">
+                <TableHead>Pedido</TableHead>
+                <TableHead>Emissão</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Representante</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Autorização</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pedidos.map((pedido) => (
+                <TableRow key={pedido.id} className="hover:bg-slate-50/50">
+                  <TableCell className="font-semibold text-slate-500">{pedido.id}</TableCell>
+                  <TableCell>{formatDate(pedido.dataEmissao)}</TableCell>
+                  <TableCell className="font-medium text-slate-900">{pedido.clienteNome}</TableCell>
+                  <TableCell>{pedido.representanteNome}</TableCell>
+                  <TableCell>{pedido.status}</TableCell>
+                  <TableCell className="font-medium">{formatCurrency(pedido.valorTotal)}</TableCell>
+                  <TableCell>{pedido.autorizacaoComercial || '-'}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        <p className="mt-8 text-slate-600">Nenhum pedido encontrado.</p>
+      )}
+    </div>
   )
 }

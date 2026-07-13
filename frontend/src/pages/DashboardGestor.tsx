@@ -97,17 +97,21 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
       mesesMap[nomeMes] = (mesesMap[nomeMes] || 0) + p.valorTotal
     })
 
-    const meses = ['Jan', 'Fev', 'Mar', 'Abr']
-    const baseVal = data.faturamentoTotal / 4
+    const hoje = new Date()
+    const ultimosMeses: string[] = []
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1)
+      ultimosMeses.push(nomesMeses[d.getMonth()])
+    }
 
-    return meses.map((mes, idx) => {
-      const valor = mesesMap[mes] || baseVal * (0.85 + idx * 0.1)
+    return ultimosMeses.map((mes) => {
+      const valor = mesesMap[mes] || 0
       return {
         mes,
         valor,
       }
     })
-  }, [pedidos, data])
+  }, [pedidos])
 
   // 3. Ranking de Representantes (Calculado com base em faturamento faturado de pedidos)
   const rankingRepresentantes = useMemo(() => {

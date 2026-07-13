@@ -11,6 +11,9 @@ import AlertasPage from './pages/Alertas'
 import OportunidadesPage from './pages/Oportunidades'
 import ProtectedRoute from './pages/ProtectedRoute'
 import AppLayout from './layouts/AppLayout'
+import RepresentantesPage from './pages/Representantes'
+import RepresentanteDetalhePage from './pages/RepresentanteDetalhe'
+import { isRepresentante } from './services/authService'
 
 function App() {
   return (
@@ -33,6 +36,14 @@ function App() {
           <Route path="/produtos" element={<ProdutosPage />} />
           <Route path="/alertas" element={<AlertasPage />} />
           <Route path="/oportunidades" element={<OportunidadesPage />} />
+          <Route
+            path="/representantes"
+            element={!isRepresentante() ? <RepresentantesPage /> : <Navigate to="/dashboard" replace />}
+          />
+          <Route
+            path="/representantes/:id"
+            element={!isRepresentante() ? <RepresentanteDetalhePage /> : <Navigate to="/dashboard" replace />}
+          />
         </Route>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />

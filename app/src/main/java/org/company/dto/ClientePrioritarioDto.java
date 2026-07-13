@@ -18,5 +18,7 @@ public class ClientePrioritarioDto {
     private long diasSemCompra;
     private BigDecimal ticketMedio;
     private int totalPedidos;
+    private Long regiaoId;
+    private String regiaoNome;
     private String status;
 }

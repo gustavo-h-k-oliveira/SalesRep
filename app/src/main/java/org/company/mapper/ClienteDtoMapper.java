@@ -20,6 +20,8 @@ public class ClienteDtoMapper {
             cliente.getDiasSemCompra(),
             ticketMedio.setScale(2, RoundingMode.HALF_UP),
             totalPedidos,
+            cliente.getRegiao() != null ? cliente.getRegiao().getId() : null,
+            cliente.getRegiao() != null ? cliente.getRegiao().getNome() : null,
             cliente.getStatus().name()
         );
     }

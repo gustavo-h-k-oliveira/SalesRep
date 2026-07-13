@@ -36,6 +36,8 @@ export interface ClientePrioritarioDto {
   diasSemCompra: number
   ticketMedio: number
   totalPedidos: number
+  regiaoId?: number
+  regiaoNome?: string
   status: string
 }
 

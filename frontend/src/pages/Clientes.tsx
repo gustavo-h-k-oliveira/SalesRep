@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchClientesPrioritarios } from '../services/clienteService'
-import type { ClientePrioritarioDto } from '../types/api'
+import { fetchRegioes } from '../services/regiaoService'
+import type { ClientePrioritarioDto, RegiaoResponse } from '../types/api'
 import {
   Table,
   TableBody,
@@ -13,18 +14,32 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { MagnifyingGlassIcon } from '@phosphor-icons/react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectPortal,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 export default function ClientesPage() {
   const [clientes, setClientes] = useState<ClientePrioritarioDto[]>([])
+  const [regioes, setRegioes] = useState<RegiaoResponse[]>([])
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedRegiao, setSelectedRegiao] = useState<string>('ALL')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function loadClientes() {
+    async function loadData() {
       try {
-        const data = await fetchClientesPrioritarios()
-        setClientes(data)
+        const [clientesData, regioesData] = await Promise.all([
+          fetchClientesPrioritarios(),
+          fetchRegioes(),
+        ])
+        setClientes(clientesData)
+        setRegioes(regioesData)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erro ao carregar clientes')
       } finally {
@@ -32,15 +47,28 @@ export default function ClientesPage() {
       }
     }
 
-    loadClientes()
+    loadData()
   }, [])
 
   const formatCurrency = (value: number) =>
     value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
-  const filteredClientes = clientes.filter((cliente) =>
-    cliente.nome.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const regiaoItems = useMemo(() => {
+    const uniqueNames = Array.from(new Set(regioes.map((reg) => reg.nome)))
+    return [
+      { value: 'ALL', label: 'Todas as Regiões' },
+      ...uniqueNames.map((nome) => ({ value: nome, label: nome })),
+    ]
+  }, [regioes])
+
+  const filteredClientes = clientes.filter((cliente) => {
+    const matchesSearch = cliente.nome.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesRegiao =
+      selectedRegiao === 'ALL' ||
+      selectedRegiao === '' ||
+      (cliente.regiaoNome && cliente.regiaoNome === selectedRegiao)
+    return matchesSearch && matchesRegiao
+  })
 
   return (
     <div className="w-full rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
@@ -51,17 +79,34 @@ export default function ClientesPage() {
             Lista completa de clientes ordenada por pontuação de prioridade (Score), combinando histórico de compras e necessidade de atenção.
           </p>
         </div>
-        <div className="relative w-full max-w-xs shrink-0">
-          <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 pointer-events-none">
-            <MagnifyingGlassIcon className="h-5 w-5" />
-          </span>
-          <Input
-            type="text"
-            placeholder="Buscar cliente pelo nome..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 rounded-2xl border-slate-200 bg-white"
-          />
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto md:max-w-md shrink-0">
+          <div className="relative flex-1">
+            <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 pointer-events-none">
+              <MagnifyingGlassIcon className="h-5 w-5" />
+            </span>
+            <Input
+              type="text"
+              placeholder="Buscar cliente pelo nome..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 rounded-2xl border-slate-200 bg-white min-w-[200px]"
+            />
+          </div>
+          <Select value={selectedRegiao} onValueChange={(val) => setSelectedRegiao(val || 'ALL')} items={regiaoItems}>
+            <SelectTrigger className="w-full sm:w-[200px] rounded-2xl bg-white border-slate-200 text-slate-700 font-semibold h-9 px-4">
+              <SelectValue placeholder="Todas as Regiões" />
+            </SelectTrigger>
+            <SelectPortal>
+              <SelectContent className="rounded-2xl border-slate-200 bg-white shadow-lg p-1 text-slate-700">
+                <SelectItem value="ALL">Todas as Regiões</SelectItem>
+                {Array.from(new Set(regioes.map((reg) => reg.nome))).map((nome) => (
+                  <SelectItem key={nome} value={nome}>
+                    {nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </SelectPortal>
+          </Select>
         </div>
       </div>
 
@@ -82,6 +127,7 @@ export default function ClientesPage() {
                 <TableRow className="bg-slate-50/75 hover:bg-slate-50/75">
                   <TableHead className="w-[80px]">ID</TableHead>
                   <TableHead>Nome</TableHead>
+                  <TableHead>Região</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Prioridade (Score)</TableHead>
                   <TableHead>Dias sem compra</TableHead>
@@ -98,6 +144,7 @@ export default function ClientesPage() {
                         {cliente.nome}
                       </Link>
                     </TableCell>
+                    <TableCell className="text-slate-600">{cliente.regiaoNome || 'N/A'}</TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"

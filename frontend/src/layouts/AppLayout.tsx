@@ -13,6 +13,7 @@ export default function AppLayout() {
     representative
       ? { to: '/oportunidades', label: 'Oportunidades' }
       : { to: '/alertas', label: 'Alertas' },
+    ...(!representative ? [{ to: '/representantes', label: 'Representantes' }] : []),
   ]
 
   const handleLogout = async () => {
