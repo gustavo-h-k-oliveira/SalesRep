@@ -4,7 +4,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.math.BigDecimal;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.ArrayList;
 
 import org.company.analytics.ClienteAnalytics;
 import org.company.analytics.ProdutoAnalytics;
@@ -12,6 +18,10 @@ import org.company.dto.ClientePerfilDto;
 import org.company.dto.ClientePrioritarioDto;
 import org.company.dto.ProdutoRecomendadoDto;
 import org.company.entity.Cliente;
+import org.company.entity.Pedido;
+import org.company.entity.PedidoItem;
+import org.company.entity.StatusPedido;
+import org.company.entity.Produto;
 import org.company.mapper.ClienteDtoMapper;
 import org.company.repository.ClienteRepository;
 import org.company.repository.PedidoRepository;
@@ -84,17 +94,17 @@ public class ClienteAnalyticsService {
         }
 
         // 1. Obter histórico de compras do cliente (pedidos faturados)
-        List<org.company.entity.Pedido> pedidos = pedidoRepository.findByClienteId(clienteId);
-        List<org.company.entity.PedidoItem> itensComprados = pedidos.stream()
-            .filter(p -> p.getStatus() == org.company.entity.StatusPedido.FATURADO)
+        List<Pedido> pedidos = pedidoRepository.findByClienteId(clienteId);
+        List<PedidoItem> itensComprados = pedidos.stream()
+            .filter(p -> p.getStatus() == StatusPedido.FATURADO)
             .filter(p -> p.getItens() != null)
             .flatMap(p -> p.getItens().stream())
             .toList();
 
         // Mapear última data de compra por produto
-        java.util.Map<org.company.entity.Produto, LocalDate> ultimaCompraPorProduto = new java.util.HashMap<>();
-        for (org.company.entity.PedidoItem item : itensComprados) {
-            org.company.entity.Produto produto = item.getProduto();
+        Map<Produto, LocalDate> ultimaCompraPorProduto = new HashMap<>();
+        for (PedidoItem item : itensComprados) {
+            Produto produto = item.getProduto();
             LocalDate data = item.getPedido().getDataEmissao();
             LocalDate dataExistente = ultimaCompraPorProduto.get(produto);
             if (dataExistente == null || data.isAfter(dataExistente)) {
@@ -102,18 +112,18 @@ public class ClienteAnalyticsService {
             }
         }
 
-        List<ProdutoRecomendadoDto> recomendacoes = new java.util.ArrayList<>();
-        java.util.Set<Long> recomendadosIds = new java.util.HashSet<>();
+        List<ProdutoRecomendadoDto> recomendacoes = new ArrayList<>();
+        Set<Long> recomendadosIds = new HashSet<>();
 
         Long repId = cliente.getRepresentante() != null ? cliente.getRepresentante().getId() : null;
 
         // --- SLOT 1: Queda de Recompra na Região ---
-        List<org.company.entity.Produto> produtosCriticos = produtoAnalytics.buscarProdutosComBaixaRecompraProduto(repId);
-        org.company.entity.Produto produtoSlot1 = null;
+        List<Produto> produtosCriticos = produtoAnalytics.buscarProdutosComBaixaRecompraProduto(repId);
+        Produto produtoSlot1 = null;
         String justificativaSlot1 = "";
 
         // Tenta encontrar um produto crítico que o cliente já comprou
-        for (org.company.entity.Produto p : produtosCriticos) {
+        for (Produto p : produtosCriticos) {
             if (ultimaCompraPorProduto.containsKey(p)) {
                 produtoSlot1 = p;
                 justificativaSlot1 = "Queda de recompra detectada para este item na sua região.";
@@ -137,16 +147,16 @@ public class ClienteAnalyticsService {
         }
 
         // --- SLOT 2: Item Crítico no Estoque (Recompra Atrasada) ---
-        org.company.entity.Produto produtoSlot2 = null;
+        Produto produtoSlot2 = null;
         long maxDiasSemCompra = -1;
 
         // Encontra o produto comprado anteriormente há mais tempo
-        for (java.util.Map.Entry<org.company.entity.Produto, LocalDate> entry : ultimaCompraPorProduto.entrySet()) {
-            org.company.entity.Produto p = entry.getKey();
+        for (Map.Entry<Produto, LocalDate> entry : ultimaCompraPorProduto.entrySet()) {
+            Produto p = entry.getKey();
             if (recomendadosIds.contains(p.getId())) {
                 continue;
             }
-            long dias = java.time.temporal.ChronoUnit.DAYS.between(entry.getValue(), LocalDate.now());
+            long dias = ChronoUnit.DAYS.between(entry.getValue(), LocalDate.now());
             if (dias > maxDiasSemCompra) {
                 maxDiasSemCompra = dias;
                 produtoSlot2 = p;
@@ -165,10 +175,10 @@ public class ClienteAnalyticsService {
 
         // --- SLOT 3: Completar Ticket Médio (Cross-Selling) ---
         // Pegar produtos com maior faturamento que o cliente nunca comprou
-        java.util.Map<Long, BigDecimal> faturamentos = produtoAnalytics.obterFaturamentosDosProdutos(repId);
-        List<org.company.entity.Produto> todosProdutos = produtoRepository.findAll();
+        Map<Long, BigDecimal> faturamentos = produtoAnalytics.obterFaturamentosDosProdutos(repId);
+        List<Produto> todosProdutos = produtoRepository.findAll();
         
-        List<org.company.entity.Produto> ordenadosPorFaturamento = todosProdutos.stream()
+        List<Produto> ordenadosPorFaturamento = todosProdutos.stream()
             .filter(p -> !recomendadosIds.contains(p.getId()))
             .sorted((p1, p2) -> {
                 BigDecimal f1 = faturamentos.getOrDefault(p1.getId(), BigDecimal.ZERO);
@@ -177,11 +187,11 @@ public class ClienteAnalyticsService {
             })
             .toList();
 
-        org.company.entity.Produto produtoSlot3 = null;
+        Produto produtoSlot3 = null;
         String justificativaSlot3 = "Sugerido para completar ticket médio (alto faturamento na região).";
 
         // Primeiro tenta encontrar um produto que o cliente nunca comprou
-        for (org.company.entity.Produto p : ordenadosPorFaturamento) {
+        for (Produto p : ordenadosPorFaturamento) {
             if (!ultimaCompraPorProduto.containsKey(p)) {
                 produtoSlot3 = p;
                 break;
@@ -206,7 +216,7 @@ public class ClienteAnalyticsService {
 
         // Preenche com produtos genéricos se ainda não tiver 3 recomendações (por exemplo, banco quase vazio)
         if (recomendacoes.size() < 3) {
-            for (org.company.entity.Produto p : todosProdutos) {
+            for (Produto p : todosProdutos) {
                 if (recomendacoes.size() >= 3) break;
                 if (!recomendadosIds.contains(p.getId())) {
                     recomendacoes.add(new ProdutoRecomendadoDto(

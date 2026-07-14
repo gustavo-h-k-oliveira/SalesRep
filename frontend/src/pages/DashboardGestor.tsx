@@ -315,7 +315,6 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
                     className="text-slate-400 font-semibold"
                   />
                   <YAxis
-                    hide
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}

@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { fetchClientePerfil, fetchRecomendacoesByCliente } from '../services/clienteService'
 import { fetchPedidosByCliente } from '../services/pedidoService'
-import type { ClientePerfilDto, PedidoResponse, ProdutoRecomendadoDto } from '../types/api'
+import { fetchProdutos } from '../services/produtoService'
+import { fetchPedidoItensByPedido } from '../services/pedidoItemService'
+import type { ClientePerfilDto, PedidoResponse, ProdutoRecomendadoDto, PedidoItemResponse, ProdutoResponse } from '../types/api'
 import { Badge } from '@/components/ui/badge'
 import {
   Table,
@@ -12,6 +14,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 import {
   ArrowLeftIcon,
   CalendarIcon,
@@ -37,6 +45,12 @@ export default function ClientePerfilPage() {
   const [error, setError] = useState<string | null>(null)
   const [visitaAgendada, setVisitaAgendada] = useState(false)
 
+  // Estado para os itens do Accordion
+  const [produtosList, setProdutosList] = useState<ProdutoResponse[]>([])
+  const [itensPorPedido, setItensPorPedido] = useState<Record<number, PedidoItemResponse[]>>({})
+  const [itensLoading, setItensLoading] = useState<Record<number, boolean>>({})
+  const [expandedPedidoId, setExpandedPedidoId] = useState<string[]>([])
+
   useEffect(() => {
     if (!clienteId) {
       setError('ID do cliente inválido')
@@ -46,14 +60,16 @@ export default function ClientePerfilPage() {
 
     async function loadClienteData() {
       try {
-        const [perfilData, pedidosData, recomendacoesData] = await Promise.all([
+        const [perfilData, pedidosData, recomendacoesData, produtosData] = await Promise.all([
           fetchClientePerfil(clienteId!),
           fetchPedidosByCliente(clienteId!),
           fetchRecomendacoesByCliente(clienteId!),
+          fetchProdutos(),
         ])
         setPerfil(perfilData)
         setPedidos(pedidosData)
         setProdutos(recomendacoesData)
+        setProdutosList(produtosData)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erro ao carregar dados do cliente')
       } finally {
@@ -63,6 +79,35 @@ export default function ClientePerfilPage() {
 
     loadClienteData()
   }, [clienteId])
+
+  const produtosMap = useMemo(() => {
+    const map: Record<number, ProdutoResponse> = {}
+    produtosList.forEach((prod) => {
+      map[prod.id] = prod
+    })
+    return map
+  }, [produtosList])
+
+  const handleAccordionChange = async (value: string[]) => {
+    setExpandedPedidoId(value)
+    if (value.length === 0) return
+
+    const selectedValue = value[value.length - 1]
+    const pedidoId = parseInt(selectedValue, 10)
+    if (isNaN(pedidoId)) return
+
+    if (!itensPorPedido[pedidoId]) {
+      setItensLoading((prev) => ({ ...prev, [pedidoId]: true }))
+      try {
+        const itens = await fetchPedidoItensByPedido(pedidoId)
+        setItensPorPedido((prev) => ({ ...prev, [pedidoId]: itens }))
+      } catch (err) {
+        console.error('Erro ao carregar itens do pedido:', err)
+      } finally {
+        setItensLoading((prev) => ({ ...prev, [pedidoId]: false }))
+      }
+    }
+  }
 
   const formatCurrency = (value: number) =>
     value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -238,47 +283,111 @@ export default function ClientePerfilPage() {
 
           {/* Histórico de Pedidos */}
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="border-b border-slate-100 pb-4">
+            <div className="border-b border-slate-100 pb-4 mb-6">
               <h2 className="text-lg font-semibold text-slate-900">Histórico de Pedidos</h2>
               <p className="text-xs text-slate-500">Todos os pedidos registrados para este cliente</p>
             </div>
 
-            <div className="mt-6">
+            <div>
               {pedidos.length ? (
-                <div className="overflow-hidden rounded-2xl border border-slate-250 bg-white">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-slate-50/75 hover:bg-slate-50/75">
-                        <TableHead>Pedido</TableHead>
-                        <TableHead>Emissão</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Valor</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {pedidos.map((pedido) => (
-                        <TableRow key={pedido.id} className="hover:bg-slate-50/50">
-                          <TableCell className="font-semibold text-slate-500">#{pedido.id}</TableCell>
-                          <TableCell>{formatDate(pedido.dataEmissao)}</TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${pedido.status === 'FATURADO'
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                  : 'bg-amber-50 text-amber-700 border-amber-100'
-                                }`}
-                            >
-                              {pedido.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right font-medium text-slate-900">
-                            {formatCurrency(pedido.valorTotal)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                <Accordion
+                  value={expandedPedidoId}
+                  onValueChange={handleAccordionChange}
+                  className="space-y-3"
+                >
+                  {pedidos.map((pedido) => {
+                    const items = itensPorPedido[pedido.id] || []
+                    const isLoadingItems = itensLoading[pedido.id]
+
+                    return (
+                      <AccordionItem
+                        key={pedido.id}
+                        value={pedido.id.toString()}
+                        className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm transition-all duration-200 hover:border-slate-300"
+                      >
+                        <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-slate-50/50">
+                          <div className="flex flex-1 flex-wrap items-center justify-between gap-4 pr-4">
+                            <div className="flex items-center gap-3">
+                              <span className="font-bold text-slate-900">Pedido #{pedido.id}</span>
+                              <Badge
+                                variant="outline"
+                                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${pedido.status === 'FATURADO'
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                                    : 'bg-amber-50 text-amber-700 border-amber-100'
+                                  }`}
+                              >
+                                {pedido.status}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-6 text-sm text-slate-500">
+                              <span className="flex items-center gap-1.5">
+                                <CalendarIcon className="h-4 w-4 text-slate-400" />
+                                {formatDate(pedido.dataEmissao)}
+                              </span>
+                              <span className="font-semibold text-slate-900">
+                                {formatCurrency(pedido.valorTotal)}
+                              </span>
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-6 pb-6 pt-2 border-t border-slate-100 bg-slate-50/30">
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                              <PackageIcon className="h-4 w-4 text-slate-400" />
+                              Itens do Pedido
+                            </div>
+                            
+                            {isLoadingItems ? (
+                              <div className="flex items-center gap-2 py-4 justify-center text-sm text-slate-500">
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+                                Carregando itens...
+                              </div>
+                            ) : items.length ? (
+                              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow className="bg-slate-50/75 hover:bg-slate-50/75 text-[11px] uppercase tracking-wider">
+                                      <TableHead className="py-2.5 text-slate-500 font-semibold">Produto</TableHead>
+                                      <TableHead className="py-2.5 text-center text-slate-500 font-semibold w-24">Qtd</TableHead>
+                                      <TableHead className="py-2.5 text-right text-slate-500 font-semibold w-32">Preço Unit.</TableHead>
+                                      <TableHead className="py-2.5 text-right text-slate-500 font-semibold w-32">Subtotal</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {items.map((item) => {
+                                      const prod = produtosMap[item.produtoId]
+                                      return (
+                                        <TableRow key={item.id} className="hover:bg-slate-50/30 text-xs border-b last:border-0 border-slate-100">
+                                          <TableCell className="py-3 font-medium text-slate-900">
+                                            <div className="flex flex-col sm:flex-row sm:items-center gap-1.5">
+                                              <span className="font-semibold text-slate-800">{prod?.descricao || `Produto #${item.produtoId}`}</span>
+                                              {prod?.sku && (
+                                                <span className="w-fit rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 font-mono font-medium">
+                                                  {prod.sku}
+                                                </span>
+                                              )}
+                                            </div>
+                                          </TableCell>
+                                          <TableCell className="py-3 text-center text-slate-600">{item.quantidade}</TableCell>
+                                          <TableCell className="py-3 text-right text-slate-600">{formatCurrency(item.precoUnitario)}</TableCell>
+                                          <TableCell className="py-3 text-right font-semibold text-slate-900">{formatCurrency(item.subTotal)}</TableCell>
+                                        </TableRow>
+                                      )
+                                    })}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            ) : (
+                              <div className="text-center py-4 text-sm text-slate-500">
+                                Nenhum item encontrado neste pedido.
+                              </div>
+                            )}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    )
+                  })}
+                </Accordion>
               ) : (
                 <div className="py-12 text-center text-sm text-slate-500">
                   Nenhum pedido registrado para este cliente.
