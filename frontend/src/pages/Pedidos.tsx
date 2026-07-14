@@ -157,7 +157,7 @@ export default function PedidosPage() {
                 <SelectContent className="rounded-2xl border-slate-200 bg-white shadow-lg p-1 text-slate-750">
                   <SelectItem value="TODOS">Todos</SelectItem>
                   <SelectItem value="FATURADOS">Faturados</SelectItem>
-                  <SelectItem value="NAO_FATURADOS">NÃO FATURADO</SelectItem>
+                  <SelectItem value="NAO_FATURADOS">Não Faturado</SelectItem>
                 </SelectContent>
               </SelectPortal>
             </Select>
