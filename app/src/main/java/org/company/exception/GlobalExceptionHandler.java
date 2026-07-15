@@ -27,6 +27,7 @@ public class GlobalExceptionHandler {
 
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ResponseError> trataException(Exception ex) {
+                ex.printStackTrace(); // Log the exception stacktrace to the console
 
                 ResponseError response = new ResponseError(
                                 "Erro interno no servidor",
