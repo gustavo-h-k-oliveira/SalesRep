@@ -10,10 +10,8 @@ import java.util.List;
 import org.company.analytics.ProdutoAnalytics;
 import org.company.analytics.RegiaoAnalytics;
 import org.company.dto.DashboardDto;
-import org.company.entity.Pedido;
 import org.company.entity.Representante;
 import org.company.entity.StatusCliente;
-import org.company.entity.StatusPedido;
 import org.company.repository.ClienteRepository;
 import org.company.repository.PedidoRepository;
 import org.company.security.SecurityUtils;
@@ -53,9 +51,7 @@ class DashboardServiceTest {
 
     @Test
     void obterResumo_deveMontarDashboardComKpis() {
-        Pedido pedido = org.mockito.Mockito.mock(Pedido.class);
-        when(pedido.getValorTotal()).thenReturn(BigDecimal.valueOf(1000));
-        when(pedidoRepository.findByStatus(StatusPedido.FATURADO)).thenReturn(List.of(pedido));
+        when(pedidoRepository.sumFaturamentoTotal()).thenReturn(BigDecimal.valueOf(1000));
         when(clienteRepository.countByStatus(StatusCliente.ATIVO)).thenReturn(5L);
         when(clienteRepository.countByStatus(StatusCliente.INATIVO)).thenReturn(2L);
         when(alertaService.buscarAlertas()).thenReturn(List.of());
@@ -74,9 +70,7 @@ class DashboardServiceTest {
 
     @Test
     void obterResumo_comRepresentanteLogado_deveUsarApenasPedidosFaturadosDoRepresentante() {
-        Pedido pedido = org.mockito.Mockito.mock(Pedido.class);
-        when(pedido.getValorTotal()).thenReturn(BigDecimal.valueOf(74));
-        when(pedidoRepository.findByRepresentanteIdAndStatus(1L, StatusPedido.FATURADO)).thenReturn(List.of(pedido));
+        when(pedidoRepository.sumFaturamentoTotalByRepresentanteId(1L)).thenReturn(BigDecimal.valueOf(74));
         when(clienteRepository.countByRepresentanteIdAndStatus(1L, StatusCliente.ATIVO)).thenReturn(1L);
         when(clienteRepository.countByRepresentanteIdAndStatus(1L, StatusCliente.INATIVO)).thenReturn(0L);
         when(alertaService.buscarAlertas(1L)).thenReturn(List.of());

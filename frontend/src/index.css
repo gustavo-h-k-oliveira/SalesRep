@@ -193,4 +193,24 @@ code {
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Esconde a barra de rolagem globalmente para todos os elementos */
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE e Edge antigo */
+  }
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari e Opera */
+  }
+}
+
+@layer utilities {
+  /* Mantém a classe utilitária caso queira usar explicitamente em algum lugar */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

@@ -30,6 +30,8 @@ async function apiFetch<T>(input: string, init: RequestInit = {}): Promise<T> {
   if (response.status === 401 || response.status === 403) {
     localStorage.removeItem('loggedIn')
     localStorage.removeItem('representanteId')
+    sessionStorage.removeItem('loggedIn')
+    sessionStorage.removeItem('representanteId')
     if (window.location.pathname !== '/login') {
       window.location.href = '/login'
       return null as unknown as T

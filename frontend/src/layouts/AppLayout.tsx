@@ -13,6 +13,7 @@ export default function AppLayout() {
     representative
       ? { to: '/oportunidades', label: 'Oportunidades' }
       : { to: '/alertas', label: 'Alertas' },
+    ...(!representative ? [{ to: '/representantes', label: 'Representantes' }] : []),
   ]
 
   const handleLogout = async () => {
@@ -24,43 +25,57 @@ export default function AppLayout() {
     }
   }
 
+  const theme = representative
+    ? {
+        accentText: 'text-indigo-600',
+        activeLink: 'bg-indigo-600 text-white',
+        buttonHover: 'hover:border-indigo-200 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700',
+      }
+    : {
+        accentText: 'text-emerald-600',
+        activeLink: 'bg-emerald-600 text-white',
+        buttonHover: 'hover:border-emerald-200 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700',
+      }
+
   return (
     <div className="min-h-screen bg-slate-100 lg:flex">
-      <aside className="border-b border-slate-200 bg-slate-950 text-white lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:border-b-0 lg:border-r lg:border-slate-800">
-        <div className="flex h-full flex-col p-6">
+      <aside className="border-b border-slate-200 bg-white text-slate-900 lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:border-b-0 lg:border-r lg:border-slate-200">
+        <div className="flex flex-col lg:h-full lg:flex-col p-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-sky-300">
+            <p className={`text-xs font-semibold uppercase tracking-[0.28em] ${theme.accentText}`}>
               Sagra Radar
             </p>
-            <h1 className="mt-3 text-2xl font-semibold text-white">Painel comercial</h1>
+            <h1 className="mt-1 lg:mt-3 text-xl lg:text-2xl font-bold text-slate-900">Painel comercial</h1>
           </div>
 
-          <nav className="mt-3 flex flex-1 flex-col gap-2">
-            {navigation.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  [
-                    'rounded-2xl px-4 py-3 text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-sky-400 text-slate-950'
-                      : 'text-slate-200 hover:bg-white/10 hover:text-white',
-                  ].join(' ')
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
+          <div className="mt-4 lg:mt-8 flex flex-row flex-wrap lg:flex-col lg:flex-1 gap-2 items-center lg:items-stretch justify-start">
+            <nav className="flex flex-row flex-wrap lg:flex-col gap-2 flex-1 lg:flex-none">
+              {navigation.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    [
+                      'rounded-2xl px-4 py-3 text-sm font-semibold transition-colors',
+                      isActive
+                        ? theme.activeLink
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
+                    ].join(' ')
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
 
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="mt-6 rounded-2xl border border-slate-700 px-4 py-3 text-sm font-semibold text-white transition-colors hover:border-slate-500 hover:bg-white/10"
-          >
-            Sair
-          </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className={`rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold transition-colors mt-0 lg:mt-auto ${theme.buttonHover}`}
+            >
+              Sair
+            </button>
+          </div>
         </div>
       </aside>
 

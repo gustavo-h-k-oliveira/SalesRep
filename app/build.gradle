@@ -43,6 +43,10 @@ dependencies {
     // PostgreSQL
     runtimeOnly 'org.postgresql:postgresql'
 
+    // Flyway Migration
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
+
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -52,6 +56,8 @@ dependencies {
 
     // Testes
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-webmvc-test'
+    testImplementation 'org.springframework.security:spring-security-test'
 
     // JWT
     implementation 'com.auth0:java-jwt:4.4.0'

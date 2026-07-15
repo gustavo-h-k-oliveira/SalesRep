@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.company.entity.Pedido;
-import org.company.entity.PedidoItem;
 import org.company.entity.Produto;
 import org.company.repository.PedidoItemRepository;
 import org.company.repository.ProdutoRepository;
@@ -21,20 +19,24 @@ public class ProdutoAnalytics {
         private final ProdutoRepository produtoRepository;
 
         public BigDecimal calcularFaturamentoPorSku(Long produtoId) {
-                List<PedidoItem> itens = pedidoItemRepository.findByProdutoId(produtoId);
+                return calcularFaturamentoPorSku(produtoId, null);
+        }
 
-                return itens.stream()
-                                .filter(item -> item.getPedido() != null && item.getPedido().estaFaturado())
-                                .map(item -> item.getSubTotal())
-                                .filter(subTotal -> subTotal != null)
-                                .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+        public BigDecimal calcularFaturamentoPorSku(Long produtoId, Long representanteId) {
+                return pedidoItemRepository.sumFaturamentoByProdutoIdAndRepresentanteId(produtoId, representanteId);
+        }
+
+        public java.util.Map<Long, BigDecimal> obterFaturamentosDosProdutos(Long representanteId) {
+                List<Object[]> results = pedidoItemRepository.findFaturamentoTotalGroupByProduto(representanteId);
+                return results.stream().collect(java.util.stream.Collectors.toMap(
+                                row -> (Long) row[0],
+                                row -> (BigDecimal) row[1]));
         }
 
         public List<String> buscarProdutosComBaixaRecompra() {
                 return buscarProdutosComBaixaRecompra(null);
         }
 
-        // TODO: Passar regra para consulta JPQL
         public List<String> buscarProdutosComBaixaRecompra(Long representanteId) {
                 return obterProdutosComBaixaRecompra(representanteId).stream()
                                 .map(produto -> produto.getDescricao())
@@ -59,51 +61,11 @@ public class ProdutoAnalytics {
                 // Período recente: últimos 45 dias
                 LocalDate inicioPeriodoRecente = hoje.minusDays(45);
 
-                return produtoRepository.findAll().stream()
-                                .filter(produto -> {
-                                        List<PedidoItem> itens = pedidoItemRepository.findByProdutoId(produto.getId());
-
-                                        boolean teveAnterior = false;
-                                        boolean teveRecente = false;
-
-                                        for (PedidoItem item : itens) {
-                                                Pedido pedido = item.getPedido();
-
-                                                if (pedido == null || pedido.getDataEmissao() == null
-                                                                || !pedido.estaFaturado()) {
-                                                        continue;
-                                                }
-
-                                                if (representanteId != null &&
-                                                                (pedido.getRepresentante() == null ||
-                                                                                !representanteId.equals(pedido
-                                                                                                .getRepresentante()
-                                                                                                .getId()))) {
-                                                        continue;
-                                                }
-
-                                                LocalDate data = pedido.getDataEmissao();
-
-                                                // Entre 90 e 46 dias atrás
-                                                if (!data.isBefore(inicioPeriodoAnterior)
-                                                                && !data.isAfter(fimPeriodoAnterior)) {
-                                                        teveAnterior = true;
-                                                }
-
-                                                // Últimos 45 dias
-                                                if (!data.isBefore(inicioPeriodoRecente)
-                                                                && !data.isAfter(hoje)) {
-                                                        teveRecente = true;
-                                                }
-
-                                                // Não há motivo para continuar
-                                                if (teveAnterior && teveRecente) {
-                                                        break;
-                                                }
-                                        }
-
-                                        return teveAnterior && !teveRecente;
-                                })
-                                .toList();
+                return produtoRepository.findProdutosComBaixaRecompra(
+                                inicioPeriodoAnterior,
+                                fimPeriodoAnterior,
+                                inicioPeriodoRecente,
+                                hoje,
+                                representanteId);
         }
 }

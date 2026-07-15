@@ -14,6 +14,8 @@ import org.company.mapper.ClienteDtoMapper;
 import org.company.mapper.PedidoDtoMapper;
 import org.company.service.RegiaoService;
 import org.company.service.RepresentanteService;
+import org.company.service.AlertaService;
+import org.company.dto.AlertaDto;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,6 +36,7 @@ public class RepresentanteController {
 
     private final RepresentanteService representanteService;
     private final RegiaoService regiaoService;
+    private final AlertaService alertaService;
     private final RepresentanteDtoMapper representanteDtoMapper;
     private final ClienteDtoMapper clienteDtoMapper;
     private final PedidoDtoMapper pedidoDtoMapper;
@@ -72,6 +75,11 @@ public class RepresentanteController {
         return representanteService.encontrarPedidosDoRepresentante(id).stream()
             .map(pedidoDtoMapper::toPedidoResponseDto)
             .toList();
+    }
+
+    @GetMapping("/{id}/alertas")
+    public List<AlertaDto> listarAlertas(@PathVariable Long id) {
+        return alertaService.buscarAlertas(id);
     }
 
     @PostMapping

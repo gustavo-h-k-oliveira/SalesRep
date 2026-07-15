@@ -35,3 +35,6 @@ todo
 application.properties
 *.csv
 *.sql
+
+# Credentials
+local-credentials.txt

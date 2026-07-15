@@ -1,5 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import LoginPage from './pages/Login'
+import ForgotPasswordPage from './pages/ForgotPassword'
+import ResetPasswordPage from './pages/ResetPassword'
 import DashboardPage from './pages/Dashboard'
 import ClientesPage from './pages/Clientes'
 import ClientePerfilPage from './pages/ClientePerfil'
@@ -9,12 +11,17 @@ import AlertasPage from './pages/Alertas'
 import OportunidadesPage from './pages/Oportunidades'
 import ProtectedRoute from './pages/ProtectedRoute'
 import AppLayout from './layouts/AppLayout'
+import RepresentantesPage from './pages/Representantes'
+import RepresentanteDetalhePage from './pages/RepresentanteDetalhe'
+import { isRepresentante } from './services/authService'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/recuperar-senha" element={<ForgotPasswordPage />} />
+        <Route path="/redefinir-senha" element={<ResetPasswordPage />} />
         <Route
           element={
             <ProtectedRoute>
@@ -29,6 +36,14 @@ function App() {
           <Route path="/produtos" element={<ProdutosPage />} />
           <Route path="/alertas" element={<AlertasPage />} />
           <Route path="/oportunidades" element={<OportunidadesPage />} />
+          <Route
+            path="/representantes"
+            element={!isRepresentante() ? <RepresentantesPage /> : <Navigate to="/dashboard" replace />}
+          />
+          <Route
+            path="/representantes/:id"
+            element={!isRepresentante() ? <RepresentanteDetalhePage /> : <Navigate to="/dashboard" replace />}
+          />
         </Route>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />

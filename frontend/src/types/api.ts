@@ -1,6 +1,7 @@
 export interface LoginRequest {
-  nomeUsuario: string
+  email: string
   senha: string
+  lembreMe?: boolean
 }
 
 export interface LoginResponse {
@@ -35,6 +36,8 @@ export interface ClientePrioritarioDto {
   diasSemCompra: number
   ticketMedio: number
   totalPedidos: number
+  regiaoId?: number
+  regiaoNome?: string
   status: string
 }
 
@@ -84,6 +87,7 @@ export interface ProdutoResponse {
   id: number
   sku: string
   descricao: string
+  faturamento: number
 }
 
 export interface ProdutoRequest {
@@ -158,4 +162,11 @@ export interface PedidoItemResponse {
   quantidade: number
   precoUnitario: number
   subTotal: number
+}
+
+export interface ProdutoRecomendadoDto {
+  id: number
+  sku: string
+  descricao: string
+  justificativa: string
 }

@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 
 import org.company.dto.LoginRequestDto;
 import org.company.dto.LoginResponseDto;
+import org.company.dto.RecuperarSenhaRequestDto;
+import org.company.dto.RedefinirSenhaRequestDto;
 import org.company.entity.TipoEvento;
 import org.company.security.SecurityUtils;
 import org.company.security.UsuarioPrincipal;
@@ -32,24 +34,29 @@ public class AuthController {
     private final LogAuditoriaService logAuditoriaService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequest, HttpServletRequest request) {
+    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequest,
+            HttpServletRequest request) {
 
         String token = authService.authenticate(loginRequest);
 
-        logAuditoriaService.registrarAcesso(loginRequest.getNomeUsuario(), TipoEvento.LOGIN, request);
+        var usuario = authService.getUsuarioPorEmail(loginRequest.getEmail());
+        String username = usuario != null ? usuario.getNomeUsuario() : loginRequest.getEmail();
+        logAuditoriaService.registrarAcesso(username, TipoEvento.LOGIN, request);
 
         LoginResponseDto response = new LoginResponseDto();
         response.setToken(token);
 
-        var usuario = authService.getUsuarioPorNome(loginRequest.getNomeUsuario());
         if (usuario != null && usuario.getRepresentante() != null) {
             response.setRepresentanteId(usuario.getRepresentante().getId());
         }
 
+        long maxAgeSeconds = (loginRequest.getLembreMe() != null && loginRequest.getLembreMe()) ? 15 * 24 * 60 * 60L
+                : 8 * 60 * 60L;
+
         ResponseCookie cookie = ResponseCookie.from("AUTH_TOKEN", token)
                 .httpOnly(true)
                 .path("/")
-                .maxAge(Duration.ofHours(8))
+                .maxAge(Duration.ofSeconds(maxAgeSeconds))
                 .sameSite("Lax")
                 .build();
 
@@ -75,5 +82,16 @@ public class AuthController {
         servletResponse.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.noContent().build();
     }
-}
 
+    @PostMapping("/recuperar-senha")
+    public ResponseEntity<Void> recuperarSenha(@Valid @RequestBody RecuperarSenhaRequestDto request) {
+        authService.recuperarSenha(request.getEmail());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/redefinir-senha")
+    public ResponseEntity<Void> redefinirSenha(@Valid @RequestBody RedefinirSenhaRequestDto request) {
+        authService.redefinirSenha(request.getToken(), request.getNovaSenha());
+        return ResponseEntity.ok().build();
+    }
+}

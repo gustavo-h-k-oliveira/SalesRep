@@ -47,9 +47,9 @@ class ClienteAnalyticsServiceTest {
         when(clienteAnalytics.calcularTotalPedidos(cliente2)).thenReturn(10);
         
         when(clienteDtoMapper.toClientePrioritarioDto(cliente2, 90.0, BigDecimal.valueOf(5000), 10))
-            .thenReturn(new ClientePrioritarioDto(2L, "Cliente 2", 90.0, 10, BigDecimal.valueOf(5000), 10, "ATIVO"));
+            .thenReturn(new ClientePrioritarioDto(2L, "Cliente 2", 90.0, 10, BigDecimal.valueOf(5000), 10, null, null, "ATIVO"));
         when(clienteDtoMapper.toClientePrioritarioDto(cliente1, 75.0, BigDecimal.valueOf(1000), 5))
-            .thenReturn(new ClientePrioritarioDto(1L, "Cliente 1", 75.0, 5, BigDecimal.valueOf(1000), 5, "ATIVO"));
+            .thenReturn(new ClientePrioritarioDto(1L, "Cliente 1", 75.0, 5, BigDecimal.valueOf(1000), 5, null, null, "ATIVO"));
 
         when(clienteRepository.findAll()).thenReturn(List.of(cliente1, cliente2));
 

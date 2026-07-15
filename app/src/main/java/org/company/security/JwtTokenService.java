@@ -73,4 +73,29 @@ public class JwtTokenService {
             throw new InvalidJwtTokenException("Token JWT inválido ou expirado.", e);
         }
     }
+
+    public String generatePasswordResetToken(String email) {
+        Date now = new Date();
+        Date expiresAt = new Date(now.getTime() + 15 * 60 * 1000); // 15 minutos
+
+        return JWT.create()
+                .withSubject(email)
+                .withClaim("purpose", "password_reset")
+                .withIssuedAt(now)
+                .withExpiresAt(expiresAt)
+                .sign(algorithm);
+    }
+
+    public String getEmailFromResetToken(String token) {
+        try {
+            DecodedJWT decodedJWT = verifier.verify(token);
+            String purpose = decodedJWT.getClaim("purpose").asString();
+            if (!"password_reset".equals(purpose)) {
+                throw new InvalidJwtTokenException("Token inválido para redefinição de senha.");
+            }
+            return decodedJWT.getSubject();
+        } catch (JWTVerificationException e) {
+            throw new InvalidJwtTokenException("Token de redefinição inválido ou expirado.", e);
+        }
+    }
 }
