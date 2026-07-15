@@ -32,9 +32,11 @@ build/
 # Ignore todo
 todo
 
-application.properties
 *.csv
 *.sql
+*.py
 
 # Credentials
 local-credentials.txt
+.env
+

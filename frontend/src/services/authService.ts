@@ -91,17 +91,21 @@ export async function redefinirSenha(token: string, novaSenha: string): Promise<
   }
 }
 
-export function saveSession(representanteId?: number, remember = false) {
+export function saveSession(token: string, representanteId?: number, remember = false) {
   if (remember) {
     localStorage.setItem('loggedIn', 'true')
+    localStorage.setItem('token', token)
     sessionStorage.removeItem('loggedIn')
+    sessionStorage.removeItem('token')
     if (representanteId !== undefined && representanteId !== null) {
       localStorage.setItem('representanteId', String(representanteId))
       sessionStorage.removeItem('representanteId')
     }
   } else {
     sessionStorage.setItem('loggedIn', 'true')
+    sessionStorage.setItem('token', token)
     localStorage.removeItem('loggedIn')
+    localStorage.removeItem('token')
     if (representanteId !== undefined && representanteId !== null) {
       sessionStorage.setItem('representanteId', String(representanteId))
       localStorage.removeItem('representanteId')
@@ -115,8 +119,10 @@ export function isLoggedIn() {
 
 export function clearSession() {
   localStorage.removeItem('loggedIn')
+  localStorage.removeItem('token')
   localStorage.removeItem('representanteId')
   sessionStorage.removeItem('loggedIn')
+  sessionStorage.removeItem('token')
   sessionStorage.removeItem('representanteId')
 }
 

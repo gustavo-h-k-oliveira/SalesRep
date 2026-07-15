@@ -39,14 +39,21 @@ public class SecurityConfig {
     @Value("${app.cors.allowed-origins:http://localhost:5173}")
     private List<String> allowedOrigins;
 
+    @Value("${app.security.csrf.enabled:true}")
+    private boolean csrfEnabled;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
             JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+        if (!csrfEnabled) {
+            http.csrf(csrf -> csrf.disable());
+        } else {
+            http.csrf(csrf -> csrf
+                    .ignoringRequestMatchers("/auth/login", "/auth/recuperar-senha", "/auth/redefinir-senha", "/health", "/error")
+                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()));
+        }
         http
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/auth/login", "/auth/recuperar-senha", "/auth/redefinir-senha", "/health", "/error")
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
