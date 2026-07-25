@@ -350,7 +350,7 @@ export default function ProdutosPage() {
   const filterOptions = [
     { value: 'ALL', label: 'Todos os Produtos' },
     { value: 'CRITICOS', label: 'Apenas Críticos' },
-    { value: 'TOP_SELLERS', label: 'Mais Vendidos (Top Sellers)' },
+    { value: 'TOP_SELLERS', label: 'Mais Vendidos' },
   ]
 
   return (

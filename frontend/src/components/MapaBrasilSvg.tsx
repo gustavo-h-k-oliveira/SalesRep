@@ -14,7 +14,6 @@ import {
   ShieldWarningIcon,
   UserIcon,
   ArrowRightIcon,
-  BuildingsIcon,
   CaretLeftIcon,
 } from '@phosphor-icons/react'
 
@@ -244,8 +243,8 @@ export default function MapaBrasilSvg({
               Mapa de Desempenho Regional & Faturamento (UFs)
             </h2>
           </div>
-          <p className="mt-0.5 text-xs font-medium text-slate-500">
-            Clique em qualquer estado no mapa cartográfico real do Brasil para expandir os detalhes regionais no lado esquerdo.
+          <p className="mt-0.5 text-xs text-slate-500">
+            Clique em qualquer estado no mapa para expandir os detalhes regionais no lado esquerdo.
           </p>
         </div>
 
@@ -274,11 +273,10 @@ export default function MapaBrasilSvg({
       <div className="mt-3 flex flex-col lg:flex-row items-start gap-4">
         {/* LADO ESQUERDO (OPOSTO AO PAINEL GERAL): PAINEL RETRÁTIL DE DETALHES COM ANIMAÇÃO CONTINUA */}
         <div
-          className={`transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) overflow-hidden ${
-            isOpen
-              ? 'w-full lg:w-[420px] max-h-[800px] opacity-100 scale-100 translate-x-0 shrink-0 border border-slate-200 bg-white p-4 sm:p-5 shadow-lg space-y-4 rounded-3xl pointer-events-auto'
-              : 'w-0 lg:w-0 max-h-0 opacity-0 scale-95 -translate-x-8 shrink-0 border-0 p-0 m-0 shadow-none pointer-events-none'
-          }`}
+          className={`transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) overflow-hidden ${isOpen
+            ? 'w-full lg:w-[420px] max-h-[800px] opacity-100 scale-100 translate-x-0 shrink-0 border border-slate-200 bg-white p-4 sm:p-5 shadow-lg space-y-4 rounded-3xl pointer-events-auto'
+            : 'w-0 lg:w-0 max-h-0 opacity-0 scale-95 -translate-x-8 shrink-0 border-0 p-0 m-0 shadow-none pointer-events-none'
+            }`}
         >
           {currentData && (
             <div className="space-y-4 transition-opacity duration-300">
@@ -446,11 +444,10 @@ export default function MapaBrasilSvg({
                 return (
                   <div
                     key={macro}
-                    className={`flex items-center justify-between p-2 rounded-xl transition-all duration-300 cursor-pointer ${
-                      isSelectedMacro
-                        ? 'bg-emerald-600 text-white font-bold shadow-sm scale-[1.01]'
-                        : 'bg-white border border-slate-150 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/50'
-                    }`}
+                    className={`flex items-center justify-between p-2 rounded-xl transition-all duration-300 cursor-pointer ${isSelectedMacro
+                      ? 'bg-emerald-600 text-white font-bold shadow-sm scale-[1.01]'
+                      : 'bg-white border border-slate-150 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/50'
+                      }`}
                     onClick={() => {
                       // Seleciona a primeira UF representativa da macrorregião no mapa
                       const firstUf = ufsDoMacro[0]
@@ -461,11 +458,10 @@ export default function MapaBrasilSvg({
                   >
                     <span className="font-semibold transition-colors">{macro}</span>
                     <span
-                      className={`text-[10px] px-2 py-0.5 rounded-full font-bold transition-colors ${
-                        isSelectedMacro
-                          ? 'bg-white/20 text-white'
-                          : 'bg-slate-100 text-slate-600'
-                      }`}
+                      className={`text-[10px] px-2 py-0.5 rounded-full font-bold transition-colors ${isSelectedMacro
+                        ? 'bg-white/20 text-white'
+                        : 'bg-slate-100 text-slate-600'
+                        }`}
                     >
                       {ufsDoMacro.length} UFs
                     </span>
@@ -473,16 +469,6 @@ export default function MapaBrasilSvg({
                 )
               })}
             </div>
-          </div>
-
-          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-3.5 text-xs space-y-1.5 transition-all duration-300">
-            <p className="font-bold text-emerald-950 flex items-center gap-1.5">
-              <BuildingsIcon className="h-4 w-4 text-emerald-600" />
-              Dica Comercial
-            </p>
-            <p className="text-emerald-800 font-medium leading-relaxed text-[11px]">
-              Clique em qualquer UF do mapa cartográfico real para expandir o painel de detalhes no lado esquerdo.
-            </p>
           </div>
         </div>
       </div>
