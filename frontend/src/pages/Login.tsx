@@ -24,7 +24,7 @@ export default function LoginPage() {
 
     try {
       const response = await login({ email, senha, lembreMe })
-      saveSession(response.representanteId, lembreMe)
+      saveSession(response.representanteId, lembreMe, response.token)
       if (lembreMe) {
         localStorage.setItem('rememberedEmail', email)
       } else {

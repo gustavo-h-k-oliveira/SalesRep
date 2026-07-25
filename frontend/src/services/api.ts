@@ -11,7 +11,10 @@ function getCookie(name: string): string | null {
 
 async function apiFetch<T>(input: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers)
-  headers.set('Content-Type', 'application/json')
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token')
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`)
+  }
 
   const method = init.method?.toUpperCase() || 'GET'
   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {

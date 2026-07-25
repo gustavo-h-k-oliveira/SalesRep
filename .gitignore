@@ -35,6 +35,8 @@ todo
 application.properties
 *.csv
 *.sql
+.env
+*.py
 
 # Credentials
 local-credentials.txt

@@ -91,7 +91,7 @@ export async function redefinirSenha(token: string, novaSenha: string): Promise<
   }
 }
 
-export function saveSession(representanteId?: number, remember = false) {
+export function saveSession(representanteId?: number, remember = false, token?: string) {
   if (remember) {
     localStorage.setItem('loggedIn', 'true')
     sessionStorage.removeItem('loggedIn')
@@ -99,12 +99,20 @@ export function saveSession(representanteId?: number, remember = false) {
       localStorage.setItem('representanteId', String(representanteId))
       sessionStorage.removeItem('representanteId')
     }
+    if (token) {
+      localStorage.setItem('token', token)
+      sessionStorage.removeItem('token')
+    }
   } else {
     sessionStorage.setItem('loggedIn', 'true')
     localStorage.removeItem('loggedIn')
     if (representanteId !== undefined && representanteId !== null) {
       sessionStorage.setItem('representanteId', String(representanteId))
       localStorage.removeItem('representanteId')
+    }
+    if (token) {
+      sessionStorage.setItem('token', token)
+      localStorage.removeItem('token')
     }
   }
 }
@@ -116,8 +124,10 @@ export function isLoggedIn() {
 export function clearSession() {
   localStorage.removeItem('loggedIn')
   localStorage.removeItem('representanteId')
+  localStorage.removeItem('token')
   sessionStorage.removeItem('loggedIn')
   sessionStorage.removeItem('representanteId')
+  sessionStorage.removeItem('token')
 }
 
 export function getRepresentanteId(): number | null {

@@ -20,4 +20,9 @@ public class DashboardDto {
     private List<String> regioesCriticas;
     private List<String> produtosCriticos;
     private String representanteNome;
+    private BigDecimal metaFaturamento;
+    private BigDecimal faturamentoMesAtual;
+    private double atingimentoMetaPercentual;
+    private long metaPositivacaoClientes;
+    private long metaReativacaoInativos;
 }

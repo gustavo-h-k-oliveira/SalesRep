@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { fetchRepresentantes, fetchRepresentanteClientes, fetchRepresentantePedidos } from '../services/representanteService'
 import type { RepresentanteResponse } from '../types/api'
@@ -11,6 +11,14 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectPortal,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   MagnifyingGlassIcon,
   UsersIcon,
@@ -27,8 +35,13 @@ interface RepresentanteComMetricas extends RepresentanteResponse {
 export default function RepresentantesPage() {
   const [representantes, setRepresentantes] = useState<RepresentanteComMetricas[]>([])
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedRegiao, setSelectedRegiao] = useState<string>('ALL')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 20
 
   useEffect(() => {
     async function loadRepresentantes() {
@@ -74,13 +87,41 @@ export default function RepresentantesPage() {
     loadRepresentantes()
   }, [])
 
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, selectedRegiao])
+
   const formatCurrency = (value: number) =>
     value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
-  const filteredRepresentantes = representantes.filter((rep) =>
-    rep.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    rep.regiaoNome.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const regiaoItems = useMemo(() => {
+    const uniqueNames = Array.from(new Set(representantes.map((r) => r.regiaoNome).filter(Boolean)))
+    return [
+      { value: 'ALL', label: 'Todas as Regiões' },
+      ...uniqueNames.map((nome) => ({ value: nome, label: nome })),
+    ]
+  }, [representantes])
+
+  const filteredRepresentantes = useMemo(() => {
+    return representantes.filter((rep) => {
+      const matchesSearch =
+        rep.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        rep.regiaoNome.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesRegiao =
+        selectedRegiao === 'ALL' ||
+        selectedRegiao === '' ||
+        (rep.regiaoNome && rep.regiaoNome === selectedRegiao)
+      return matchesSearch && matchesRegiao
+    })
+  }, [representantes, searchTerm, selectedRegiao])
+
+  const totalPages = Math.ceil(filteredRepresentantes.length / ITEMS_PER_PAGE)
+
+  const paginatedRepresentantes = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredRepresentantes.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+  }, [filteredRepresentantes, currentPage])
 
   return (
     <div className="w-full rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
@@ -91,17 +132,34 @@ export default function RepresentantesPage() {
             Gerencie e acompanhe o desempenho individual de vendas e cobertura de clientes dos representantes comerciais.
           </p>
         </div>
-        <div className="relative w-full max-w-xs shrink-0">
-          <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 pointer-events-none">
-            <MagnifyingGlassIcon className="h-5 w-5" />
-          </span>
-          <Input
-            type="text"
-            placeholder="Buscar por nome ou região..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 rounded-2xl border-slate-200 bg-white"
-          />
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto md:max-w-md shrink-0">
+          <div className="relative flex-1">
+            <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 pointer-events-none">
+              <MagnifyingGlassIcon className="h-5 w-5" />
+            </span>
+            <Input
+              type="text"
+              placeholder="Buscar por nome..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 rounded-2xl border-slate-200 bg-white min-w-[200px]"
+            />
+          </div>
+          <Select value={selectedRegiao} onValueChange={(val) => setSelectedRegiao(val || 'ALL')} items={regiaoItems}>
+            <SelectTrigger className="w-full sm:w-[200px] rounded-2xl bg-white border-slate-200 text-slate-700 font-semibold h-9 px-4">
+              <SelectValue placeholder="Todas as Regiões" />
+            </SelectTrigger>
+            <SelectPortal>
+              <SelectContent className="rounded-2xl border-slate-200 bg-white shadow-lg p-1 text-slate-700">
+                <SelectItem value="ALL">Todas as Regiões</SelectItem>
+                {Array.from(new Set(representantes.map((r) => r.regiaoNome).filter(Boolean))).map((nome) => (
+                  <SelectItem key={nome} value={nome}>
+                    {nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </SelectPortal>
+          </Select>
         </div>
       </div>
 
@@ -115,7 +173,7 @@ export default function RepresentantesPage() {
           <div className="rounded-2xl border border-rose-100 bg-rose-50/50 p-4 text-rose-700 text-sm">
             {error}
           </div>
-        ) : filteredRepresentantes.length ? (
+        ) : paginatedRepresentantes.length ? (
           <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs">
             <Table>
               <TableHeader>
@@ -130,7 +188,7 @@ export default function RepresentantesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRepresentantes.map((rep) => (
+                {paginatedRepresentantes.map((rep) => (
                   <TableRow key={rep.id} className="hover:bg-slate-50/50">
                     <TableCell className="font-semibold text-slate-500">{rep.id}</TableCell>
                     <TableCell className="font-medium text-slate-900">
@@ -174,6 +232,40 @@ export default function RepresentantesPage() {
                 ))}
               </TableBody>
             </Table>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 bg-white">
+                <div className="text-sm text-slate-500">
+                  Exibindo <span className="font-semibold text-slate-950">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> a{' '}
+                  <span className="font-semibold text-slate-950">
+                    {Math.min(currentPage * ITEMS_PER_PAGE, filteredRepresentantes.length)}
+                  </span>{' '}
+                  de <span className="font-semibold text-slate-950">{filteredRepresentantes.length}</span> registros
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Anterior
+                  </button>
+                  <div className="text-xs font-semibold text-slate-700">
+                    Página {currentPage} de {totalPages}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Próxima
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="rounded-3xl border border-slate-200 border-dashed bg-slate-50/50 p-12 text-center">

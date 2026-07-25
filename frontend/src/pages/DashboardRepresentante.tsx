@@ -4,7 +4,7 @@ import type { DashboardDto, ClientePrioritarioDto, AlertaDto, PedidoResponse } f
 import { fetchClientesPrioritarios } from '../services/clienteService'
 import { fetchAlertas } from '../services/alertaService'
 import { fetchPedidos } from '../services/pedidoService'
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ReferenceLine } from 'recharts'
 import type { ChartConfig } from '@/components/ui/chart'
 import {
   ChartContainer,
@@ -18,6 +18,7 @@ import {
   TrendUpIcon,
   ShieldWarningIcon,
   ArrowRightIcon,
+  TargetIcon,
 } from '@phosphor-icons/react'
 
 const chartConfig = {
@@ -169,6 +170,84 @@ export default function DashboardRepresentante({ data }: DashboardRepresentanteP
         </ul>
       </div>
 
+      {/* Painel de Metas do Representante */}
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-4">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <TargetIcon className="h-5 w-5 text-indigo-600" />
+              Minhas Metas Comerciais do Mês
+            </h2>
+            <p className="text-xs text-slate-500">Progresso individual e potencial estimado de faturamento</p>
+          </div>
+          {data.metaFaturamento && (
+            <span className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 border border-indigo-200">
+              Meta Individual: {formatCurrency(data.metaFaturamento)}
+            </span>
+          )}
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          {/* Progress Card 1: Faturamento Mês vs Meta */}
+          <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-3">
+            <div className="flex justify-between items-center text-xs font-semibold">
+              <span className="text-slate-700">Meta de Faturamento</span>
+              <span className="text-indigo-600 font-bold">{(data.atingimentoMetaPercentual || 0).toFixed(1)}%</span>
+            </div>
+            <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-indigo-500 to-violet-600 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(data.atingimentoMetaPercentual || 0, 100)}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-slate-500 font-medium">
+              <span>Realizado: {formatCurrency(data.faturamentoMesAtual || 0)}</span>
+              <span>Meta: {formatCurrency(data.metaFaturamento || 0)}</span>
+            </div>
+          </div>
+
+          {/* Progress Card 2: Cobertura da Carteira */}
+          <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-3">
+            <div className="flex justify-between items-center text-xs font-semibold">
+              <span className="text-slate-700">Cobertura de Clientes</span>
+              <span className="text-emerald-600 font-bold">
+                {Math.min(100, Math.round((data.clientesAtivos / (data.metaPositivacaoClientes || 1)) * 100))}%
+              </span>
+            </div>
+            <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.round((data.clientesAtivos / (data.metaPositivacaoClientes || 1)) * 100))}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-slate-500 font-medium">
+              <span>Ativos: {data.clientesAtivos} clientes</span>
+              <span>Meta: {data.metaPositivacaoClientes || 0} clientes</span>
+            </div>
+          </div>
+
+          {/* Progress Card 3: Reativação */}
+          <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-3">
+            <div className="flex justify-between items-center text-xs font-semibold">
+              <span className="text-slate-700">Reativação de Inativos</span>
+              <span className="text-amber-600 font-bold">
+                {data.clientesInativos > 0 ? '50%' : '100%'}
+              </span>
+            </div>
+            <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
+                style={{ width: '50%' }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-slate-500 font-medium">
+              <span>Inativos: {data.clientesInativos}</span>
+              <span>Meta Recuperar: {data.metaReativacaoInativos || 0}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 1. Grade de Métricas Principais (KPIs) */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
@@ -297,7 +376,7 @@ export default function DashboardRepresentante({ data }: DashboardRepresentanteP
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
-                    tickFormatter={(value) => `R$ ${Math.round(value / 1000)}k`}
+                    tickFormatter={(value) => `R$ ${(value / 1000000).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 })} Mi`}
                     className="text-slate-400 font-semibold"
                   />
                   <ChartTooltip
@@ -311,6 +390,21 @@ export default function DashboardRepresentante({ data }: DashboardRepresentanteP
                     stroke="#6366f1"
                     strokeWidth={2}
                   />
+                  {data.metaFaturamento && data.metaFaturamento > 0 && (
+                    <ReferenceLine
+                      y={data.metaFaturamento}
+                      stroke="#6366f1"
+                      strokeDasharray="4 4"
+                      strokeWidth={2}
+                      label={{
+                        value: `Meta: R$ ${(data.metaFaturamento / 1000000).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Mi`,
+                        position: 'top',
+                        fill: '#4338ca',
+                        fontSize: 11,
+                        fontWeight: 700,
+                      }}
+                    />
+                  )}
                 </AreaChart>
               </ChartContainer>
             </div>

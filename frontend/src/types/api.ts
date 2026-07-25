@@ -17,6 +17,11 @@ export interface DashboardDto {
   regioesCriticas: string[]
   produtosCriticos: string[]
   representanteNome?: string
+  metaFaturamento?: number
+  faturamentoMesAtual?: number
+  atingimentoMetaPercentual?: number
+  metaPositivacaoClientes?: number
+  metaReativacaoInativos?: number
 }
 
 export interface AlertaDto {

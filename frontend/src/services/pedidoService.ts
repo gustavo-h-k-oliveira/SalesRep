@@ -2,11 +2,25 @@ import { apiFetch } from './api'
 import type { PedidoResponse } from '../types/api'
 
 export async function fetchPedidos(): Promise<PedidoResponse[]> {
-  return apiFetch<PedidoResponse[]>('/pedidos')
+  const data = await apiFetch<PedidoResponse[] | { content: PedidoResponse[] }>('/pedidos?size=1000')
+  if (data && typeof data === 'object' && 'content' in data && Array.isArray(data.content)) {
+    return data.content
+  }
+  return Array.isArray(data) ? data : []
 }
 
 export async function fetchPedidoById(id: number): Promise<PedidoResponse> {
   return apiFetch<PedidoResponse>(`/pedidos/${id}`)
+}
+
+export async function fetchPedidosByPeriodo(inicio: string, fim: string): Promise<PedidoResponse[]> {
+  const data = await apiFetch<PedidoResponse[] | { content: PedidoResponse[] }>(
+    `/pedidos/periodo?inicio=${encodeURIComponent(inicio)}&fim=${encodeURIComponent(fim)}&size=1000`
+  )
+  if (data && typeof data === 'object' && 'content' in data && Array.isArray(data.content)) {
+    return data.content
+  }
+  return Array.isArray(data) ? data : []
 }
 
 export async function fetchPedidosByCliente(clienteId: number): Promise<PedidoResponse[]> {
@@ -28,9 +42,3 @@ export async function fetchPedidosFaturados(): Promise<PedidoResponse[]> {
 export async function fetchPedidosNaoFaturados(): Promise<PedidoResponse[]> {
   return apiFetch<PedidoResponse[]>('/pedidos/nao-faturados')
 }
-
-export async function fetchPedidosByPeriodo(inicio: string, fim: string): Promise<PedidoResponse[]> {
-  const query = new URLSearchParams({ inicio, fim }).toString()
-  return apiFetch<PedidoResponse[]>(`/pedidos/periodo?${query}`)
-}
-

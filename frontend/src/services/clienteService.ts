@@ -8,7 +8,11 @@ import type {
 } from '../types/api'
 
 export async function fetchClientes(): Promise<ClienteResponse[]> {
-  return apiFetch<ClienteResponse[]>('/clientes')
+  const data = await apiFetch<ClienteResponse[] | { content: ClienteResponse[] }>('/clientes?size=1000')
+  if (data && typeof data === 'object' && 'content' in data && Array.isArray(data.content)) {
+    return data.content
+  }
+  return Array.isArray(data) ? data : []
 }
 
 export async function fetchClienteById(id: number): Promise<ClienteResponse> {

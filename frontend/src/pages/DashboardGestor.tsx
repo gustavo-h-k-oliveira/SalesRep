@@ -1,10 +1,12 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import type { DashboardDto, ClientePrioritarioDto, PedidoResponse, RepresentanteResponse } from '../types/api'
-import { fetchClientesPrioritarios } from '../services/clienteService'
+import type { DashboardDto, ClientePrioritarioDto, PedidoResponse, RepresentanteResponse, RegiaoResponse, ClienteResponse } from '../types/api'
+import { fetchClientesPrioritarios, fetchClientes } from '../services/clienteService'
 import { fetchPedidos } from '../services/pedidoService'
 import { fetchRepresentantes } from '../services/representanteService'
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import { fetchRegioes } from '../services/regiaoService'
+import MapaBrasilSvg from '../components/MapaBrasilSvg'
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ReferenceLine } from 'recharts'
 import type { ChartConfig } from '@/components/ui/chart'
 import {
   ChartContainer,
@@ -19,6 +21,7 @@ import {
   TrendUpIcon,
   ArrowRightIcon,
   UserIcon,
+  TargetIcon,
 } from '@phosphor-icons/react'
 
 const chartConfig = {
@@ -36,19 +39,33 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
   const [prioritarios, setPrioritarios] = useState<ClientePrioritarioDto[]>([])
   const [pedidos, setPedidos] = useState<PedidoResponse[]>([])
   const [representantes, setRepresentantes] = useState<RepresentanteResponse[]>([])
+  const [regioes, setRegioes] = useState<RegiaoResponse[]>([])
+  const [clientes, setClientes] = useState<ClienteResponse[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function loadGestorDashboardData() {
       try {
-        const [prioritariosData, pedidosData, representantesData] = await Promise.all([
+        const [prioritariosRes, pedidosRes, representantesRes, regioesRes, clientesRes] = await Promise.allSettled([
           fetchClientesPrioritarios(),
           fetchPedidos(),
           fetchRepresentantes(),
+          fetchRegioes(),
+          fetchClientes(),
         ])
-        setPrioritarios(prioritariosData)
-        setPedidos(pedidosData)
-        setRepresentantes(representantesData)
+
+        if (prioritariosRes.status === 'fulfilled' && Array.isArray(prioritariosRes.value)) setPrioritarios(prioritariosRes.value)
+        if (pedidosRes.status === 'fulfilled' && Array.isArray(pedidosRes.value)) setPedidos(pedidosRes.value)
+        if (representantesRes.status === 'fulfilled' && Array.isArray(representantesRes.value)) setRepresentantes(representantesRes.value)
+        if (regioesRes.status === 'fulfilled' && Array.isArray(regioesRes.value)) setRegioes(regioesRes.value)
+        if (clientesRes.status === 'fulfilled') {
+          const val = clientesRes.value as any
+          if (Array.isArray(val)) {
+            setClientes(val)
+          } else if (val && typeof val === 'object' && 'content' in val && Array.isArray(val.content)) {
+            setClientes(val.content)
+          }
+        }
       } catch (err) {
         console.error('Erro ao carregar dados do dashboard do gestor:', err)
       } finally {
@@ -59,22 +76,22 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
   }, [])
 
   const formatCurrency = (value: number) =>
-    value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    (value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
   // 1. Resumo Executivo (Cálculos dinâmicos em nível de Gestor)
   const resumoExecutivo = useMemo(() => {
-    const semCompra30Dias = prioritarios.filter((c) => c.diasSemCompra > 30).length
+    const semCompra30Dias = (prioritarios || []).filter((c) => c && c.diasSemCompra > 30).length
 
     // Potencial estimado de recuperação geral
-    const potencialRecuperacao = prioritarios
-      .filter((c) => c.diasSemCompra > 30)
-      .reduce((sum, c) => sum + c.ticketMedio, 0)
+    const potencialRecuperacao = (prioritarios || [])
+      .filter((c) => c && c.diasSemCompra > 30)
+      .reduce((sum, c) => sum + (c.ticketMedio || 0), 0)
 
     // Região crítica principal
-    const regiaoCritica = data.regioesCriticas[0] || 'Nacional'
+    const regiaoCritica = (data?.regioesCriticas || [])[0] || 'Nacional'
 
     // Produto com mais problemas de recompra global
-    const produtoCritico = data.produtosCriticos[0] || 'Farinha Especial'
+    const produtoCritico = (data?.produtosCriticos || [])[0] || 'Farinha Especial'
 
     return {
       semCompra30Dias,
@@ -86,15 +103,17 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
 
   // 2. Gráfico de Vendas Consolidado (Últimos 4 meses)
   const vendasUltimosMeses = useMemo(() => {
-    const faturados = pedidos.filter((p) => p.status === 'FATURADO')
+    const faturados = (pedidos || []).filter((p) => p && p.status === 'FATURADO')
     const mesesMap: { [key: string]: number } = {}
 
     const nomesMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
     faturados.forEach((p) => {
-      const date = new Date(p.dataEmissao)
-      const nomeMes = nomesMeses[date.getMonth()]
-      mesesMap[nomeMes] = (mesesMap[nomeMes] || 0) + p.valorTotal
+      if (p && p.dataEmissao) {
+        const date = new Date(p.dataEmissao)
+        const nomeMes = nomesMeses[date.getMonth()]
+        mesesMap[nomeMes] = (mesesMap[nomeMes] || 0) + (p.valorTotal || 0)
+      }
     })
 
     const hoje = new Date()
@@ -115,22 +134,20 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
 
   // 3. Ranking de Representantes (Calculado com base em faturamento faturado de pedidos)
   const rankingRepresentantes = useMemo(() => {
-    const faturados = pedidos.filter((p) => p.status === 'FATURADO')
+    const faturados = (pedidos || []).filter((p) => p && p.status === 'FATURADO')
     const faturamentoMap: { [key: string]: number } = {}
 
     faturados.forEach((p) => {
-      if (p.representanteNome) {
-        faturamentoMap[p.representanteNome] = (faturamentoMap[p.representanteNome] || 0) + p.valorTotal
+      if (p && p.representanteNome) {
+        faturamentoMap[p.representanteNome] = (faturamentoMap[p.representanteNome] || 0) + (p.valorTotal || 0)
       }
-    })
+    });
 
-    // Caso não tenhamos dados de pedidos mapeados para representantes reais, alimentamos com dados dos representantes cadastrados
-    representantes.forEach((rep) => {
-      if (!faturamentoMap[rep.nome]) {
-        // Mock proporcional para manter tela preenchida de forma realista no MVP
-        faturamentoMap[rep.nome] = (data.faturamentoTotal / (representantes.length || 1)) * (rep.id % 2 === 0 ? 1.2 : 0.8)
+    (representantes || []).forEach((rep) => {
+      if (rep && faturamentoMap[rep.nome] === undefined) {
+        faturamentoMap[rep.nome] = 0
       }
-    })
+    });
 
     return Object.entries(faturamentoMap)
       .map(([nome, faturamento]) => ({ nome, faturamento }))
@@ -193,6 +210,84 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
         </ul>
       </div>
 
+      {/* Painel de Acompanhamento de Metas Comerciais */}
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-4">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <TargetIcon className="h-5 w-5 text-emerald-600" />
+              Acompanhamento de Metas Comerciais do Mês
+            </h2>
+            <p className="text-xs text-slate-500">Progresso acumulado de vendas e cobertura da carteira nacional</p>
+          </div>
+          {data.metaFaturamento && (
+            <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200">
+              Meta Faturamento: {formatCurrency(data.metaFaturamento)}
+            </span>
+          )}
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          {/* Progress Card 1: Faturamento Mês vs Meta */}
+          <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-3">
+            <div className="flex justify-between items-center text-xs font-semibold">
+              <span className="text-slate-700">Faturamento Mês vs Meta</span>
+              <span className="text-emerald-600 font-bold">{(data.atingimentoMetaPercentual || 0).toFixed(1)}%</span>
+            </div>
+            <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(data.atingimentoMetaPercentual || 0, 100)}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-slate-500 font-medium">
+              <span>Realizado: {formatCurrency(data.faturamentoMesAtual || 0)}</span>
+              <span>Meta: {formatCurrency(data.metaFaturamento || 0)}</span>
+            </div>
+          </div>
+
+          {/* Progress Card 2: Positivação de Clientes */}
+          <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-3">
+            <div className="flex justify-between items-center text-xs font-semibold">
+              <span className="text-slate-700">Positivação da Carteira</span>
+              <span className="text-teal-600 font-bold">
+                {Math.min(100, Math.round((data.clientesAtivos / (data.metaPositivacaoClientes || 1)) * 100))}%
+              </span>
+            </div>
+            <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-teal-500 to-cyan-600 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.round((data.clientesAtivos / (data.metaPositivacaoClientes || 1)) * 100))}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-slate-500 font-medium">
+              <span>Ativos: {data.clientesAtivos} clientes</span>
+              <span>Meta: {data.metaPositivacaoClientes || 0} clientes</span>
+            </div>
+          </div>
+
+          {/* Progress Card 3: Reativação de Inativos */}
+          <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-3">
+            <div className="flex justify-between items-center text-xs font-semibold">
+              <span className="text-slate-700">Meta Reativação de Inativos</span>
+              <span className="text-amber-600 font-bold">
+                {data.clientesInativos > 0 ? '50%' : '100%'}
+              </span>
+            </div>
+            <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
+                style={{ width: '50%' }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-slate-500 font-medium">
+              <span>Inativos Atuais: {data.clientesInativos}</span>
+              <span>Meta Recuperação: {data.metaReativacaoInativos || 0}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* KPIs Consolidados */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
@@ -241,6 +336,16 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
         </div>
 
       </div>
+
+      {/* Mapa Vetorial do Brasil Interativo por UFs */}
+      <MapaBrasilSvg
+        regioes={regioes}
+        clientes={clientes}
+        representantes={representantes}
+        pedidos={pedidos}
+        clientesPrioritarios={prioritarios}
+        regioesCriticas={data.regioesCriticas}
+      />
 
       {/* Layout Grid Secundário */}
       <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
@@ -318,7 +423,7 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
-                    tickFormatter={(value) => `R$ ${Math.round(value / 1000)}k`}
+                    tickFormatter={(value) => `R$ ${(value / 1000000).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 1 })} Mi`}
                     className="text-slate-400 font-semibold"
                   />
                   <ChartTooltip
@@ -332,6 +437,21 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
                     stroke="#10b981"
                     strokeWidth={2}
                   />
+                  {data.metaFaturamento && data.metaFaturamento > 0 && (
+                    <ReferenceLine
+                      y={data.metaFaturamento}
+                      stroke="#10b981"
+                      strokeDasharray="4 4"
+                      strokeWidth={2}
+                      label={{
+                        value: `Meta: R$ ${(data.metaFaturamento / 1000000).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} Mi`,
+                        position: 'top',
+                        fill: '#047857',
+                        fontSize: 11,
+                        fontWeight: 700,
+                      }}
+                    />
+                  )}
                 </AreaChart>
               </ChartContainer>
             </div>
@@ -353,7 +473,7 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
             </div>
 
             <div className="mt-4 space-y-3">
-              {data.regioesCriticas.map((regiao, idx) => (
+              {(data?.regioesCriticas || []).map((regiao, idx) => (
                 <div
                   key={idx}
                   className="flex items-center gap-2.5 rounded-2xl border border-slate-100 bg-slate-50/50 p-4"
@@ -362,7 +482,7 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
                   <span className="text-xs font-semibold text-slate-800">{regiao}</span>
                 </div>
               ))}
-              {!data.regioesCriticas.length && (
+              {!data?.regioesCriticas?.length && (
                 <p className="text-xs text-slate-500 text-center py-6">Sem regiões críticas registradas.</p>
               )}
             </div>
