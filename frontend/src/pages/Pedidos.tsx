@@ -39,6 +39,10 @@ export default function PedidosPage() {
   const [fim, setFim] = useState('')
   const [filterMode, setFilterMode] = useState<FilterMode>('TODOS')
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 20
+
   useEffect(() => {
     async function loadPedidos() {
       setLoading(true)
@@ -79,6 +83,18 @@ export default function PedidosPage() {
 
     loadPedidos()
   }, [filterMode, inicio, fim])
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [filterMode, inicio, fim])
+
+  const totalPages = Math.ceil(pedidos.length / ITEMS_PER_PAGE)
+
+  const paginatedPedidos = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    return pedidos.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+  }, [pedidos, currentPage])
 
   const totalPedidos = pedidos.length
 
@@ -207,7 +223,7 @@ export default function PedidosPage() {
         <p className="mt-8 text-slate-600">Carregando pedidos...</p>
       ) : error ? (
         <p className="mt-8 text-rose-600">{error}</p>
-      ) : pedidos.length ? (
+      ) : paginatedPedidos.length ? (
         <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white">
           <Table>
             <TableHeader>
@@ -222,7 +238,7 @@ export default function PedidosPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pedidos.map((pedido) => (
+              {paginatedPedidos.map((pedido) => (
                 <TableRow key={pedido.id} className="hover:bg-slate-50/50">
                   <TableCell className="font-semibold text-slate-500">{pedido.id}</TableCell>
                   <TableCell>{formatDate(pedido.dataEmissao)}</TableCell>
@@ -235,6 +251,40 @@ export default function PedidosPage() {
               ))}
             </TableBody>
           </Table>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 bg-white">
+              <div className="text-sm text-slate-500">
+                Exibindo <span className="font-semibold text-slate-950">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> a{' '}
+                <span className="font-semibold text-slate-950">
+                  {Math.min(currentPage * ITEMS_PER_PAGE, pedidos.length)}
+                </span>{' '}
+                de <span className="font-semibold text-slate-950">{pedidos.length}</span> registros
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Anterior
+                </button>
+                <div className="text-xs font-semibold text-slate-700">
+                  Página {currentPage} de {totalPages}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Próxima
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <p className="mt-8 text-slate-600">Nenhum pedido encontrado.</p>

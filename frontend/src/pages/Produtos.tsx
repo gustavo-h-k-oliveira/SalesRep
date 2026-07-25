@@ -78,10 +78,19 @@ export default function ProdutosPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<string>('ALL')
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 20
+
   // Product Detail Modal State
   const [selectedProduto, setSelectedProduto] = useState<ProdutoResponse | null>(null)
   const [selectedProdutoItens, setSelectedProdutoItens] = useState<PedidoItemResponse[]>([])
   const [loadingDetails, setLoadingDetails] = useState(false)
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, filterType])
 
   useEffect(() => {
     async function loadData() {
@@ -181,6 +190,13 @@ export default function ProdutosPage() {
 
     return result
   }, [produtos, criticosIds, searchTerm, filterType])
+
+  const totalPages = Math.ceil(filteredProdutos.length / ITEMS_PER_PAGE)
+
+  const paginatedProdutos = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredProdutos.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+  }, [filteredProdutos, currentPage])
 
   // Donut Chart Data (Top 5 share of revenue)
   const donutData = useMemo(() => {
@@ -539,7 +555,7 @@ export default function ProdutosPage() {
           <p className="text-slate-600 font-medium py-4">Carregando produtos...</p>
         ) : error ? (
           <p className="text-rose-600 font-medium py-4">{error}</p>
-        ) : filteredProdutos.length ? (
+        ) : paginatedProdutos.length ? (
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white animate-in fade-in duration-300">
             <Table>
               <TableHeader>
@@ -552,7 +568,7 @@ export default function ProdutosPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProdutos.map((produto) => {
+                {paginatedProdutos.map((produto) => {
                   const isCritico = criticosIds.has(produto.id)
                   return (
                     <TableRow
@@ -583,6 +599,40 @@ export default function ProdutosPage() {
                 })}
               </TableBody>
             </Table>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4 bg-white">
+                <div className="text-sm text-slate-500">
+                  Exibindo <span className="font-semibold text-slate-950">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> a{' '}
+                  <span className="font-semibold text-slate-950">
+                    {Math.min(currentPage * ITEMS_PER_PAGE, filteredProdutos.length)}
+                  </span>{' '}
+                  de <span className="font-semibold text-slate-950">{filteredProdutos.length}</span> registros
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Anterior
+                  </button>
+                  <div className="text-xs font-semibold text-slate-700">
+                    Página {currentPage} de {totalPages}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Próxima
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <p className="text-slate-500 py-6 text-center border border-dashed border-slate-200 rounded-2xl font-medium bg-slate-50">

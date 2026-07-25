@@ -397,9 +397,9 @@ export default function ClientePerfilPage() {
           </div>
 
           {/* Produtos Sugeridos */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-6 h-fit">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">Mix Sugerido</h2>
+              <h2 className="text-lg font-semibold text-slate-900">Recomendação de produtos</h2>
               <p className="text-xs text-slate-500">Produtos recomendados para oferta na próxima visita</p>
             </div>
 
@@ -428,12 +428,6 @@ export default function ClientePerfilPage() {
                   Nenhum produto cadastrado no sistema.
                 </div>
               )}
-            </div>
-
-            <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 text-center">
-              <p className="text-xs text-slate-500">
-                A oferta desse mix de produtos pode elevar o faturamento deste cliente em até <span className="font-semibold text-indigo-600">15%</span>.
-              </p>
             </div>
           </div>
 

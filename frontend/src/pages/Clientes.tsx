@@ -30,6 +30,10 @@ export default function ClientesPage() {
   const [selectedRegiao, setSelectedRegiao] = useState<string>('ALL')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 20
 
   useEffect(() => {
     async function loadData() {
@@ -50,6 +54,11 @@ export default function ClientesPage() {
     loadData()
   }, [])
 
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, selectedRegiao])
+
   const formatCurrency = (value: number) =>
     value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
@@ -61,14 +70,23 @@ export default function ClientesPage() {
     ]
   }, [regioes])
 
-  const filteredClientes = clientes.filter((cliente) => {
-    const matchesSearch = cliente.nome.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesRegiao =
-      selectedRegiao === 'ALL' ||
-      selectedRegiao === '' ||
-      (cliente.regiaoNome && cliente.regiaoNome === selectedRegiao)
-    return matchesSearch && matchesRegiao
-  })
+  const filteredClientes = useMemo(() => {
+    return clientes.filter((cliente) => {
+      const matchesSearch = cliente.nome.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesRegiao =
+        selectedRegiao === 'ALL' ||
+        selectedRegiao === '' ||
+        (cliente.regiaoNome && cliente.regiaoNome === selectedRegiao)
+      return matchesSearch && matchesRegiao
+    })
+  }, [clientes, searchTerm, selectedRegiao])
+
+  const totalPages = Math.ceil(filteredClientes.length / ITEMS_PER_PAGE)
+
+  const paginatedClientes = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredClientes.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+  }, [filteredClientes, currentPage])
 
   return (
     <div className="w-full rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
@@ -120,7 +138,7 @@ export default function ClientesPage() {
           <div className="rounded-2xl border border-rose-100 bg-rose-50/50 p-4 text-rose-700 text-sm">
             {error}
           </div>
-        ) : filteredClientes.length ? (
+        ) : paginatedClientes.length ? (
           <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs">
             <Table>
               <TableHeader>
@@ -136,7 +154,7 @@ export default function ClientesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredClientes.map((cliente) => (
+                {paginatedClientes.map((cliente) => (
                   <TableRow key={cliente.id} className="hover:bg-slate-50/50">
                     <TableCell className="font-semibold text-slate-500">{cliente.id}</TableCell>
                     <TableCell className="font-medium text-slate-900">
@@ -183,6 +201,40 @@ export default function ClientesPage() {
                 ))}
               </TableBody>
             </Table>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4">
+                <div className="text-sm text-slate-500">
+                  Exibindo <span className="font-semibold text-slate-950">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> a{' '}
+                  <span className="font-semibold text-slate-950">
+                    {Math.min(currentPage * ITEMS_PER_PAGE, filteredClientes.length)}
+                  </span>{' '}
+                  de <span className="font-semibold text-slate-950">{filteredClientes.length}</span> registros
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Anterior
+                  </button>
+                  <div className="text-xs font-semibold text-slate-700">
+                    Página {currentPage} de {totalPages}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Próxima
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="rounded-3xl border border-slate-200 border-dashed bg-slate-50/50 p-12 text-center">
