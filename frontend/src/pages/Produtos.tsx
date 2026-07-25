@@ -428,12 +428,12 @@ export default function ProdutosPage() {
             <CardTitle className="text-lg font-bold text-slate-900">Share de Faturamento (Top 5)</CardTitle>
             <CardDescription className="text-xs text-slate-500">Participação dos principais produtos no faturamento geral</CardDescription>
           </CardHeader>
-          <CardContent className="p-0 grid md:grid-cols-[1fr_1.2fr] gap-6 items-center">
+          <CardContent className="p-0 grid md:grid-cols-[auto_1fr] gap-6 items-center">
             {produtos.length > 0 ? (
               <>
-                <div className="relative mx-auto aspect-square w-full max-h-[170px]">
+                <div className="relative shrink-0 w-[170px] h-[170px] mx-auto md:mx-0">
                   <ChartContainer config={{}} className="h-full w-full">
-                    <PieChart>
+                    <PieChart width={170} height={170}>
                       <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
                       <Pie
                         data={donutData}
@@ -451,18 +451,18 @@ export default function ProdutosPage() {
                   </ChartContainer>
                 </div>
 
-                <div className="flex flex-col justify-center gap-2.5">
+                <div className="flex flex-col justify-center gap-2.5 min-w-0 flex-1">
                   {donutData.map((item, idx) => {
                     const percentage = totalFaturamento > 0 ? ((item.value / totalFaturamento) * 100).toFixed(1) : '0.0';
                     return (
-                      <div key={idx} className="flex items-center justify-between text-xs font-semibold">
-                        <div className="flex items-center gap-2 min-w-0">
+                      <div key={idx} className="flex items-center justify-between text-xs font-semibold gap-2">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
                           <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: item.fill }} />
-                          <span className="truncate text-slate-600 max-w-[130px]">{item.name}</span>
+                          <span className="truncate text-slate-600 min-w-0" title={item.name}>{item.name}</span>
                         </div>
-                        <div className="flex items-center gap-3 shrink-0">
+                        <div className="flex items-center gap-2 shrink-0">
                           <span className="text-slate-900">{formatCurrency(item.value)}</span>
-                          <span className="text-slate-400 w-10 text-right">{percentage}%</span>
+                          <span className="text-slate-400 w-9 text-right">{percentage}%</span>
                         </div>
                       </div>
                     )
