@@ -325,23 +325,26 @@ score =
 
 ### 1. Preparar o Banco de Dados (PostgreSQL)
 
-Você pode utilizar o PostgreSQL instalado localmente na sua máquina ou via Docker:
+> [!IMPORTANT]
+> **Ordem de Execução:** O banco de dados relacional (vazio) deve ser criado **antes** de iniciar o backend. O Flyway se encarregará de criar a estrutura de tabelas e alimentá-la com os dados de demonstração automaticamente na primeira execução do backend.
+
+Você pode preparar o banco de dados de duas formas:
 
 #### Opção A — PostgreSQL Local
-Crie um banco de dados relacional com o nome `salesrep_new` (ou configure no `app/src/main/resources/application.properties`):
+Crie um banco de dados **vazio** com o nome `salesrep_new` no seu PostgreSQL local (via pgAdmin, DBeaver ou psql `CREATE DATABASE salesrep_new;`):
 * **URL:** `jdbc:postgresql://localhost:5432/salesrep_new`
 * **Usuário:** `postgres`
 * **Senha:** `root` (ou a senha configurada no seu PostgreSQL)
 
 #### Opção B — PostgreSQL via Docker Compose
-Se preferir subir um contêiner isolado do PostgreSQL via Docker:
+Se utilizar Docker, o próprio container criará o banco `salesrep_new` automaticamente ao subir:
 ```bash
 docker-compose up -d db
 ```
 
 ---
 
-### 2. Executar o Backend (Spring Boot) & Migrações Automáticas
+### 2. Executar o Backend & Inserção Automática de Dados (Flyway)
 
 Navegue até a raiz do projeto e execute:
 
@@ -354,8 +357,8 @@ Navegue até a raiz do projeto e execute:
 ```
 
 > [!NOTE]
-> **Criação e Povoamento do Banco de Dados (Flyway):**
-> Ao iniciar o backend, a ferramenta **Flyway** executa automaticamente todos os scripts SQL contidos em `app/src/main/resources/db/migration/`. Isso criará a estrutura de tabelas no PostgreSQL e inserirá os dados de demonstração (clientes, representantes, regiões, produtos e pedidos) sem necessidade de importação manual.
+> **Povoamento Automático (Flyway):**
+> Assim que o Spring Boot é iniciado, o **Flyway** conecta no banco de dados preparado no Passo 1, executa as migrações SQL em `app/src/main/resources/db/migration/` (criação de tabelas) e insere automaticamente a carga de dados inicial (clientes, representantes, regiões, produtos e pedidos). Não é necessário executar nenhum script SQL manualmente.
 
 A API estará disponível em `http://localhost:8080`.
 
