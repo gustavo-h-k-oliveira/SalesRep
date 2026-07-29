@@ -88,15 +88,15 @@ Sugestões comerciais acionáveis:
 ## Arquitetura do Projeto
 
 ```text
-Frontend
+Frontend (React + Vite + TypeScript)
+    ↓ (HTTP / Cookie Auth JWT)
+API REST (Spring Boot Security)
     ↓
-API REST
+Services & Security & Auditoria
     ↓
-Services
+Analytics + Rules (Score Comercial & Alertas)
     ↓
-Analytics + Rules
-    ↓
-Repositories
+Repositories (Spring Data JPA)
     ↓
 PostgreSQL
 ```
@@ -108,10 +108,10 @@ PostgreSQL
 ### Backend
 
 * Java 21
-* Spring Boot 4
+* Spring Boot 3 / 4
 * Spring Data JPA
 * Spring Validation
-* Spring Security
+* Spring Security (JWT / Cookie HttpOnly)
 * PostgreSQL
 * Lombok
 * Gradle
@@ -120,11 +120,12 @@ PostgreSQL
 
 ### Frontend
 
-* React
+* React 18
 * Vite
 * TypeScript
 * TailwindCSS
 * ShadCN/UI
+* Lucide React
 * Recharts
 
 ---
@@ -132,18 +133,20 @@ PostgreSQL
 ## Estrutura do Backend
 
 ```text
-src/main/java/com/sagra/radar
+app/src/main/java/org/company
 │
-├── controller
-├── service
-├── analytics
-├── rules
-├── repository
-├── entity
-├── dto
-├── config
-├── exception
-└── util
+├── analytics       # Lógica analítica e cálculos de score/recorrência
+├── config          # Configurações de segurança, CORS e beans da aplicação
+├── controller      # Controllers REST da API
+├── dto             # Objetos de transferência de dados (Request/Response)
+├── entity          # Entidades JPA (Cliente, Pedido, Produto, Regiao, etc.)
+├── exception       # Trata exceções globais e retornos HTTP
+├── mapper          # Mapeadores DTO/Entidade
+├── repository      # Interfaces Spring Data JPA
+├── rules           # Regras de negócio comerciais (RN001 - RN005)
+├── security        # Filtros JWT, UsuarioPrincipal e SecurityUtils
+├── service         # Serviços de orquestração, regras e autenticação
+└── util            # Utilitários gerais
 ```
 
 ---
@@ -156,9 +159,9 @@ Responsável pela orquestração do fluxo da aplicação.
 
 Exemplos:
 
-* Buscar dados
-* Coordenar chamadas
-* Montar respostas
+* Buscar e persistir dados
+* Coordenar chamadas de auditoria e segurança
+* Montar respostas e orquestrar regras
 
 ---
 
@@ -171,7 +174,8 @@ Exemplos:
 * Score comercial
 * Ticket médio
 * Tendência de compra
-* Ranking de clientes
+* Ranking de clientes prioritários
+* Recomendações de produtos
 
 ---
 
@@ -181,10 +185,22 @@ Responsável pelas regras de negócio.
 
 Exemplos:
 
-* Definir cliente inativo
-* Gerar alertas
-* Classificar prioridades
-* Detectar riscos
+* Definir cliente inativo (dias sem compra > 45)
+* Detectar regiões críticas (queda faturamento > 20%)
+* Gerar alertas e prioridades
+* Classificar riscos e oportunidades
+
+---
+
+### Security & Auditoria
+
+Responsável pela autenticação, controle de acesso e auditoria de ações.
+
+* **Autenticação:** Suporte a Login via JWT com envio de Cookie HttpOnly (`AUTH_TOKEN`) ou Header Bearer.
+* **Perfis de Acesso (RBAC):** 
+  * `GESTOR`: Acesso completo ao sistema, auditoria de acessos e visão consolidada de todas as regiões.
+  * `REPRESENTANTE`: Acesso restrito aos clientes, pedidos, recomendações e alertas de sua própria carteira.
+* **Log de Auditoria:** Registro automático de eventos de login, logout e operações sensíveis no sistema.
 
 ---
 
@@ -236,8 +252,9 @@ score =
 * id
 * nome
 * região
+* representante
 * última compra
-* status
+* status (ATIVO / INATIVO)
 
 ---
 
@@ -248,8 +265,9 @@ score =
 * representante
 * data emissão
 * data faturamento
-* valor
-* status
+* valor total
+* status (EMISSAO, FATURADO, CANCELADO, etc.)
+* autorização comercial
 
 ---
 
@@ -270,6 +288,17 @@ score =
 
 ---
 
+#### Usuário
+
+* id
+* nomeUsuario
+* email
+* senha
+* role (ROLE_GESTOR, ROLE_REPRESENTANTE)
+* representante (opcional, para vínculo)
+
+---
+
 ## KPIs Monitorados
 
 * Entrada de pedido
@@ -280,25 +309,88 @@ score =
 * Ticket médio
 * Positivação
 * Faturamento regional
+* Score comercial e clientes prioritários
+
+---
+
+## Como Executar o Projeto
+
+### Pré-requisitos
+
+* Java 21 JDK
+* Node.js 18+ e npm
+* PostgreSQL ou Docker
+
+---
+
+### 1. Preparar o Banco de Dados (PostgreSQL)
+
+Você pode utilizar o PostgreSQL instalado localmente na sua máquina ou via Docker:
+
+#### Opção A — PostgreSQL Local
+Crie um banco de dados relacional com o nome `salesrep_new` (ou configure no `app/src/main/resources/application.properties`):
+* **URL:** `jdbc:postgresql://localhost:5432/salesrep_new`
+* **Usuário:** `postgres`
+* **Senha:** `root` (ou a senha configurada no seu PostgreSQL)
+
+#### Opção B — PostgreSQL via Docker Compose
+Se preferir subir um contêiner isolado do PostgreSQL via Docker:
+```bash
+docker-compose up -d db
+```
+
+---
+
+### 2. Executar o Backend (Spring Boot) & Migrações Automáticas
+
+Navegue até a raiz do projeto e execute:
+
+```bash
+# No Windows (PowerShell / CMD)
+.\gradlew.bat app:bootRun
+
+# No Linux / macOS
+./gradlew app:bootRun
+```
+
+> [!NOTE]
+> **Criação e Povoamento do Banco de Dados (Flyway):**
+> Ao iniciar o backend, a ferramenta **Flyway** executa automaticamente todos os scripts SQL contidos em `app/src/main/resources/db/migration/`. Isso criará a estrutura de tabelas no PostgreSQL e inserirá os dados de demonstração (clientes, representantes, regiões, produtos e pedidos) sem necessidade de importação manual.
+
+A API estará disponível em `http://localhost:8080`.
+
+---
+
+### 3. Executar o Frontend (React + Vite)
+
+Em um novo terminal, acesse o diretório frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+A aplicação web estará disponível em `http://localhost:5173`.
 
 ---
 
 ## Fluxo Analítico
 
 ```text
-CSV/XLSX
+CSV/XLSX ou ERP
     ↓
-ETL
+ETL / Data Pipeline
     ↓
 PostgreSQL
     ↓
-Métricas
+Métricas & Analytics
     ↓
-Regras de negócio
+Regras de Negócio (Rules)
     ↓
-Alertas e recomendações
+Alertas e Recomendações
     ↓
-Dashboard
+Dashboard Executivo & Representante
 ```
 
 ---
@@ -308,11 +400,11 @@ Dashboard
 O projeto busca validar:
 
 * Aplicação prática de Business Intelligence
-* Modelagem analítica
-* Engenharia de software
-* Construção de APIs REST
-* Desenvolvimento de dashboards comerciais
-* Transformação de dados em inteligência de negócio
+* Modelagem analítica de carteira comercial
+* Engenharia de software e arquitetura REST corporativa
+* Segurança baseada em papéis (RBAC) e auditoria
+* Desenvolvimento de dashboards comerciais responsivos
+* Transformação de dados em inteligência de negócio acionável
 
 ---
 
@@ -325,33 +417,9 @@ O foco principal é:
 ```text
 Dados consolidados
 +
-Priorização automática
+Priorização automática (Score)
 +
 Recomendação comercial acionável
 ```
 
----
 
-## Status do Projeto
-
-```text
-🚧 Em desenvolvimento
-```
-
----
-
-## Próximas Etapas
-
-* [ ] Modelagem do banco de dados
-* [ ] Importação do dataset comercial
-* [ ] Construção da API REST
-* [ ] Implementação das regras analíticas
-* [ ] Desenvolvimento do dashboard
-* [ ] Sistema de alertas
-* [ ] Plano de ação automático
-
----
-
-## Autor
-
-Projeto acadêmico desenvolvido para estudo e prototipação de inteligência comercial orientada por dados.

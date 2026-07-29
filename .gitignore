@@ -35,6 +35,7 @@ todo
 application.properties
 *.csv
 *.sql
+!app/src/main/resources/db/migration/*.sql
 .env
 *.py
 

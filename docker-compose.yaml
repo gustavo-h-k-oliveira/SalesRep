@@ -8,9 +8,9 @@ services:
     restart: unless-stopped
 
     environment:
-      POSTGRES_DB: salesrep
+      POSTGRES_DB: salesrep_new
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: root
 
     ports:
       - "127.0.0.1:5432:5432"
@@ -31,9 +31,9 @@ services:
       - db
 
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/salesrep
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/salesrep_new
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_PASSWORD: root
 
     ports:
       - "8080:8080"

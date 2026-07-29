@@ -435,18 +435,20 @@ PostgreSQL
 # 13. Organização do Backend
 
 ```text
-src/main/java/com/sagra/radar
+app/src/main/java/org/company
 │
-├── controller
-├── service
-├── analytics
-├── rules
-├── repository
-├── entity
-├── dto
-├── config
-├── exception
-└── util
+├── analytics       # Inteligência analítica e cálculo de score comercial
+├── config          # Configurações do ecossistema Spring Boot, CORS e segurança
+├── controller      # Controllers REST expostos
+├── dto             # Data Transfer Objects
+├── entity          # Entidades do modelo relacional JPA
+├── exception       # Trata exceções customizadas e retornos de erro HTTP
+├── mapper          # Mapeadores de entidade e DTO
+├── repository      # Repositórios de dados JPA
+├── rules           # Implementação das Regras de Negócio (RN001 a RN005)
+├── security        # Autenticação JWT, filtros de segurança e RBAC (GESTOR/REPRESENTANTE)
+├── service         # Serviços de negócio, auditoria e integração
+└── util            # Utilitários gerais da aplicação
 ```
 
 ---
@@ -611,54 +613,4 @@ O projeto busca validar:
 * inteligência comercial;
 * transformação de dados em decisão.
 
----
 
-# 19. Próximas Etapas
-
-## Fase 1 — Modelagem
-
-* definição de KPIs;
-* regras de negócio;
-* modelagem relacional.
-
----
-
-## Fase 2 — Dados
-
-* importação CSV/XLSX;
-* persistência PostgreSQL;
-* normalização.
-
----
-
-## Fase 3 — Backend
-
-* services;
-* analytics;
-* rules;
-* APIs.
-
----
-
-## Fase 4 — Frontend
-
-* dashboard;
-* gráficos;
-* tabelas;
-* filtros.
-
----
-
-## Fase 5 — Inteligência Comercial
-
-* alertas;
-* recomendações;
-* plano de ação.
-
----
-
-# 20. Status do Projeto
-
-```text
-🚧 Em desenvolvimento
-```
