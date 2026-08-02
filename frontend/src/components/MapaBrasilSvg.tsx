@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type {
   RegiaoResponse,
   ClienteResponse,
@@ -15,7 +16,17 @@ import {
   UserIcon,
   ArrowRightIcon,
   CaretLeftIcon,
+  CalendarBlankIcon,
 } from '@phosphor-icons/react'
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectPortal,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 import { SVG_PATHS_UF_OFFICIAL } from './officialBrazilSvgPaths'
 
@@ -39,6 +50,11 @@ interface MapaBrasilSvgProps {
   pedidos?: PedidoResponse[]
   clientesPrioritarios?: ClientePrioritarioDto[]
   regioesCriticas?: string[]
+  selectedUfFilter?: string | null
+  onSelectUf?: (uf: string | null) => void
+  selectedMesFilter?: string
+  onSelectMes?: (mesKey: string) => void
+  mesesDisponiveis?: { key: string; label: string }[]
 }
 
 // Mapeamento de UFs brasileiras e suas respectivas Macrorregiões e Nomes
@@ -79,10 +95,20 @@ export default function MapaBrasilSvg({
   pedidos = [],
   clientesPrioritarios = [],
   regioesCriticas = [],
+  selectedUfFilter = null,
+  onSelectUf,
+  selectedMesFilter = 'ALL',
+  onSelectMes,
+  mesesDisponiveis = [],
 }: MapaBrasilSvgProps) {
-  const [selectedUf, setSelectedUf] = useState<string | null>(null)
+  const navigate = useNavigate()
+  const [selectedUf, setSelectedUf] = useState<string | null>(selectedUfFilter || null)
   const [hoveredUf, setHoveredUf] = useState<string | null>(null)
   const [activeData, setActiveData] = useState<EstadoData | null>(null)
+
+  useEffect(() => {
+    setSelectedUf(selectedUfFilter || null)
+  }, [selectedUfFilter])
 
   // Formatação de moeda
   const formatCurrency = (val: number) =>
@@ -92,20 +118,21 @@ export default function MapaBrasilSvg({
   const getEstadoData = (uf: string): EstadoData => {
     const info = ESTADOS_INFO[uf] || { nome: uf, regiaoMacro: 'Sudeste' }
     const safeRegioes = regioes || []
-    const safeClientes = clientes || []
+    const rawClientes = (clientes && clientes.length > 0) ? clientes : (clientesPrioritarios || [])
+    const safeClientes = rawClientes as any[]
     const safeRepresentantes = representantes || []
     const safePedidos = pedidos || []
     const safePrioritarios = clientesPrioritarios || []
     const safeRegioesCriticas = regioesCriticas || []
 
-    // Procura todas as entidades Regiao que correspondam ao UF ou Nome do Estado/Região
+    // Procura todas as entidades Regiao que correspondam ao UF ou Nome do Estado
     const regioesUf = safeRegioes.filter(
       (r) =>
         r &&
         (r.uf === uf ||
           (r.nome &&
-            (r.nome.toUpperCase().includes(uf) ||
-              r.nome.toLowerCase().includes(info.nome.toLowerCase()))))
+            (r.nome.toUpperCase() === uf ||
+              r.nome.toLowerCase() === info.nome.toLowerCase())))
     )
     const regiaoIdsUf = new Set(regioesUf.map((r) => r.id))
 
@@ -118,38 +145,65 @@ export default function MapaBrasilSvg({
         const rLower = c.regiaoNome.toLowerCase()
         if (
           rUpper === uf ||
-          rUpper.includes(uf) ||
-          rLower.includes(info.nome.toLowerCase())
+          rUpper === info.nome.toUpperCase() ||
+          rLower === info.nome.toLowerCase()
         ) {
-          return true
-        }
-        if (regioesUf.length === 0 && rLower.includes(info.regiaoMacro.toLowerCase())) {
           return true
         }
       }
       return false
     })
 
-    const clientesAtivosCount = clientesUf.filter((c) => c.status === 'ATIVO').length
-    const clientesInativosCount = clientesUf.length - clientesAtivosCount
+    let clientesAtivosCount = 0
+    let clientesInativosCount = 0
+
+    if (!selectedMesFilter || selectedMesFilter === 'ALL') {
+      clientesAtivosCount = clientesUf.filter((c) => c && c.status === 'ATIVO').length
+      clientesInativosCount = clientesUf.filter((c) => c && c.status === 'INATIVO').length
+    } else {
+      const clienteIdsMes = new Set<number>()
+      safePedidos.forEach((p) => {
+        if (
+          p &&
+          p.clienteId &&
+          p.dataEmissao &&
+          p.dataEmissao.startsWith(selectedMesFilter) &&
+          p.status === 'FATURADO'
+        ) {
+          clienteIdsMes.add(p.clienteId)
+        }
+      })
+
+      clientesAtivosCount = clientesUf.filter((c) => {
+        if (!c) return false
+        return (
+          clienteIdsMes.has(c.id) ||
+          (c.ultimaCompra && c.ultimaCompra.startsWith(selectedMesFilter))
+        )
+      }).length
+
+      clientesInativosCount = Math.max(0, clientesUf.length - clientesAtivosCount)
+    }
 
     // Representantes associados à região
     const repUf = safeRepresentantes.filter(
       (r) =>
         r &&
         ((r.regiaoId && regiaoIdsUf.has(r.regiaoId)) ||
-          r.regiaoNome === info.nome ||
-          r.regiaoNome === info.regiaoMacro ||
-          (r.regiaoNome && r.regiaoNome.toUpperCase().includes(uf)))
+          (r.regiaoNome &&
+            (r.regiaoNome.toUpperCase() === uf ||
+              r.regiaoNome.toLowerCase() === info.nome.toLowerCase())))
     )
 
-    // Pedidos faturados dessa região
-    const pedidosUf = safePedidos.filter(
-      (p) =>
-        p &&
-        p.status === 'FATURADO' &&
-        (clientesUf.some((c) => c.id === p.clienteId) || repUf.some((r) => r.id === p.representanteId))
-    )
+    // Pedidos faturados dessa região (filtrados pelo mês de referência se selecionado)
+    const pedidosUf = safePedidos.filter((p) => {
+      if (!p || p.status !== 'FATURADO') return false
+      if (!clientesUf.some((c) => c.id === p.clienteId)) return false
+      if (selectedMesFilter && selectedMesFilter !== 'ALL' && p.dataEmissao) {
+        return p.dataEmissao.startsWith(selectedMesFilter)
+      }
+      return true
+    })
 
     const faturamentoTotal = pedidosUf.reduce((sum, p) => sum + (p.valorTotal || 0), 0)
 
@@ -159,17 +213,17 @@ export default function MapaBrasilSvg({
     const prioritariosUf = safePrioritarios.filter(
       (cp) =>
         cp &&
-        (cp.regiaoNome === info.nome ||
-          cp.regiaoNome === info.regiaoMacro ||
-          (cp.regiaoId && regiaoIdsUf.has(cp.regiaoId)))
+        ((cp.regiaoId && regiaoIdsUf.has(cp.regiaoId)) ||
+          (cp.regiaoNome &&
+            (cp.regiaoNome.toUpperCase() === uf ||
+              cp.regiaoNome.toLowerCase() === info.nome.toLowerCase())))
     )
 
     const isCritica = safeRegioesCriticas.some(
       (rc) =>
         rc &&
-        (rc.toUpperCase().includes(uf) ||
-          rc.toLowerCase().includes(info.nome.toLowerCase()) ||
-          rc.toLowerCase().includes(info.regiaoMacro.toLowerCase()))
+        (rc.toUpperCase() === uf ||
+          rc.toLowerCase() === info.nome.toLowerCase())
     )
 
     return {
@@ -195,7 +249,11 @@ export default function MapaBrasilSvg({
 
   // Alternar seleção ao clicar em um estado no mapa
   const handleStateClick = (uf: string) => {
-    setSelectedUf((prev) => (prev === uf ? null : uf))
+    const nextUf = selectedUf === uf ? null : uf
+    setSelectedUf(nextUf)
+    if (onSelectUf) {
+      onSelectUf(nextUf)
+    }
   }
 
   // Fechar ao pressionar ESC
@@ -248,23 +306,58 @@ export default function MapaBrasilSvg({
           </p>
         </div>
 
-        {/* Legenda de Cores */}
-        <div className="flex flex-wrap items-center gap-2.5 text-[11px] font-semibold text-slate-600">
-          <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-700 shadow-xs" />
-            <span>Alto Volume (&gt; R$ 3M)</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-xs" />
-            <span>Médio Volume</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-emerald-200 shadow-xs" />
-            <span>Base Inicial</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-rose-500 shadow-xs animate-pulse" />
-            <span>Região Crítica / Atenção</span>
+        {/* Seletor de Mês e Legenda de Cores */}
+        <div className="flex flex-wrap items-center gap-3">
+          {mesesDisponiveis && mesesDisponiveis.length > 0 && (
+            <div className="flex items-center gap-1.5 border border-slate-200 bg-white rounded-2xl px-2 py-1 shadow-xs">
+              <CalendarBlankIcon className="h-4 w-4 text-emerald-600 shrink-0 ml-1" />
+              <Select
+                value={selectedMesFilter}
+                onValueChange={(val) => onSelectMes && onSelectMes(val ?? 'ALL')}
+              >
+                <SelectTrigger className="h-7 border-none bg-transparent font-bold text-slate-800 text-xs shadow-none hover:bg-transparent focus:ring-0">
+                  <SelectValue placeholder="Selecione o mês">
+                    {selectedMesFilter === 'ALL'
+                      ? 'Todos os Meses'
+                      : mesesDisponiveis.find((m) => m.key === selectedMesFilter)?.label || 'Todos os Meses'}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectPortal>
+                  <SelectContent className="z-50 bg-white border border-slate-200 rounded-2xl shadow-xl p-1.5 min-w-[210px] w-auto">
+                    <SelectItem value="ALL">
+                      Todos os Meses
+                    </SelectItem>
+                    {mesesDisponiveis.map((m) => (
+                      <SelectItem
+                        key={m.key}
+                        value={m.key}
+                      >
+                        {m.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </SelectPortal>
+              </Select>
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center gap-2.5 text-[11px] font-semibold text-slate-600">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-700 shadow-xs" />
+              <span>Alto Volume (&gt; R$ 3M)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-xs" />
+              <span>Médio Volume</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-200 shadow-xs" />
+              <span>Base Inicial</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-rose-500 shadow-xs animate-pulse" />
+              <span>Região Crítica / Atenção</span>
+            </div>
           </div>
         </div>
       </div>
@@ -328,10 +421,24 @@ export default function MapaBrasilSvg({
                     <UsersIcon className="h-4 w-4 text-teal-600" />
                     Clientes
                   </div>
-                  <p className="mt-1 text-xs font-bold text-slate-800">
-                    <span className="text-emerald-600">{currentData.clientesAtivos} Ativos</span>
+                  <p className="mt-1 text-xs font-bold text-slate-800 flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/clientes?status=ATIVO&regiao=${encodeURIComponent(currentData.regiaoMacro)}`)}
+                      className="text-emerald-600 hover:text-emerald-800 hover:underline active:scale-95 transition-all font-bold cursor-pointer"
+                      title={`Ver lista de clientes ativos da região ${currentData.regiaoMacro}`}
+                    >
+                      {currentData.clientesAtivos} Ativos
+                    </button>
                     <span className="mx-1 text-slate-300">|</span>
-                    <span className="text-rose-500">{currentData.clientesInativos} Inat.</span>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/clientes?status=INATIVO&regiao=${encodeURIComponent(currentData.regiaoMacro)}`)}
+                      className="text-rose-500 hover:text-rose-700 hover:underline active:scale-95 transition-all font-bold cursor-pointer"
+                      title={`Ver lista de clientes inativos da região ${currentData.regiaoMacro}`}
+                    >
+                      {currentData.clientesInativos} Inat.
+                    </button>
                   </p>
                 </div>
               </div>
@@ -373,7 +480,10 @@ export default function MapaBrasilSvg({
               {/* Botões de Ação */}
               <div className="pt-2 flex items-center gap-2">
                 <button
-                  onClick={() => setSelectedUf(null)}
+                  onClick={() => {
+                    setSelectedUf(null)
+                    if (onSelectUf) onSelectUf(null)
+                  }}
                   className="flex items-center justify-center gap-1 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 active:scale-95 transition-all"
                 >
                   <CaretLeftIcon className="h-4 w-4" />
@@ -381,7 +491,9 @@ export default function MapaBrasilSvg({
                 </button>
                 <button
                   onClick={() => {
-                    alert(`Filtrando visão do gestor comercial para o estado de ${currentData.nome} (${currentData.uf}).`)
+                    if (onSelectUf) {
+                      onSelectUf(currentData.uf)
+                    }
                   }}
                   className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-2 text-xs font-bold text-white shadow-md hover:bg-emerald-700 active:scale-[0.98] transition-all"
                 >

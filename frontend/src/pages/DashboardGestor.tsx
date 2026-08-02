@@ -18,11 +18,22 @@ import {
   ShieldWarningIcon,
   MapPinIcon,
   CurrencyDollarIcon,
-  TrendUpIcon,
   ArrowRightIcon,
   UserIcon,
-  TargetIcon,
+  XIcon,
+  CalendarBlankIcon,
 } from '@phosphor-icons/react'
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectPortal,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+
+import { getMacrorregiao } from '../utils/regionUtils'
 
 const chartConfig = {
   valor: {
@@ -41,6 +52,8 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
   const [representantes, setRepresentantes] = useState<RepresentanteResponse[]>([])
   const [regioes, setRegioes] = useState<RegiaoResponse[]>([])
   const [clientes, setClientes] = useState<ClienteResponse[]>([])
+  const [selectedUfFilter, setSelectedUfFilter] = useState<string | null>(null)
+  const [selectedMesFilter, setSelectedMesFilter] = useState<string>('ALL')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -78,32 +91,153 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
   const formatCurrency = (value: number) =>
     (value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
-  // 1. Resumo Executivo (Cálculos dinâmicos em nível de Gestor)
-  const resumoExecutivo = useMemo(() => {
-    const semCompra30Dias = (prioritarios || []).filter((c) => c && c.diasSemCompra > 30).length
+  // Extrair meses disponíveis dos pedidos
+  const mesesDisponiveis = useMemo(() => {
+    const mesesSet = new Set<string>()
+    const nomesMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 
-    // Potencial estimado de recuperação geral
-    const potencialRecuperacao = (prioritarios || [])
-      .filter((c) => c && c.diasSemCompra > 30)
-      .reduce((sum, c) => sum + (c.ticketMedio || 0), 0)
+      ; (pedidos || []).forEach((p) => {
+        if (p && p.dataEmissao) {
+          const d = new Date(p.dataEmissao)
+          if (!isNaN(d.getTime())) {
+            const ano = d.getFullYear()
+            const mesNum = String(d.getMonth() + 1).padStart(2, '0')
+            const key = `${ano}-${mesNum}`
+            mesesSet.add(key)
+          }
+        }
+      })
 
-    // Região crítica principal
-    const regiaoCritica = (data?.regioesCriticas || [])[0] || 'Nacional'
+    return Array.from(mesesSet)
+      .sort((a, b) => b.localeCompare(a))
+      .map((key) => {
+        const [ano, mes] = key.split('-')
+        const idx = parseInt(mes, 10) - 1
+        return {
+          key,
+          label: `${nomesMeses[idx]} / ${ano}`,
+        }
+      })
+  }, [pedidos])
 
-    // Produto com mais problemas de recompra global
-    const produtoCritico = (data?.produtosCriticos || [])[0] || 'Farinha Especial'
+  // 1. Filtragem dinâmica de coleções por Estado (UF)
+  const regioesDoUf = useMemo(() => {
+    if (!selectedUfFilter) return regioes
+    return (regioes || []).filter(
+      (r) =>
+        r &&
+        (r.uf === selectedUfFilter ||
+          (r.nome && r.nome.toUpperCase() === selectedUfFilter))
+    )
+  }, [regioes, selectedUfFilter])
 
-    return {
-      semCompra30Dias,
-      potencialRecuperacao,
-      regiaoCritica,
-      produtoCritico,
+  const regiaoIdsDoUf = useMemo(() => new Set(regioesDoUf.map((r) => r.id)), [regioesDoUf])
+
+  const baseClientes = useMemo(() => {
+    return prioritarios && prioritarios.length > 0 ? (prioritarios as any[]) : clientes
+  }, [prioritarios, clientes])
+
+  const clientesFiltrados = useMemo(() => {
+    if (!selectedUfFilter) return baseClientes
+    return (baseClientes || []).filter((c) => {
+      if (!c) return false
+      if (c.regiaoId && regiaoIdsDoUf.has(c.regiaoId)) return true
+      if (c.regiaoNome && c.regiaoNome.toUpperCase() === selectedUfFilter) return true
+      return false
+    })
+  }, [baseClientes, selectedUfFilter, regiaoIdsDoUf])
+
+  const representantesFiltrados = useMemo(() => {
+    if (!selectedUfFilter) return representantes
+    return (representantes || []).filter((r) => {
+      if (!r) return false
+      if (r.regiaoId && regiaoIdsDoUf.has(r.regiaoId)) return true
+      if (r.regiaoNome && r.regiaoNome.toUpperCase() === selectedUfFilter) return true
+      return false
+    })
+  }, [representantes, selectedUfFilter, regiaoIdsDoUf])
+
+  const pedidosFiltrados = useMemo(() => {
+    if (!selectedUfFilter) return pedidos
+    return (pedidos || []).filter(
+      (p) => p && clientesFiltrados.some((c) => c.id === p.clienteId)
+    )
+  }, [pedidos, selectedUfFilter, clientesFiltrados])
+
+  const regiaoMacroFilter = useMemo(() => {
+    return getMacrorregiao(selectedUfFilter)
+  }, [selectedUfFilter])
+
+  const pedidosFiltradosPorMes = useMemo(() => {
+    let base = pedidosFiltrados || []
+    if (selectedMesFilter !== 'ALL') {
+      base = base.filter((p) => p && p.dataEmissao && p.dataEmissao.startsWith(selectedMesFilter))
     }
-  }, [prioritarios, data])
+    return base
+  }, [pedidosFiltrados, selectedMesFilter])
 
-  // 2. Gráfico de Vendas Consolidado (Últimos 4 meses)
+  const prioritariosFiltrados = useMemo(() => {
+    if (!selectedUfFilter) return prioritarios
+    return (prioritarios || []).filter((cp) => {
+      if (!cp) return false
+      if (cp.regiaoId && regiaoIdsDoUf.has(cp.regiaoId)) return true
+      if (cp.regiaoNome && cp.regiaoNome.toUpperCase() === selectedUfFilter) return true
+      return false
+    })
+  }, [prioritarios, selectedUfFilter, regiaoIdsDoUf])
+
+  const faturamentoConsolidado = useMemo(() => {
+    return (pedidosFiltradosPorMes || [])
+      .filter((p) => p && p.status === 'FATURADO')
+      .reduce((sum, p) => sum + (p.valorTotal || 0), 0)
+  }, [pedidosFiltradosPorMes])
+
+  const clienteIdsComCompraNoMes = useMemo(() => {
+    if (selectedMesFilter === 'ALL') return null
+    const ids = new Set<number>()
+      ; (pedidos || []).forEach((p) => {
+        if (
+          p &&
+          p.clienteId &&
+          p.dataEmissao &&
+          p.dataEmissao.startsWith(selectedMesFilter) &&
+          p.status === 'FATURADO'
+        ) {
+          ids.add(p.clienteId)
+        }
+      })
+    return ids
+  }, [pedidos, selectedMesFilter])
+
+  const clientesAtivosConsolidado = useMemo(() => {
+    const list = clientesFiltrados || []
+    if (selectedMesFilter === 'ALL') {
+      if (!selectedUfFilter) return data.clientesAtivos
+      return list.filter((c) => c && c.status === 'ATIVO').length
+    }
+    return list.filter((c) => {
+      if (!c) return false
+      return (
+        (clienteIdsComCompraNoMes && clienteIdsComCompraNoMes.has(c.id)) ||
+        (c.ultimaCompra && c.ultimaCompra.startsWith(selectedMesFilter))
+      )
+    }).length
+  }, [data.clientesAtivos, selectedUfFilter, clientesFiltrados, selectedMesFilter, clienteIdsComCompraNoMes])
+
+  const clientesInativosConsolidado = useMemo(() => {
+    const list = clientesFiltrados || []
+    if (selectedMesFilter === 'ALL') {
+      if (!selectedUfFilter) return data.clientesInativos
+      return list.filter((c) => c && c.status === 'INATIVO').length
+    }
+    const ativosCount = clientesAtivosConsolidado
+    return Math.max(0, list.length - ativosCount)
+  }, [data.clientesInativos, selectedUfFilter, clientesFiltrados, selectedMesFilter, clientesAtivosConsolidado])
+
+
+  // 3. Gráfico de Vendas Consolidado (Últimos 4 meses)
   const vendasUltimosMeses = useMemo(() => {
-    const faturados = (pedidos || []).filter((p) => p && p.status === 'FATURADO')
+    const faturados = (pedidosFiltrados || []).filter((p) => p && p.status === 'FATURADO')
     const mesesMap: { [key: string]: number } = {}
 
     const nomesMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
@@ -130,11 +264,11 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
         valor,
       }
     })
-  }, [pedidos])
+  }, [pedidosFiltrados])
 
-  // 3. Ranking de Representantes (Calculado com base em faturamento faturado de pedidos)
+  // 4. Ranking de Representantes (Calculado com base em faturamento faturado de pedidos)
   const rankingRepresentantes = useMemo(() => {
-    const faturados = (pedidos || []).filter((p) => p && p.status === 'FATURADO')
+    const faturados = (pedidosFiltrados || []).filter((p) => p && p.status === 'FATURADO')
     const faturamentoMap: { [key: string]: number } = {}
 
     faturados.forEach((p) => {
@@ -143,7 +277,7 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
       }
     });
 
-    (representantes || []).forEach((rep) => {
+    (representantesFiltrados || []).forEach((rep) => {
       if (rep && faturamentoMap[rep.nome] === undefined) {
         faturamentoMap[rep.nome] = 0
       }
@@ -152,7 +286,7 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
     return Object.entries(faturamentoMap)
       .map(([nome, faturamento]) => ({ nome, faturamento }))
       .sort((a, b) => b.faturamento - a.faturamento)
-  }, [pedidos, representantes, data])
+  }, [pedidosFiltrados, representantesFiltrados])
 
   if (loading) {
     return (
@@ -171,158 +305,155 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
       {/* Banner do Gestor */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-700 to-cyan-800 p-8 text-white shadow-xl">
         <div className="absolute right-0 top-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
-        <div className="relative z-10 animate-fade-in">
-          <span className="inline-flex items-center rounded-full bg-emerald-500/30 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-100 backdrop-blur-md">
-            Painel do Gestor Comercial
-          </span>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Consolidado de Vendas & Operações
-          </h1>
-          <p className="mt-2 max-w-xl text-emerald-100/90 text-sm">
-            Visão agregada da performance comercial da equipe de vendas e saúde da carteira nacional.
-          </p>
-        </div>
-      </div>
-
-      {/* Resumo Executivo (Diferencial) */}
-      <div className="rounded-3xl border border-emerald-100 bg-emerald-50/30 p-6 shadow-xs animate-fade-in">
-        <h2 className="text-base font-bold text-emerald-950 flex items-center gap-2">
-          <TrendUpIcon className="h-5 w-5 text-emerald-600" />
-          Resumo Operacional da Empresa
-        </h2>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2 text-sm text-emerald-900/95 font-medium">
-          <li className="flex items-start gap-2">
-            <span className="text-emerald-600 mt-1">•</span>
-            <span>Há <strong className="text-emerald-950 font-bold">{resumoExecutivo.semCompra30Dias} clientes críticos</strong> sem compras há mais de 30 dias na empresa.</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-emerald-600 mt-1">•</span>
-            <span>A região de <strong className="text-emerald-950 font-bold">{resumoExecutivo.regiaoCritica}</strong> concentra os maiores índices de inatividade de vendas.</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-emerald-600 mt-1">•</span>
-            <span>O produto <strong className="text-emerald-950 font-bold">{resumoExecutivo.produtoCritico}</strong> é o principal item com queda de recompra geral.</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-emerald-600 mt-1">•</span>
-            <span>A recuperação da carteira representa uma receita potencial estimada de <strong className="text-emerald-700 font-bold">{formatCurrency(resumoExecutivo.potencialRecuperacao)}</strong>.</span>
-          </li>
-        </ul>
-      </div>
-
-      {/* Painel de Acompanhamento de Metas Comerciais */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-4">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <TargetIcon className="h-5 w-5 text-emerald-600" />
-              Acompanhamento de Metas Comerciais do Mês
-            </h2>
-            <p className="text-xs text-slate-500">Progresso acumulado de vendas e cobertura da carteira nacional</p>
-          </div>
-          {data.metaFaturamento && (
-            <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200">
-              Meta Faturamento: {formatCurrency(data.metaFaturamento)}
+            <span className="inline-flex items-center rounded-full bg-emerald-500/30 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-100 backdrop-blur-md">
+              Painel do Gestor Comercial
             </span>
+            <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
+              Consolidado de Vendas & Operações
+            </h1>
+            <p className="mt-2 max-w-xl text-emerald-100/90 text-sm">
+              Visão agregada da performance comercial da equipe de vendas e saúde da carteira nacional.
+            </p>
+          </div>
+
+          {/* Seletor de Mês de Referência */}
+          {mesesDisponiveis.length > 0 && (
+            <div className="flex items-center gap-2 rounded-2xl bg-white/15 px-3 py-2 backdrop-blur-md border border-white/20">
+              <CalendarBlankIcon className="h-5 w-5 text-emerald-200 shrink-0" />
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase tracking-wider text-emerald-200 font-bold">Mês de Referência</span>
+                <Select
+                  value={selectedMesFilter}
+                  onValueChange={(val) => setSelectedMesFilter(val ?? 'ALL')}
+                >
+                  <SelectTrigger className="h-6 border-none bg-transparent font-bold text-white text-xs shadow-none p-0 hover:bg-transparent focus:ring-0 [&_svg]:text-white">
+                    <SelectValue placeholder="Selecione o mês">
+                      {selectedMesFilter === 'ALL'
+                        ? 'Todos os Meses'
+                        : mesesDisponiveis.find((m) => m.key === selectedMesFilter)?.label || 'Todos os Meses'}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectPortal>
+                    <SelectContent className="z-50 bg-white border border-slate-200 rounded-2xl shadow-xl p-1.5 min-w-[210px] w-auto">
+                      <SelectItem value="ALL">
+                        Todos os Meses
+                      </SelectItem>
+                      {mesesDisponiveis.map((m) => (
+                        <SelectItem
+                          key={m.key}
+                          value={m.key}
+                        >
+                          {m.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </SelectPortal>
+                </Select>
+              </div>
+            </div>
           )}
         </div>
-
-        <div className="grid gap-6 md:grid-cols-3">
-          {/* Progress Card 1: Faturamento Mês vs Meta */}
-          <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-3">
-            <div className="flex justify-between items-center text-xs font-semibold">
-              <span className="text-slate-700">Faturamento Mês vs Meta</span>
-              <span className="text-emerald-600 font-bold">{(data.atingimentoMetaPercentual || 0).toFixed(1)}%</span>
-            </div>
-            <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(data.atingimentoMetaPercentual || 0, 100)}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-slate-500 font-medium">
-              <span>Realizado: {formatCurrency(data.faturamentoMesAtual || 0)}</span>
-              <span>Meta: {formatCurrency(data.metaFaturamento || 0)}</span>
-            </div>
-          </div>
-
-          {/* Progress Card 2: Positivação de Clientes */}
-          <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-3">
-            <div className="flex justify-between items-center text-xs font-semibold">
-              <span className="text-slate-700">Positivação da Carteira</span>
-              <span className="text-teal-600 font-bold">
-                {Math.min(100, Math.round((data.clientesAtivos / (data.metaPositivacaoClientes || 1)) * 100))}%
-              </span>
-            </div>
-            <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-teal-500 to-cyan-600 rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(100, Math.round((data.clientesAtivos / (data.metaPositivacaoClientes || 1)) * 100))}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-slate-500 font-medium">
-              <span>Ativos: {data.clientesAtivos} clientes</span>
-              <span>Meta: {data.metaPositivacaoClientes || 0} clientes</span>
-            </div>
-          </div>
-
-          {/* Progress Card 3: Reativação de Inativos */}
-          <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-3">
-            <div className="flex justify-between items-center text-xs font-semibold">
-              <span className="text-slate-700">Meta Reativação de Inativos</span>
-              <span className="text-amber-600 font-bold">
-                {data.clientesInativos > 0 ? '50%' : '100%'}
-              </span>
-            </div>
-            <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
-                style={{ width: '50%' }}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-slate-500 font-medium">
-              <span>Inativos Atuais: {data.clientesInativos}</span>
-              <span>Meta Recuperação: {data.metaReativacaoInativos || 0}</span>
-            </div>
-          </div>
-        </div>
       </div>
+
+      {/* Banner de Filtro Ativo por Estado (UF) e/ou Período */}
+      {(selectedUfFilter || selectedMesFilter !== 'ALL') && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-3xl bg-gradient-to-r from-slate-900 to-slate-800 text-white p-5 shadow-lg border border-slate-700 animate-fade-in">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              {selectedUfFilter && (
+                <span className="inline-flex items-center gap-1 rounded-xl bg-emerald-500 px-3 py-1 text-xs font-black text-slate-950 shadow-xs">
+                  <MapPinIcon className="h-3.5 w-3.5" />
+                  {selectedUfFilter}
+                </span>
+              )}
+              {selectedMesFilter !== 'ALL' && (
+                <span className="inline-flex items-center gap-1.5 rounded-xl bg-teal-500 px-3 py-1 text-xs font-black text-slate-950 shadow-xs">
+                  <CalendarBlankIcon className="h-3.5 w-3.5" />
+                  {mesesDisponiveis.find((m) => m.key === selectedMesFilter)?.label || selectedMesFilter}
+                </span>
+              )}
+            </div>
+            <div>
+              <p className="text-sm font-bold">
+                {selectedUfFilter && selectedMesFilter !== 'ALL'
+                  ? `Filtro Ativo: Estado ${selectedUfFilter} & Mês ${mesesDisponiveis.find((m) => m.key === selectedMesFilter)?.label}`
+                  : selectedUfFilter
+                  ? `Filtro de Estado Ativo: ${selectedUfFilter}`
+                  : `Filtro de Período Ativo: ${mesesDisponiveis.find((m) => m.key === selectedMesFilter)?.label}`}
+              </p>
+              <p className="text-xs text-slate-300">
+                Os KPIs, faturamentos, gráficos e listagens do painel foram filtrados para o período e região selecionados.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setSelectedUfFilter(null)
+              setSelectedMesFilter('ALL')
+            }}
+            className="flex items-center gap-1.5 rounded-2xl bg-white/10 px-4 py-2 text-xs font-bold text-emerald-300 hover:bg-white/20 active:scale-95 transition-all self-start sm:self-auto shrink-0 cursor-pointer"
+          >
+            <XIcon className="h-4 w-4" />
+            Limpar {selectedUfFilter && selectedMesFilter !== 'ALL' ? 'Filtros' : 'Filtro'}
+          </button>
+        </div>
+      )}
+
+
 
       {/* KPIs Consolidados */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
         <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-sm font-medium">Faturamento Geral</span>
+            <span className="text-sm font-medium">
+              {selectedUfFilter ? `Faturamento (${selectedUfFilter})` : 'Faturamento Geral'}
+            </span>
             <CurrencyDollarIcon className="h-5 w-5 text-emerald-600" />
           </div>
-          <p className="mt-4 text-lg sm:text-2xl font-bold tracking-tight text-slate-900 truncate" title={formatCurrency(data.faturamentoTotal)}>
-            {formatCurrency(data.faturamentoTotal)}
+          <p className="mt-4 text-lg sm:text-2xl font-bold tracking-tight text-slate-900 truncate" title={formatCurrency(faturamentoConsolidado)}>
+            {formatCurrency(faturamentoConsolidado)}
           </p>
-          <p className="mt-1 text-xs text-slate-500">Total faturado consolidado</p>
+          <p className="mt-1 text-xs text-slate-500">
+            {selectedUfFilter ? `Faturamento em ${selectedUfFilter}` : 'Total faturado consolidado'}
+          </p>
         </div>
 
-        <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs hover:shadow-md transition-all duration-300">
+        <Link
+          to={`/clientes?status=ATIVO${regiaoMacroFilter ? `&regiao=${encodeURIComponent(regiaoMacroFilter)}` : ''}`}
+          className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs hover:shadow-md hover:border-emerald-200 transition-all duration-300 group cursor-pointer block"
+        >
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-sm font-medium">Clientes Ativos</span>
-            <UsersIcon className="h-5 w-5 text-teal-600" />
+            <span className="text-sm font-medium group-hover:text-emerald-700 transition-colors">Clientes Ativos</span>
+            <UsersIcon className="h-5 w-5 text-teal-600 group-hover:scale-110 transition-transform" />
           </div>
-          <p className="mt-4 text-lg sm:text-2xl font-bold tracking-tight text-slate-900 truncate" title={String(data.clientesAtivos)}>
-            {data.clientesAtivos}
+          <p className="mt-4 text-lg sm:text-2xl font-bold tracking-tight text-slate-900 truncate" title={String(clientesAtivosConsolidado)}>
+            {clientesAtivosConsolidado}
           </p>
-          <p className="mt-1 text-xs text-slate-500">Clientes ativos cadastrados</p>
-        </div>
+          <p className="mt-1 text-xs text-slate-500 flex items-center gap-1 group-hover:text-emerald-600 transition-colors">
+            {selectedUfFilter ? `Clientes ativos em ${selectedUfFilter}` : 'Clientes ativos cadastrados'}
+            <ArrowRightIcon className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </p>
+        </Link>
 
-        <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs hover:shadow-md transition-all duration-300">
+        <Link
+          to={`/clientes?status=INATIVO${regiaoMacroFilter ? `&regiao=${encodeURIComponent(regiaoMacroFilter)}` : ''}`}
+          className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs hover:shadow-md hover:border-rose-200 transition-all duration-300 group cursor-pointer block"
+        >
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-sm font-medium">Clientes Inativos</span>
-            <UsersIcon className="h-5 w-5 text-amber-600" />
+            <span className="text-sm font-medium group-hover:text-rose-700 transition-colors">Clientes Inativos</span>
+            <UsersIcon className="h-5 w-5 text-amber-600 group-hover:scale-110 transition-transform" />
           </div>
-          <p className="mt-4 text-lg sm:text-2xl font-bold tracking-tight text-slate-900 truncate" title={String(data.clientesInativos)}>
-            {data.clientesInativos}
+          <p className="mt-4 text-lg sm:text-2xl font-bold tracking-tight text-slate-900 truncate" title={String(clientesInativosConsolidado)}>
+            {clientesInativosConsolidado}
           </p>
-          <p className="mt-1 text-xs text-slate-500">Total inativos na carteira geral</p>
-        </div>
+          <p className="mt-1 text-xs text-slate-500 flex items-center gap-1 group-hover:text-rose-600 transition-colors">
+            {selectedUfFilter ? `Clientes inativos em ${selectedUfFilter}` : 'Total inativos na carteira geral'}
+            <ArrowRightIcon className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </p>
+        </Link>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between text-slate-500">
@@ -340,11 +471,16 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
       {/* Mapa Vetorial do Brasil Interativo por UFs */}
       <MapaBrasilSvg
         regioes={regioes}
-        clientes={clientes}
+        clientes={baseClientes as any}
         representantes={representantes}
         pedidos={pedidos}
         clientesPrioritarios={prioritarios}
         regioesCriticas={data.regioesCriticas}
+        selectedUfFilter={selectedUfFilter}
+        onSelectUf={setSelectedUfFilter}
+        selectedMesFilter={selectedMesFilter}
+        onSelectMes={setSelectedMesFilter}
+        mesesDisponiveis={mesesDisponiveis}
       />
 
       {/* Layout Grid Secundário */}
@@ -361,28 +497,33 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
             </div>
 
             <div className="mt-6 space-y-4">
-              {prioritarios.slice(0, 3).map((cliente) => (
-                <Link
-                  key={cliente.id}
-                  to={`/clientes/${cliente.id}`}
-                  className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/50 p-4 transition-all duration-200 hover:border-emerald-100 hover:bg-slate-50 group"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`text-base ${cliente.score >= 80 ? 'text-rose-500' : 'text-amber-500'
-                      }`}>
-                      ●
-                    </span>
-                    <div>
-                      <p className="font-semibold text-slate-900 group-hover:text-emerald-600 transition-colors">{cliente.nome}</p>
-                      <p className="text-xs text-slate-500">{cliente.diasSemCompra} dias sem comprar</p>
+              {prioritariosFiltrados.length > 0 ? (
+                prioritariosFiltrados.slice(0, 3).map((cliente) => (
+                  <Link
+                    key={cliente.id}
+                    to={`/clientes/${cliente.id}`}
+                    className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/50 p-4 transition-all duration-200 hover:border-emerald-100 hover:bg-slate-50 group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={`text-base ${cliente.score >= 80 ? 'text-rose-500' : 'text-amber-500'}`}>
+                        ●
+                      </span>
+                      <div>
+                        <p className="font-semibold text-slate-900 group-hover:text-emerald-600 transition-colors">{cliente.nome}</p>
+                        <p className="text-xs text-slate-500">{cliente.diasSemCompra} dias sem comprar</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600">
-                    Ver Detalhes
-                    <ArrowRightIcon className="h-4.5 w-4.5 transition-transform group-hover:translate-x-1" />
-                  </div>
-                </Link>
-              ))}
+                    <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600">
+                      Ver Detalhes
+                      <ArrowRightIcon className="h-4.5 w-4.5 transition-transform group-hover:translate-x-1" />
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <p className="text-xs text-slate-400 italic text-center py-4">
+                  Nenhum cliente crítico registrado {selectedUfFilter ? `para a UF ${selectedUfFilter}` : ''}.
+                </p>
+              )}
             </div>
           </div>
 

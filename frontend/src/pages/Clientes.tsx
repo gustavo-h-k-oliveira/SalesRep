@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { fetchClientesPrioritarios } from '../services/clienteService'
 import { fetchRegioes } from '../services/regiaoService'
 import type { ClientePrioritarioDto, RegiaoResponse } from '../types/api'
+import { matchesRegionFilter, MACRORREGIOES } from '../utils/regionUtils'
 import {
   Table,
   TableBody,
@@ -24,10 +25,15 @@ import {
 } from '@/components/ui/select'
 
 export default function ClientesPage() {
+  const [searchParams] = useSearchParams()
+  const statusParam = searchParams.get('status') || 'ALL'
+  const regiaoParam = searchParams.get('regiao') || 'ALL'
+
   const [clientes, setClientes] = useState<ClientePrioritarioDto[]>([])
   const [regioes, setRegioes] = useState<RegiaoResponse[]>([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedRegiao, setSelectedRegiao] = useState<string>('ALL')
+  const [selectedRegiao, setSelectedRegiao] = useState<string>(regiaoParam)
+  const [selectedStatus, setSelectedStatus] = useState<string>(statusParam)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   
@@ -54,32 +60,50 @@ export default function ClientesPage() {
     loadData()
   }, [])
 
+  // Atualizar filtros se os query params mudarem
+  useEffect(() => {
+    if (searchParams.has('status')) {
+      setSelectedStatus(searchParams.get('status') || 'ALL')
+    }
+    if (searchParams.has('regiao')) {
+      setSelectedRegiao(searchParams.get('regiao') || 'ALL')
+    }
+  }, [searchParams])
+
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchTerm, selectedRegiao])
+  }, [searchTerm, selectedRegiao, selectedStatus])
 
   const formatCurrency = (value: number) =>
     value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
   const regiaoItems = useMemo(() => {
-    const uniqueNames = Array.from(new Set(regioes.map((reg) => reg.nome)))
     return [
       { value: 'ALL', label: 'Todas as Regiões' },
-      ...uniqueNames.map((nome) => ({ value: nome, label: nome })),
+      ...MACRORREGIOES.map((nome) => ({ value: nome, label: nome })),
     ]
-  }, [regioes])
+  }, [])
+
+  const statusItems = [
+    { value: 'ALL', label: 'Todos os Status' },
+    { value: 'ATIVO', label: 'Ativos' },
+    { value: 'INATIVO', label: 'Inativos' },
+    { value: 'RECUPERACAO', label: 'Em Recuperação' },
+  ]
 
   const filteredClientes = useMemo(() => {
     return clientes.filter((cliente) => {
       const matchesSearch = cliente.nome.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesRegiao =
-        selectedRegiao === 'ALL' ||
-        selectedRegiao === '' ||
-        (cliente.regiaoNome && cliente.regiaoNome === selectedRegiao)
-      return matchesSearch && matchesRegiao
+      const matchesRegiao = matchesRegionFilter(cliente.regiaoNome, cliente.regiaoId, selectedRegiao, regioes)
+      const matchesStatus =
+        selectedStatus === 'ALL' ||
+        selectedStatus === '' ||
+        (cliente.status && cliente.status.toUpperCase() === selectedStatus.toUpperCase())
+
+      return matchesSearch && matchesRegiao && matchesStatus
     })
-  }, [clientes, searchTerm, selectedRegiao])
+  }, [clientes, regioes, searchTerm, selectedRegiao, selectedStatus])
 
   const totalPages = Math.ceil(filteredClientes.length / ITEMS_PER_PAGE)
 
@@ -97,7 +121,7 @@ export default function ClientesPage() {
             Lista completa de clientes ordenada por pontuação de prioridade (Score), combinando histórico de compras e necessidade de atenção.
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto md:max-w-md shrink-0">
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
           <div className="relative flex-1">
             <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 pointer-events-none">
               <MagnifyingGlassIcon className="h-5 w-5" />
@@ -107,19 +131,31 @@ export default function ClientesPage() {
               placeholder="Buscar cliente pelo nome..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 rounded-2xl border-slate-200 bg-white min-w-[200px]"
+              className="pl-10 rounded-2xl border-slate-200 bg-white min-w-[180px]"
             />
           </div>
+          <Select value={selectedStatus} onValueChange={(val) => setSelectedStatus(val || 'ALL')} items={statusItems}>
+            <SelectTrigger className="w-full sm:w-[150px] rounded-2xl bg-white border-slate-200 text-slate-700 font-semibold h-9 px-4">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectPortal>
+              <SelectContent className="rounded-2xl border-slate-200 bg-white shadow-lg p-1 text-slate-700">
+                <SelectItem value="ALL">Todos os Status</SelectItem>
+                <SelectItem value="ATIVO">Ativos</SelectItem>
+                <SelectItem value="INATIVO">Inativos</SelectItem>
+                <SelectItem value="RECUPERACAO">Em Recuperação</SelectItem>
+              </SelectContent>
+            </SelectPortal>
+          </Select>
           <Select value={selectedRegiao} onValueChange={(val) => setSelectedRegiao(val || 'ALL')} items={regiaoItems}>
-            <SelectTrigger className="w-full sm:w-[200px] rounded-2xl bg-white border-slate-200 text-slate-700 font-semibold h-9 px-4">
+            <SelectTrigger className="w-full sm:w-[170px] rounded-2xl bg-white border-slate-200 text-slate-700 font-semibold h-9 px-4">
               <SelectValue placeholder="Todas as Regiões" />
             </SelectTrigger>
             <SelectPortal>
               <SelectContent className="rounded-2xl border-slate-200 bg-white shadow-lg p-1 text-slate-700">
-                <SelectItem value="ALL">Todas as Regiões</SelectItem>
-                {Array.from(new Set(regioes.map((reg) => reg.nome))).map((nome) => (
-                  <SelectItem key={nome} value={nome}>
-                    {nome}
+                {regiaoItems.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
                   </SelectItem>
                 ))}
               </SelectContent>
