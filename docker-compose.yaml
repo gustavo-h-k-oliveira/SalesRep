@@ -1,7 +1,7 @@
 services:
 
   db:
-    image: postgres:18.4
+    image: postgres:latest
 
     container_name: salesrep-db
 

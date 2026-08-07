@@ -26,16 +26,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    // private final String whatsappApiUser;
-    // private final String whatsappApiPassword;
-
-    // public SecurityConfig(
-    // @Value("${whatsapp.api.user:admin}") String whatsappApiUser,
-    // @Value("${whatsapp.api.password:admin}") String whatsappApiPassword) {
-    // this.whatsappApiUser = whatsappApiUser;
-    // this.whatsappApiPassword = whatsappApiPassword;
-    // }
-
     @Value("${app.cors.allowed-origins:http://localhost:5173}")
     private List<String> allowedOrigins;
 
@@ -60,7 +50,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/health", "/error").permitAll()
                         .requestMatchers("/auth/login", "/auth/recuperar-senha", "/auth/redefinir-senha").permitAll()
-                        .requestMatchers("/whatsapp/teste").authenticated()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(new CsrfCookieFilter(), UsernamePasswordAuthenticationFilter.class);

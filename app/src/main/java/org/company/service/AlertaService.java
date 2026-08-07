@@ -22,27 +22,8 @@ import lombok.RequiredArgsConstructor;
 public class AlertaService {
 
     private final ClienteRepository clienteRepository;
-    private final WhatsAppService whatsAppService;
     private final RegiaoAnalytics regiaoAnalytics;
     private final ProdutoAnalytics produtoAnalytics;
-
-    public void processarClienteInativo() {
-        LocalDate dataLimite = LocalDate.now().minusDays(45);
-        List<Cliente> clientesInativos = clienteRepository.findByUltimaCompraBefore(dataLimite);
-
-        for (Cliente cliente : clientesInativos) {
-            var representante = cliente.getRepresentante();
-            if (representante != null) {
-                String telefone = representante.getTelefone();
-                if (telefone != null && !telefone.isBlank()) {
-                    whatsAppService.mandarMensagem(
-                        telefone,
-                        "Cliente inativo: " + cliente.getNome()
-                    );
-                }
-            }
-        }
-    }
 
     public List<AlertaDto> buscarAlertas() {
         return buscarAlertas(null);

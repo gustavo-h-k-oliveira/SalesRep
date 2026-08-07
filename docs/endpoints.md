@@ -187,9 +187,3 @@ Acesso restrito ao papel `GESTOR`.
 - `DELETE /representantes/{id}`
   - Exclui um representante por ID.
 
----
-
-## WhatsApp (`/whatsapp`)
-
-- `POST /whatsapp/teste`
-  - Envia uma mensagem de teste para verificação do serviço de integração com WhatsApp.
