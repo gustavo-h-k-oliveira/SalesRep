@@ -103,9 +103,11 @@ export interface ProdutoRequest {
 export interface RepresentanteResponse {
   id: number
   nome: string
+  cpfCnpj?: string
   regiaoId: number
   regiaoNome: string
   telefone: string
+  email?: string
 }
 
 export interface RepresentanteRequest {

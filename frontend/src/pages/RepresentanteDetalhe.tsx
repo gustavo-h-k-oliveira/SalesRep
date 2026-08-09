@@ -21,6 +21,7 @@ import {
   UserIcon,
   MapPinIcon,
   PhoneCallIcon,
+  EnvelopeSimpleIcon,
   CurrencyDollarIcon,
   UsersIcon,
   ShieldWarningIcon,
@@ -183,14 +184,18 @@ export default function RepresentanteDetalhePage() {
               <p className="text-sm text-slate-500">ID Representante: #{rep.id}</p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-4 text-sm text-slate-600">
+          <div className="flex flex-wrap items-center justify-end gap-4 text-sm text-slate-600 sm:justify-end">
             <div className="flex items-center gap-1.5 rounded-xl border border-slate-100 bg-slate-50/50 px-3.5 py-2">
               <MapPinIcon className="h-4.5 w-4.5 text-slate-400" />
               <span>Região: <strong>{rep.regiaoNome}</strong></span>
             </div>
             <div className="flex items-center gap-1.5 rounded-xl border border-slate-100 bg-slate-50/50 px-3.5 py-2">
               <PhoneCallIcon className="h-4.5 w-4.5 text-slate-400" />
-              <span>{rep.telefone}</span>
+              <span>{rep.telefone || 'Sem telefone'}</span>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-xl border border-slate-100 bg-slate-50/50 px-3.5 py-2">
+              <EnvelopeSimpleIcon className="h-4.5 w-4.5 text-slate-400" />
+              <span>{rep.email || 'Sem e-mail'}</span>
             </div>
           </div>
         </div>
