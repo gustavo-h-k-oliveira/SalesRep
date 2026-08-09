@@ -13,6 +13,9 @@ public class RepresentanteRequestDto {
     @NotNull
     private Long regiaoId;
 
-    @NotBlank
+    private String cpfCnpj;
+
+    private String email;
+
     private String telefone;
 }

@@ -11,9 +11,11 @@ public class RepresentanteDtoMapper {
         return new RepresentanteResponseDto(
             representante.getId(),
             representante.getNome(),
+            representante.getCpfCnpj(),
             representante.getRegiao() != null ? representante.getRegiao().getId() : null,
             representante.getRegiao() != null ? representante.getRegiao().getNome() : null,
-            representante.getTelefone()
+            representante.getTelefone(),
+            representante.getEmail()
         );
     }
 }

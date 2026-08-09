@@ -5,6 +5,7 @@ import lombok.Setter;
 
 import java.util.List;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -33,7 +34,12 @@ public class Representante {
     @JoinColumn(name = "regiao_id")
     private @NotNull Regiao regiao;
 
-    private @NotBlank String telefone;
+    @Column(name = "cpf_cnpj")
+    private String cpfCnpj;
+
+    private String email;
+
+    private String telefone;
 
     @OneToMany(mappedBy = "representante")
     private List<Pedido> pedidos;

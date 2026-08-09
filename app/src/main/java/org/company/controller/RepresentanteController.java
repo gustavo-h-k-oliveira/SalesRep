@@ -110,6 +110,8 @@ public class RepresentanteController {
     private Representante construirRepresentante(RepresentanteRequestDto dto) {
         Representante representante = new Representante();
         representante.setNome(dto.getNome());
+        representante.setCpfCnpj(dto.getCpfCnpj());
+        representante.setEmail(dto.getEmail());
         representante.setRegiao(buscarRegiao(dto.getRegiaoId()));
         representante.setTelefone(dto.getTelefone());
         return representante;
@@ -117,6 +119,8 @@ public class RepresentanteController {
 
     private void atualizarRepresentante(Representante representante, RepresentanteRequestDto dto) {
         representante.setNome(dto.getNome());
+        representante.setCpfCnpj(dto.getCpfCnpj());
+        representante.setEmail(dto.getEmail());
         representante.setRegiao(buscarRegiao(dto.getRegiaoId()));
         representante.setTelefone(dto.getTelefone());
     }

@@ -5,6 +5,9 @@ import java.util.List;
 import org.company.entity.Representante;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface RepresentanteRepository extends JpaRepository<Representante, Long> {
     List<Representante> findByRegiaoId(Long representanteId);
+    Optional<Representante> findByCpfCnpj(String cpfCnpj);
 }
