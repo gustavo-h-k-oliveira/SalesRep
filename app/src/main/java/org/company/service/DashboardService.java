@@ -15,6 +15,7 @@ import org.company.repository.ClienteRepository;
 import org.company.repository.PedidoRepository;
 import org.company.security.SecurityUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
@@ -40,6 +41,7 @@ public class DashboardService {
 
     private final org.company.repository.MetaComercialRepository metaComercialRepository;
 
+    @Transactional
     public DashboardDto obterResumo() {
         clienteService.atualizarStatusDeTodos();
 

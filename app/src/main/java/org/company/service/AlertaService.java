@@ -14,11 +14,13 @@ import org.company.entity.StatusAlerta;
 import org.company.entity.TipoAlerta;
 import org.company.repository.ClienteRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AlertaService {
 
     private final ClienteRepository clienteRepository;

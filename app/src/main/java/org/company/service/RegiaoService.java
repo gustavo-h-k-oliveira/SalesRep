@@ -10,11 +10,13 @@ import org.company.repository.ClienteRepository;
 import org.company.repository.RegiaoRepository;
 import org.company.repository.RepresentanteRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class RegiaoService {
     
     private final RegiaoRepository regiaoRepository;
@@ -32,10 +34,12 @@ public class RegiaoService {
         return regiaoRepository.findById(id).orElse(null);
     }
 
+    @Transactional
     public Regiao salvar(Regiao regiao) {
         return regiaoRepository.save(regiao);
     }
 
+    @Transactional
     public void deletar(Long id) {
         regiaoRepository.deleteById(id);
     }

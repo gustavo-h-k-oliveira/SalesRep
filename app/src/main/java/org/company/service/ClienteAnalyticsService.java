@@ -27,11 +27,13 @@ import org.company.repository.ClienteRepository;
 import org.company.repository.PedidoRepository;
 import org.company.repository.ProdutoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ClienteAnalyticsService {
 
     private final ClienteRepository clienteRepository;

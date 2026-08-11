@@ -3,27 +3,44 @@ package org.company.repository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.company.entity.Pedido;
 import org.company.entity.StatusPedido;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
+    @Override
+    @EntityGraph(attributePaths = {"cliente", "representante"})
+    List<Pedido> findAll();
+
+    @Override
+    @EntityGraph(attributePaths = {"cliente", "representante"})
+    Optional<Pedido> findById(Long id);
+
+    @EntityGraph(attributePaths = {"cliente", "representante"})
     List<Pedido> findByClienteId(Long clienteId);
     
+    @EntityGraph(attributePaths = {"cliente", "representante"})
     List<Pedido> findByRepresentanteId(Long representanteId);
     
+    @EntityGraph(attributePaths = {"cliente", "representante"})
     List<Pedido> findByRepresentanteIdAndStatus(Long representanteId, StatusPedido status);
     
+    @EntityGraph(attributePaths = {"cliente", "representante"})
     List<Pedido> findByRepresentanteIdAndDataEmissaoBetween(Long representanteId, LocalDate inicio, LocalDate fim);
     
+    @EntityGraph(attributePaths = {"cliente", "representante"})
     List<Pedido> findByStatus(StatusPedido status);
 
+    @EntityGraph(attributePaths = {"cliente", "representante"})
     List<Pedido> findByStatusNot(StatusPedido status);
     
+    @EntityGraph(attributePaths = {"cliente", "representante"})
     List<Pedido> findByDataEmissaoBetween(LocalDate inicio, LocalDate fim);
 
     @Query("select coalesce(sum(p.valorTotal), 0) from Pedido p where p.status = org.company.entity.StatusPedido.FATURADO")
