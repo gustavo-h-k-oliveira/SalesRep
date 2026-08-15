@@ -85,4 +85,37 @@ class WhatsAppWebhookServiceTest {
         verify(whatsAppService).mandarMensagem(eq("5514981704947"), eq(respostaEsperada));
         verify(consultaRepository).save(any(WhatsAppConsulta.class));
     }
+
+    @Test
+    void processar_mensagemWagner_deveExecutarComandoEMandarResposta() {
+        Representante wagner = new Representante();
+        wagner.setId(998L);
+        wagner.setNome("Wagner");
+        wagner.setTelefone("+55 14 99721-0485");
+
+        String phone = "5514997210485";
+        String messageId = "msg-wagner-001";
+        String comandoTexto = "alertas";
+        String respostaEsperada = "*Alertas pendentes*\n• Cliente sem compra há mais de 45 dias: Supermercado Wagner & Cia";
+
+        ZapiReceivedMessage payload = new ZapiReceivedMessage(
+                "instancia-123",
+                messageId,
+                phone,
+                false,
+                false,
+                "text",
+                new ZapiTextPayload(comandoTexto)
+        );
+
+        when(consultaRepository.existsByMessageId(messageId)).thenReturn(false);
+        when(representanteRepository.findAll()).thenReturn(List.of(wagner));
+        when(commandService.executar(wagner, comandoTexto)).thenReturn(respostaEsperada);
+        when(whatsAppService.estaConfigurado()).thenReturn(true);
+
+        whatsAppWebhookService.processar(payload);
+
+        verify(whatsAppService).mandarMensagem(eq("5514997210485"), eq(respostaEsperada));
+        verify(consultaRepository).save(any(WhatsAppConsulta.class));
+    }
 }
