@@ -645,16 +645,16 @@ export default function ProdutosPage() {
       <Dialog open={selectedProduto !== null} onOpenChange={(open) => { if (!open) setSelectedProduto(null) }}>
         <DialogPortal>
           <DialogOverlay />
-          <DialogContent className="max-w-3xl rounded-3xl p-8 bg-white max-h-[85vh] overflow-y-auto shadow-2xl border border-slate-200/80">
+          <DialogContent className="w-[94vw] max-w-[calc(100%-1rem)] sm:max-w-xl md:max-w-3xl lg:max-w-5xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 bg-white max-h-[88vh] overflow-y-auto shadow-2xl border border-slate-200/80">
             {selectedProduto && (
               <>
                 <DialogHeader className="border-b border-slate-100 pb-4">
                   <div className="flex items-start justify-between min-w-0">
                     <div className="min-w-0 flex-1">
-                      <DialogTitle className="text-2xl font-bold text-slate-900 truncate">
+                      <DialogTitle className="text-xl sm:text-2xl font-bold text-slate-900 truncate">
                         {selectedProduto.descricao}
                       </DialogTitle>
-                      <DialogDescription className="text-sm text-slate-500 mt-1 font-semibold">
+                      <DialogDescription className="text-xs sm:text-sm text-slate-500 mt-1 font-semibold">
                         SKU: {formatSku(selectedProduto.sku)} | ID: {selectedProduto.id} | Faturamento Total: {formatCurrency(selectedProduto.faturamento)}
                       </DialogDescription>
                     </div>
@@ -666,9 +666,9 @@ export default function ProdutosPage() {
                     Carregando detalhes do produto...
                   </div>
                 ) : (
-                  <div className="mt-6 space-y-6">
+                  <div className="mt-4 sm:mt-6 space-y-4 sm:space-y-6">
                     {/* Sales History Chart */}
-                    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
+                    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-6">
                       <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
                         <TrendUpIcon className="h-5 w-5 text-emerald-600" />
                         Histórico de Vendas Mensal
@@ -698,9 +698,9 @@ export default function ProdutosPage() {
                       )}
                     </div>
 
-                    <div className="grid gap-6 md:grid-cols-2">
+                    <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
                       {/* Priority Clients List */}
-                      <div className="rounded-2xl border border-slate-100 p-5 bg-white shadow-2xs flex flex-col min-w-0">
+                      <div className="rounded-2xl border border-slate-100 p-3.5 sm:p-5 bg-white shadow-2xs flex flex-col min-w-0">
                         <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2 border-b border-slate-50 pb-2">
                           <UsersIcon className="h-5 w-5 text-indigo-600" />
                           Clientes Prioritários (Recompra)
@@ -744,7 +744,7 @@ export default function ProdutosPage() {
                       </div>
 
                       {/* Top Selling Representatives */}
-                      <div className="rounded-2xl border border-slate-100 p-5 bg-white shadow-2xs flex flex-col min-w-0">
+                      <div className="rounded-2xl border border-slate-100 p-3.5 sm:p-5 bg-white shadow-2xs flex flex-col min-w-0">
                         <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2 border-b border-slate-50 pb-2">
                           <UserIcon className="h-5 w-5 text-emerald-600" />
                           Top Representantes
