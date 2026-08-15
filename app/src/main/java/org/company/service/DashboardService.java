@@ -39,8 +39,6 @@ public class DashboardService {
 
     private final ClienteAnalytics clienteAnalytics;
 
-    private final org.company.repository.MetaComercialRepository metaComercialRepository;
-
     @Transactional
     public DashboardDto obterResumo() {
         clienteService.atualizarStatusDeTodos();
@@ -87,67 +85,39 @@ public class DashboardService {
         }
 
         String representanteNome = null;
-        Representante representanteEntidade = null;
         if (isRepresentante && representanteId != null) {
-            representanteEntidade = representanteService.encontrarPorId(representanteId);
+            Representante representanteEntidade = representanteService.encontrarPorId(representanteId);
             representanteNome = representanteEntidade != null ? representanteEntidade.getNome() : null;
         }
 
-        // --- BUSCA OU PERSISTÊNCIA DA ENTIDADE MetaComercial NO BANCO DE DADOS ---
-        java.time.LocalDate inicioMes = java.time.LocalDate.now().withDayOfMonth(1);
-        BigDecimal metaFaturamento;
-        long metaPositivacaoClientes;
-        long metaReativacaoInativos;
-
-        java.util.Optional<org.company.entity.MetaComercial> metaExistente = isRepresentante && representanteId != null
-                ? metaComercialRepository.findByRepresentanteIdAndMesAno(representanteId, inicioMes)
-                : metaComercialRepository.findByMesAnoAndRepresentanteIsNullAndRegiaoIsNull(inicioMes);
-
-        if (metaExistente.isPresent()) {
-            org.company.entity.MetaComercial m = metaExistente.get();
-            metaFaturamento = m.getMetaFaturamento();
-            metaPositivacaoClientes = m.getMetaPositivacaoClientes() != null ? m.getMetaPositivacaoClientes() : Math.max(1, Math.round((clientesAtivos + clientesInativos) * 0.85));
-            metaReativacaoInativos = m.getMetaReativacaoInativos() != null ? m.getMetaReativacaoInativos() : Math.max(1, Math.round(clientesInativos * 0.50));
-        } else {
-            // Cálculo baseado no potencial da carteira para persistir no banco
-            BigDecimal potencialEstimadoCarteira = BigDecimal.ZERO;
-            for (Cliente cliente : carteiraClientes) {
-                BigDecimal ticket = clienteAnalytics.calcularTicketMedio(cliente);
-                if (ticket.compareTo(BigDecimal.ZERO) == 0) {
-                    ticket = new BigDecimal("15000.00");
-                }
-                if (cliente.getStatus() == StatusCliente.ATIVO) {
-                    potencialEstimadoCarteira = potencialEstimadoCarteira.add(ticket.multiply(new BigDecimal("1.2")));
-                } else {
-                    potencialEstimadoCarteira = potencialEstimadoCarteira.add(ticket.multiply(new BigDecimal("0.8")));
-                }
+        // --- CÁLCULO DE METAS EM MEMÓRIA ---
+        BigDecimal potencialEstimadoCarteira = BigDecimal.ZERO;
+        for (Cliente cliente : carteiraClientes) {
+            BigDecimal ticket = clienteAnalytics.calcularTicketMedio(cliente);
+            if (ticket.compareTo(BigDecimal.ZERO) == 0) {
+                ticket = new BigDecimal("15000.00");
             }
-
-            if (isRepresentante) {
-                metaFaturamento = potencialEstimadoCarteira.compareTo(new BigDecimal("1000000")) < 0
-                        ? new BigDecimal("1500000.00")
-                        : potencialEstimadoCarteira;
+            if (cliente.getStatus() == StatusCliente.ATIVO) {
+                potencialEstimadoCarteira = potencialEstimadoCarteira.add(ticket.multiply(new BigDecimal("1.2")));
             } else {
-                metaFaturamento = potencialEstimadoCarteira.compareTo(new BigDecimal("1500000")) < 0
-                        ? new BigDecimal("2500000.00")
-                        : potencialEstimadoCarteira;
+                potencialEstimadoCarteira = potencialEstimadoCarteira.add(ticket.multiply(new BigDecimal("0.8")));
             }
-
-            long totalClientes = clientesAtivos + clientesInativos;
-            metaPositivacaoClientes = Math.max(1, Math.round(totalClientes * 0.85));
-            metaReativacaoInativos = Math.max(1, Math.round(clientesInativos * 0.50));
-
-            // Persistir novo registro de MetaComercial
-            org.company.entity.MetaComercial novaMeta = new org.company.entity.MetaComercial();
-            novaMeta.setMesAno(inicioMes);
-            novaMeta.setMetaFaturamento(metaFaturamento);
-            novaMeta.setMetaPositivacaoClientes((int) metaPositivacaoClientes);
-            novaMeta.setMetaReativacaoInativos((int) metaReativacaoInativos);
-            if (isRepresentante) {
-                novaMeta.setRepresentante(representanteEntidade);
-            }
-            metaComercialRepository.save(novaMeta);
         }
+
+        BigDecimal metaFaturamento;
+        if (isRepresentante) {
+            metaFaturamento = potencialEstimadoCarteira.compareTo(new BigDecimal("1000000")) < 0
+                    ? new BigDecimal("1500000.00")
+                    : potencialEstimadoCarteira;
+        } else {
+            metaFaturamento = potencialEstimadoCarteira.compareTo(new BigDecimal("1500000")) < 0
+                    ? new BigDecimal("2500000.00")
+                    : potencialEstimadoCarteira;
+        }
+
+        long totalClientes = clientesAtivos + clientesInativos;
+        long metaPositivacaoClientes = Math.max(1, Math.round(totalClientes * 0.85));
+        long metaReativacaoInativos = Math.max(1, Math.round(clientesInativos * 0.50));
 
         // Faturamento estimado do mês atual
         BigDecimal faturamentoMesAtual = faturamentoTotal.multiply(new BigDecimal("0.35")).setScale(2, RoundingMode.HALF_UP);
