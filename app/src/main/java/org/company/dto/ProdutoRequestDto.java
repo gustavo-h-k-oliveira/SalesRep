@@ -11,4 +11,6 @@ public class ProdutoRequestDto {
 
     @NotBlank
     private String descricao;
+
+    private String grupo;
 }

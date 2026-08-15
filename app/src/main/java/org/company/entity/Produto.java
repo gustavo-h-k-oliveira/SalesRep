@@ -25,6 +25,8 @@ public class Produto {
     
     private @NotBlank String descricao;
 
+    private String grupo;
+
     @OneToMany(mappedBy = "produto")
     private List<PedidoItem> itens;
 }

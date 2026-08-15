@@ -92,12 +92,14 @@ export interface ProdutoResponse {
   id: number
   sku: string
   descricao: string
+  grupo?: string
   faturamento: number
 }
 
 export interface ProdutoRequest {
   sku: string
   descricao: string
+  grupo?: string
 }
 
 export interface RepresentanteResponse {

@@ -176,7 +176,8 @@ export default function ProdutosPage() {
       result = result.filter(
         (p) =>
           p.descricao.toLowerCase().includes(term) ||
-          (p.sku && p.sku.toLowerCase().includes(term))
+          (p.sku && p.sku.toLowerCase().includes(term)) ||
+          (p.grupo && p.grupo.toLowerCase().includes(term))
       )
     }
 
@@ -562,6 +563,7 @@ export default function ProdutosPage() {
                 <TableRow className="bg-slate-50/75 hover:bg-slate-50/75 font-semibold">
                   <TableHead className="w-[80px]">ID</TableHead>
                   <TableHead>SKU</TableHead>
+                  <TableHead>Grupo</TableHead>
                   <TableHead>Descrição</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Faturamento</TableHead>
@@ -578,6 +580,9 @@ export default function ProdutosPage() {
                     >
                       <TableCell className="font-semibold text-slate-400">{produto.id}</TableCell>
                       <TableCell className="font-mono text-xs">{formatSku(produto.sku)}</TableCell>
+                      <TableCell className="font-semibold text-slate-600 text-xs whitespace-nowrap">
+                        {produto.grupo || '-'}
+                      </TableCell>
                       <TableCell className="font-medium text-slate-900">{produto.descricao}</TableCell>
                       <TableCell>
                         <Badge
@@ -655,7 +660,7 @@ export default function ProdutosPage() {
                         {selectedProduto.descricao}
                       </DialogTitle>
                       <DialogDescription className="text-xs sm:text-sm text-slate-500 mt-1 font-semibold">
-                        SKU: {formatSku(selectedProduto.sku)} | ID: {selectedProduto.id} | Faturamento Total: {formatCurrency(selectedProduto.faturamento)}
+                        SKU: {formatSku(selectedProduto.sku)} | Grupo: {selectedProduto.grupo || '-'} | ID: {selectedProduto.id} | Faturamento Total: {formatCurrency(selectedProduto.faturamento)}
                       </DialogDescription>
                     </div>
                   </div>
