@@ -28,8 +28,12 @@ public class GlobalExceptionHandler {
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ResponseError> trataException(Exception ex) {
 
+                String mensagem = ex.getMessage() != null && !ex.getMessage().isBlank()
+                                ? ex.getMessage()
+                                : "Erro interno no servidor";
+
                 ResponseError response = new ResponseError(
-                                "Erro interno no servidor",
+                                mensagem,
                                 HttpStatus.INTERNAL_SERVER_ERROR,
                                 LocalDateTime.now());
 

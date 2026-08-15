@@ -40,7 +40,7 @@ public class SecurityConfig {
         } else {
             http.csrf(csrf -> csrf
                     .ignoringRequestMatchers("/auth/login", "/auth/recuperar-senha", "/auth/redefinir-senha", "/health",
-                            "/error")
+                            "/error", "/whatsapp/**")
                     .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                     .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()));
         }
@@ -49,7 +49,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/health", "/error").permitAll()
-                        .requestMatchers("/auth/login", "/auth/recuperar-senha", "/auth/redefinir-senha").permitAll()
+                        .requestMatchers("/auth/login", "/auth/recuperar-senha", "/auth/redefinir-senha", "/whatsapp/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(new CsrfCookieFilter(), UsernamePasswordAuthenticationFilter.class);

@@ -40,4 +40,7 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     long countByStatus(StatusCliente status);
 
     long countByRepresentanteIdAndStatus(Long representanteId, StatusCliente status);
+
+    @EntityGraph(attributePaths = {"regiao", "representante"})
+    List<Cliente> findTop10ByRepresentanteIdAndStatusOrderByUltimaCompraAsc(Long representanteId, StatusCliente status);
 }

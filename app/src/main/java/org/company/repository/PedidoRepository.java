@@ -62,4 +62,7 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
         @Param("fim") LocalDate fim,
         @Param("representanteId") Long representanteId
     );
+
+    @EntityGraph(attributePaths = {"cliente", "representante"})
+    List<Pedido> findTop5ByRepresentanteIdOrderByDataEmissaoDescIdDesc(Long representanteId);
 }
