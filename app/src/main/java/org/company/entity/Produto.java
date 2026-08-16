@@ -27,6 +27,36 @@ public class Produto {
 
     private String grupo;
 
+    private Boolean sazonal;
+
+    private Integer mesInicioSazonalidade;
+
+    private Integer mesFimSazonalidade;
+
+    public Boolean getSazonal() {
+        return sazonal;
+    }
+
+    public void setSazonal(Boolean sazonal) {
+        this.sazonal = sazonal;
+    }
+
+    public Integer getMesInicioSazonalidade() {
+        return mesInicioSazonalidade;
+    }
+
+    public void setMesInicioSazonalidade(Integer mesInicioSazonalidade) {
+        this.mesInicioSazonalidade = mesInicioSazonalidade;
+    }
+
+    public Integer getMesFimSazonalidade() {
+        return mesFimSazonalidade;
+    }
+
+    public void setMesFimSazonalidade(Integer mesFimSazonalidade) {
+        this.mesFimSazonalidade = mesFimSazonalidade;
+    }
+
     @OneToMany(mappedBy = "produto")
     private List<PedidoItem> itens;
 }

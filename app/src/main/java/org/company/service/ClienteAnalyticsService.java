@@ -118,24 +118,30 @@ public class ClienteAnalyticsService {
         Set<Long> recomendadosIds = new HashSet<>();
 
         Long repId = cliente.getRepresentante() != null ? cliente.getRepresentante().getId() : null;
+        LocalDate hoje = LocalDate.now();
 
         // --- SLOT 1: Queda de Recompra na Região ---
         List<Produto> produtosCriticos = produtoAnalytics.buscarProdutosComBaixaRecompraProduto(repId);
         Produto produtoSlot1 = null;
         String justificativaSlot1 = "";
 
-        // Tenta encontrar um produto crítico que o cliente já comprou
+        // Tenta encontrar um produto crítico que o cliente já comprou e que está disponível no período
         for (Produto p : produtosCriticos) {
-            if (ultimaCompraPorProduto.containsKey(p)) {
+            if (isDisponivelParaRecomendacao(p, hoje) && ultimaCompraPorProduto.containsKey(p)) {
                 produtoSlot1 = p;
                 justificativaSlot1 = "Queda de recompra detectada para este item na sua região.";
                 break;
             }
         }
-        // Se não encontrar nenhum comprado, pega o primeiro crítico geral da lista
+        // Se não encontrar nenhum comprado, pega o primeiro crítico geral da lista disponível no período
         if (produtoSlot1 == null && !produtosCriticos.isEmpty()) {
-            produtoSlot1 = produtosCriticos.get(0);
-            justificativaSlot1 = "Queda de recompra na região (Oportunidade de introdução).";
+            for (Produto p : produtosCriticos) {
+                if (isDisponivelParaRecomendacao(p, hoje)) {
+                    produtoSlot1 = p;
+                    justificativaSlot1 = "Queda de recompra na região (Oportunidade de introdução).";
+                    break;
+                }
+            }
         }
         
         if (produtoSlot1 != null) {
@@ -152,13 +158,13 @@ public class ClienteAnalyticsService {
         Produto produtoSlot2 = null;
         long maxDiasSemCompra = -1;
 
-        // Encontra o produto comprado anteriormente há mais tempo
+        // Encontra o produto comprado anteriormente há mais tempo e disponível na janela sazonal
         for (Map.Entry<Produto, LocalDate> entry : ultimaCompraPorProduto.entrySet()) {
             Produto p = entry.getKey();
-            if (recomendadosIds.contains(p.getId())) {
+            if (recomendadosIds.contains(p.getId()) || !isDisponivelParaRecomendacao(p, hoje)) {
                 continue;
             }
-            long dias = ChronoUnit.DAYS.between(entry.getValue(), LocalDate.now());
+            long dias = ChronoUnit.DAYS.between(entry.getValue(), hoje);
             if (dias > maxDiasSemCompra) {
                 maxDiasSemCompra = dias;
                 produtoSlot2 = p;
@@ -176,12 +182,12 @@ public class ClienteAnalyticsService {
         }
 
         // --- SLOT 3: Completar Ticket Médio (Cross-Selling) ---
-        // Pegar produtos com maior faturamento que o cliente nunca comprou
+        // Pegar produtos com maior faturamento que o cliente nunca comprou e disponíveis no período
         Map<Long, BigDecimal> faturamentos = produtoAnalytics.obterFaturamentosDosProdutos(repId);
         List<Produto> todosProdutos = produtoRepository.findAll();
         
         List<Produto> ordenadosPorFaturamento = todosProdutos.stream()
-            .filter(p -> !recomendadosIds.contains(p.getId()))
+            .filter(p -> !recomendadosIds.contains(p.getId()) && isDisponivelParaRecomendacao(p, hoje))
             .sorted((p1, p2) -> {
                 BigDecimal f1 = faturamentos.getOrDefault(p1.getId(), BigDecimal.ZERO);
                 BigDecimal f2 = faturamentos.getOrDefault(p2.getId(), BigDecimal.ZERO);
@@ -220,7 +226,7 @@ public class ClienteAnalyticsService {
         if (recomendacoes.size() < 3) {
             for (Produto p : todosProdutos) {
                 if (recomendacoes.size() >= 3) break;
-                if (!recomendadosIds.contains(p.getId())) {
+                if (!recomendadosIds.contains(p.getId()) && isDisponivelParaRecomendacao(p, hoje)) {
                     recomendacoes.add(new ProdutoRecomendadoDto(
                         p.getId(),
                         p.getSku(),
@@ -233,6 +239,29 @@ public class ClienteAnalyticsService {
         }
 
         return recomendacoes;
+    }
+
+    public boolean isDisponivelParaRecomendacao(Produto produto, LocalDate dataAtual) {
+        if (produto == null) return false;
+        if (!Boolean.TRUE.equals(produto.getSazonal())) {
+            return true;
+        }
+        if (dataAtual == null) {
+            dataAtual = LocalDate.now();
+        }
+        int mesAtual = dataAtual.getMonthValue();
+        Integer inicio = produto.getMesInicioSazonalidade();
+        Integer fim = produto.getMesFimSazonalidade();
+
+        if (inicio == null || fim == null) {
+            return true;
+        }
+
+        if (inicio <= fim) {
+            return mesAtual >= inicio && mesAtual <= fim;
+        } else {
+            return mesAtual >= inicio || mesAtual <= fim;
+        }
     }
 
     private record ClienteScore(Cliente cliente, double score) {}

@@ -61,7 +61,7 @@ UPDATE produto SET grupo = 'LINHA FOOD SERVICE' WHERE sku = '3320';
 UPDATE produto SET grupo = 'LINHA FOOD SERVICE' WHERE sku = '3340';
 UPDATE produto SET grupo = 'LINHA FOOD SERVICE' WHERE sku = '3350';
 UPDATE produto SET grupo = 'LINHA FOOD SERVICE' WHERE sku = '3360';
-UPDATE produto SET grupo = 'LINHA COBERTOS DE CHOCOLATE - SAGRA' WHERE sku = '3550';
+UPDATE produto SET grupo = 'OVOS' WHERE sku = '3550';
 UPDATE produto SET grupo = 'OVOS' WHERE sku = '3600';
 UPDATE produto SET grupo = 'OVOS' WHERE sku = '3700';
 UPDATE produto SET grupo = 'SABORELLE' WHERE sku = '4955';
