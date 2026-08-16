@@ -48,12 +48,18 @@ export interface ClientePrioritarioDto {
 
 export interface PageResponse<T> {
   content: T[]
-  totalPages: number
-  totalElements: number
-  size: number
-  number: number
-  first: boolean
-  last: boolean
+  totalPages?: number
+  totalElements?: number
+  size?: number
+  number?: number
+  first?: boolean
+  last?: boolean
+  page?: {
+    size: number
+    number: number
+    totalElements: number
+    totalPages: number
+  }
 }
 
 export interface ClienteResponse {

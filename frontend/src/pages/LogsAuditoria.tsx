@@ -60,9 +60,9 @@ export default function LogsAuditoriaPage() {
         currentPage,
         15
       )
-      setLogs(data.content)
-      setTotalPages(data.totalPages || 1)
-      setTotalElements(data.totalElements || 0)
+      setLogs(data.content || [])
+      setTotalPages(data.page?.totalPages ?? data.totalPages ?? 1)
+      setTotalElements(data.page?.totalElements ?? data.totalElements ?? (data.content ? data.content.length : 0))
     } catch (err) {
       console.error('Erro ao carregar logs de auditoria:', err)
     } finally {
