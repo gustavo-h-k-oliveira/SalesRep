@@ -276,6 +276,7 @@ score =
 * id
 * sku
 * descrição
+* grupo (classe / linha comercial do produto)
 
 ---
 
@@ -358,7 +359,7 @@ Navegue até a raiz do projeto e execute:
 
 > [!NOTE]
 > **Povoamento Automático (Flyway):**
-> Assim que o Spring Boot é iniciado, o **Flyway** conecta no banco de dados preparado no Passo 1, executa as migrações SQL em `app/src/main/resources/db/migration/` (criação de tabelas) e insere automaticamente a carga de dados inicial (clientes, representantes, regiões, produtos e pedidos). Não é necessário executar nenhum script SQL manualmente.
+> Assim que o Spring Boot é iniciado, o **Flyway** conecta no banco de dados preparado no Passo 1, executa as migrações SQL em `app/src/main/resources/db/migration/` (da V1 até a V21, cobrindo criação de tabelas, atualização de acentuação, grupos/classes de produto e carga completa de dados). Não é necessário executar nenhum script SQL manualmente.
 
 A API estará disponível em `http://localhost:8080`.
 
