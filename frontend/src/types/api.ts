@@ -179,3 +179,13 @@ export interface ProdutoRecomendadoDto {
   descricao: string
   justificativa: string
 }
+
+export interface LogAuditoriaResponse {
+  id: number
+  username: string
+  evento: string
+  ip: string
+  userAgent: string
+  dataHora: string
+}
+

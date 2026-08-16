@@ -13,6 +13,7 @@ import ProtectedRoute from './pages/ProtectedRoute'
 import AppLayout from './layouts/AppLayout'
 import RepresentantesPage from './pages/Representantes'
 import RepresentanteDetalhePage from './pages/RepresentanteDetalhe'
+import LogsAuditoriaPage from './pages/LogsAuditoria'
 import { isRepresentante } from './services/authService'
 
 function App() {
@@ -43,6 +44,10 @@ function App() {
           <Route
             path="/representantes/:id"
             element={!isRepresentante() ? <RepresentanteDetalhePage /> : <Navigate to="/dashboard" replace />}
+          />
+          <Route
+            path="/auditoria"
+            element={!isRepresentante() ? <LogsAuditoriaPage /> : <Navigate to="/dashboard" replace />}
           />
         </Route>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />

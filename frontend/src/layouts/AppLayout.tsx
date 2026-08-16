@@ -9,6 +9,7 @@ import {
   LightningIcon,
   ShieldWarningIcon,
   UserIcon,
+  ShieldCheckIcon,
   SignOutIcon,
   CaretLeftIcon,
   CaretRightIcon,
@@ -30,7 +31,12 @@ export default function AppLayout() {
     representative
       ? { to: '/oportunidades', label: 'Oportunidades', icon: LightningIcon }
       : { to: '/alertas', label: 'Alertas', icon: ShieldWarningIcon },
-    ...(!representative ? [{ to: '/representantes', label: 'Representantes', icon: UserIcon }] : []),
+    ...(!representative
+      ? [
+          { to: '/representantes', label: 'Representantes', icon: UserIcon },
+          { to: '/auditoria', label: 'Logs de Auditoria', icon: ShieldCheckIcon },
+        ]
+      : []),
   ]
 
   const handleLogout = async () => {
