@@ -1,4 +1,4 @@
--- V23__add_sazonalidade_to_produto.sql
+-- V22__add_sazonalidade_to_produto.sql
 -- Adiciona suporte a sazonalidade em produtos para filtragem dinâmica nas recomendações
 
 ALTER TABLE produto ADD COLUMN IF NOT EXISTS sazonal BOOLEAN DEFAULT FALSE;
