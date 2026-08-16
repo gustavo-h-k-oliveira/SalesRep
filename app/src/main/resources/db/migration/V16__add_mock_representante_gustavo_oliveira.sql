@@ -14,3 +14,13 @@ VALUES (999, 'Mercado Teste Gustavo', 1, 999, CURRENT_DATE - INTERVAL '15 days',
 ON CONFLICT (id) DO UPDATE SET
     representante_id = EXCLUDED.representante_id,
     status = EXCLUDED.status;
+
+INSERT INTO usuario (nome_usuario, senha, papel, status, representante_id, email)
+VALUES ('gustavo', '$2b$12$jbN/USyEytaAB90Ct41dOuncMHPlW.V49.VxSXxKDrLa8Cc8Fx4qO', 'REPRESENTANTE', 'ATIVO', 999, 'gustavo.oliveira@salesrep.com.br')
+ON CONFLICT (email) DO UPDATE SET
+    nome_usuario = EXCLUDED.nome_usuario,
+    senha = EXCLUDED.senha,
+    papel = EXCLUDED.papel,
+    status = EXCLUDED.status,
+    representante_id = EXCLUDED.representante_id;
+
