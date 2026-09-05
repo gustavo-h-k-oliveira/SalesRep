@@ -118,4 +118,37 @@ class WhatsAppWebhookServiceTest {
         verify(whatsAppService).mandarMensagem(eq("5514997210485"), eq(respostaEsperada));
         verify(consultaRepository).save(any(WhatsAppConsulta.class));
     }
+
+    @Test
+    void processar_mensagemVitorStudzieski_deveExecutarComandoEMandarResposta() {
+        Representante vitor = new Representante();
+        vitor.setId(997L);
+        vitor.setNome("Vitor Studzieski");
+        vitor.setTelefone("14 99778-7717");
+
+        String phone = "5514997787717";
+        String messageId = "msg-vitor-001";
+        String comandoTexto = "clientes inativos";
+        String respostaEsperada = "*Clientes inativos*\n• Comercial Alimentos Studzieski — 110 dias sem compra\n• Empório & Mercearia Central — 80 dias sem compra\n• Supermercado Nova Esperança — 55 dias sem compra";
+
+        ZapiReceivedMessage payload = new ZapiReceivedMessage(
+                "instancia-123",
+                messageId,
+                phone,
+                false,
+                false,
+                "text",
+                new ZapiTextPayload(comandoTexto)
+        );
+
+        when(consultaRepository.existsByMessageId(messageId)).thenReturn(false);
+        when(representanteRepository.findAll()).thenReturn(List.of(vitor));
+        when(commandService.executar(vitor, comandoTexto)).thenReturn(respostaEsperada);
+        when(whatsAppService.estaConfigurado()).thenReturn(true);
+
+        whatsAppWebhookService.processar(payload);
+
+        verify(whatsAppService).mandarMensagem(eq("5514997787717"), eq(respostaEsperada));
+        verify(consultaRepository).save(any(WhatsAppConsulta.class));
+    }
 }
