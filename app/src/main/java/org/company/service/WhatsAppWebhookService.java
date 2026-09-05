@@ -35,7 +35,7 @@ public class WhatsAppWebhookService {
         }
         if (!isBlank(payload.instanceId())
                 && !isBlank(properties.getInstanceId())
-                && !properties.getInstanceId().equals(payload.instanceId())) {
+                && !properties.getInstanceId().equalsIgnoreCase(payload.instanceId())) {
             log.warn("Webhook Z-API recebido para instância diferente da configurada");
             return;
         }

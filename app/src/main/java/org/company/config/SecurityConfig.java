@@ -65,7 +65,14 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
+        CorsConfiguration whatsappCors = new CorsConfiguration();
+        whatsappCors.setAllowedOriginPatterns(List.of("*"));
+        whatsappCors.setAllowedMethods(List.of("GET", "POST", "PUT", "OPTIONS"));
+        whatsappCors.setAllowedHeaders(List.of("*"));
+        whatsappCors.setAllowCredentials(false);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/whatsapp/**", whatsappCors);
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }

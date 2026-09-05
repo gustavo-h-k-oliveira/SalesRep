@@ -38,6 +38,7 @@ application.properties
 !app/src/main/resources/db/migration/*.sql
 .env
 *.py
+*.exe
 
 # Credentials
 local-credentials.txt
