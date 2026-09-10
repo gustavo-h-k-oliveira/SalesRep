@@ -1,11 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/sagra-analytics/",
-      "permanent": false
-    }
-  ],
   "rewrites": [
     {
       "source": "/sagra-analytics/assets/:path*",

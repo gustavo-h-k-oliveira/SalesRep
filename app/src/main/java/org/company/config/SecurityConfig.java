@@ -21,6 +21,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import org.springframework.web.cors.CorsUtils;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -48,6 +50,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                         .requestMatchers("/", "/health", "/error").permitAll()
                         .requestMatchers("/auth/login", "/auth/recuperar-senha", "/auth/redefinir-senha", "/whatsapp/**").permitAll()
                         .anyRequest().authenticated())
@@ -60,9 +63,18 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(allowedOrigins);
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        
+        List<String> origins = allowedOrigins.stream()
+                .filter(java.util.Objects::nonNull)
+                .flatMap(o -> java.util.Arrays.stream(o.split(",")))
+                .map(s -> s.trim())
+                .filter(s -> !s.isEmpty())
+                .toList();
+
+        configuration.setAllowedOriginPatterns(origins);
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Set-Cookie", "Authorization", "X-XSRF-TOKEN"));
         configuration.setAllowCredentials(true);
 
         CorsConfiguration whatsappCors = new CorsConfiguration();
