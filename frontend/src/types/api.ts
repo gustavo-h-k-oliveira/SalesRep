@@ -48,12 +48,18 @@ export interface ClientePrioritarioDto {
 
 export interface PageResponse<T> {
   content: T[]
-  totalPages: number
-  totalElements: number
-  size: number
-  number: number
-  first: boolean
-  last: boolean
+  totalPages?: number
+  totalElements?: number
+  size?: number
+  number?: number
+  first?: boolean
+  last?: boolean
+  page?: {
+    size: number
+    number: number
+    totalElements: number
+    totalPages: number
+  }
 }
 
 export interface ClienteResponse {
@@ -92,12 +98,14 @@ export interface ProdutoResponse {
   id: number
   sku: string
   descricao: string
+  grupo?: string
   faturamento: number
 }
 
 export interface ProdutoRequest {
   sku: string
   descricao: string
+  grupo?: string
 }
 
 export interface RepresentanteResponse {
@@ -177,3 +185,13 @@ export interface ProdutoRecomendadoDto {
   descricao: string
   justificativa: string
 }
+
+export interface LogAuditoriaResponse {
+  id: number
+  username: string
+  evento: string
+  ip: string
+  userAgent: string
+  dataHora: string
+}
+

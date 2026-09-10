@@ -10,7 +10,7 @@ public class EmailService {
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
     public void enviarEmailRecuperacao(String email, String token) {
-        String resetLink = "http://localhost:5173/redefinir-senha?token=" + token;
+        String resetLink = "http://localhost:5173/sagra-analytics/redefinir-senha?token=" + token;
         
         logger.info("\n================================================================================\n" +
                     "  [MOCK EMAIL SENDER]\n" +

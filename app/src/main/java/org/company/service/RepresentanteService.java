@@ -9,11 +9,13 @@ import org.company.repository.ClienteRepository;
 import org.company.repository.PedidoRepository;
 import org.company.repository.RepresentanteRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class RepresentanteService {
     
     private final ClienteRepository clienteRepository;
@@ -31,10 +33,12 @@ public class RepresentanteService {
         return representanteRepository.findById(id).orElse(null);
     }
 
+    @Transactional
     public Representante salvar(Representante representante) {
         return representanteRepository.save(representante);
     }
 
+    @Transactional
     public void deletar(Long id) {
         representanteRepository.deleteById(id);
     }

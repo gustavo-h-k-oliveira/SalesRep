@@ -8,11 +8,13 @@ import java.util.List;
 import org.company.entity.StatusPedido;
 import org.company.repository.PedidoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PedidoService {
     
     private final PedidoRepository pedidoRepository; 
@@ -69,10 +71,12 @@ public class PedidoService {
     }
 
     // Métodos de manipulação
+    @Transactional
     public Pedido salvar(Pedido pedido) {
         return pedidoRepository.save(pedido);
     }
 
+    @Transactional
     public void deletar(Long id) {
         pedidoRepository.deleteById(id);
     }

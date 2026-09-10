@@ -13,11 +13,12 @@ import ProtectedRoute from './pages/ProtectedRoute'
 import AppLayout from './layouts/AppLayout'
 import RepresentantesPage from './pages/Representantes'
 import RepresentanteDetalhePage from './pages/RepresentanteDetalhe'
+import LogsAuditoriaPage from './pages/LogsAuditoria'
 import { isRepresentante } from './services/authService'
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/sagra-analytics">
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/recuperar-senha" element={<ForgotPasswordPage />} />
@@ -43,6 +44,10 @@ function App() {
           <Route
             path="/representantes/:id"
             element={!isRepresentante() ? <RepresentanteDetalhePage /> : <Navigate to="/dashboard" replace />}
+          />
+          <Route
+            path="/auditoria"
+            element={!isRepresentante() ? <LogsAuditoriaPage /> : <Navigate to="/dashboard" replace />}
           />
         </Route>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />

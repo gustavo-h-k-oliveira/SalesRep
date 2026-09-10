@@ -42,7 +42,7 @@ public class SecurityConfig {
         } else {
             http.csrf(csrf -> csrf
                     .ignoringRequestMatchers("/auth/login", "/auth/recuperar-senha", "/auth/redefinir-senha", "/health",
-                            "/error")
+                            "/error", "/whatsapp/**")
                     .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                     .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()));
         }
@@ -52,7 +52,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                         .requestMatchers("/", "/health", "/error").permitAll()
-                        .requestMatchers("/auth/login", "/auth/recuperar-senha", "/auth/redefinir-senha").permitAll()
+                        .requestMatchers("/auth/login", "/auth/recuperar-senha", "/auth/redefinir-senha", "/whatsapp/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(new CsrfCookieFilter(), UsernamePasswordAuthenticationFilter.class);
@@ -77,7 +77,14 @@ public class SecurityConfig {
         configuration.setExposedHeaders(List.of("Set-Cookie", "Authorization", "X-XSRF-TOKEN"));
         configuration.setAllowCredentials(true);
 
+        CorsConfiguration whatsappCors = new CorsConfiguration();
+        whatsappCors.setAllowedOriginPatterns(List.of("*"));
+        whatsappCors.setAllowedMethods(List.of("GET", "POST", "PUT", "OPTIONS"));
+        whatsappCors.setAllowedHeaders(List.of("*"));
+        whatsappCors.setAllowCredentials(false);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/whatsapp/**", whatsappCors);
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }

@@ -49,8 +49,6 @@ class DashboardServiceTest {
     @Mock
     private org.company.analytics.ClienteAnalytics clienteAnalytics;
 
-    @Mock
-    private org.company.repository.MetaComercialRepository metaComercialRepository;
 
     @InjectMocks
     private DashboardService dashboardService;

@@ -26,6 +26,7 @@ public class ProdutoDtoMapper {
             produto.getId(),
             produto.getSku(),
             produto.getDescricao(),
+            produto.getGrupo(),
             faturamento
         );
     }

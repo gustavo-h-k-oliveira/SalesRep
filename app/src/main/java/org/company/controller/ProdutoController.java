@@ -110,12 +110,14 @@ public class ProdutoController {
         Produto produto = new Produto();
         produto.setSku(dto.getSku());
         produto.setDescricao(dto.getDescricao());
+        produto.setGrupo(dto.getGrupo());
         return produto;
     }
 
     private void atualizarProduto(Produto produto, ProdutoRequestDto dto) {
         produto.setSku(dto.getSku());
         produto.setDescricao(dto.getDescricao());
+        produto.setGrupo(dto.getGrupo());
     }
 
     @DeleteMapping("/{id}")

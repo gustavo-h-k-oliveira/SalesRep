@@ -6,5 +6,6 @@ public record ProdutoResponseDto(
     Long id,
     String sku,
     String descricao,
+    String grupo,
     BigDecimal faturamento
 ) {}
