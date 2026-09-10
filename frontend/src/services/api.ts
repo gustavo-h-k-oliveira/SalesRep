@@ -35,8 +35,10 @@ async function apiFetch<T>(input: string, init: RequestInit = {}): Promise<T> {
     localStorage.removeItem('representanteId')
     sessionStorage.removeItem('loggedIn')
     sessionStorage.removeItem('representanteId')
-    if (window.location.pathname !== '/login') {
-      window.location.href = '/login'
+    const base = import.meta.env.BASE_URL || '/'
+    const loginPath = `${base.replace(/\/$/, '')}/login`
+    if (window.location.pathname !== loginPath) {
+      window.location.href = loginPath
       return null as unknown as T
     }
   }

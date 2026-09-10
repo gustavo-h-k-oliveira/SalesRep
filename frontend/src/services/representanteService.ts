@@ -50,3 +50,15 @@ export async function deleteRepresentante(id: number): Promise<void> {
     method: 'DELETE',
   })
 }
+
+export interface EnviarAlertasWhatsAppResponse {
+  status: 'sucesso' | 'erro'
+  mensagem: string
+  totalAlertas?: number
+}
+
+export async function enviarAlertasWhatsApp(representanteId: number): Promise<EnviarAlertasWhatsAppResponse> {
+  return apiFetch<EnviarAlertasWhatsAppResponse>(`/whatsapp/enviar-alertas/${representanteId}`, {
+    method: 'POST',
+  })
+}

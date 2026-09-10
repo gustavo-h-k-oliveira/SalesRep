@@ -20,6 +20,7 @@ import org.company.dto.AlertaDto;
 import org.company.entity.Representante;
 import org.company.repository.RepresentanteRepository;
 import org.company.service.AlertaService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
@@ -56,12 +57,17 @@ public class WhatsAppController {
         }
     }
 
+    @PreAuthorize("hasRole('GESTOR')")
     @PostMapping("/enviar-alertas/{representanteId}")
     public ResponseEntity<?> enviarAlertasRepresentante(@PathVariable Long representanteId) {
         Representante representante = representanteRepository.findById(representanteId).orElse(null);
         if (representante == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("status", "erro", "mensagem", "Representante não encontrado ID: " + representanteId));
+        }
+        if (representante.getTelefone() == null || representante.getTelefone().isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("status", "erro", "mensagem", "Representante " + representante.getNome() + " não possui telefone cadastrado"));
         }
         if (!whatsAppService.estaConfigurado()) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
@@ -70,10 +76,14 @@ public class WhatsAppController {
 
         List<AlertaDto> alertas = alertaService.buscarAlertas(representanteId);
         if (alertas.isEmpty()) {
-            return ResponseEntity.ok(Map.of("status", "sucesso", "mensagem", "Nenhum alerta pendente para " + representante.getNome()));
+            return ResponseEntity.ok(Map.of(
+                    "status", "sucesso",
+                    "mensagem", "Nenhum alerta pendente para " + representante.getNome(),
+                    "totalAlertas", 0
+            ));
         }
 
-        StringBuilder mensagem = new StringBuilder("⚠️ *Alertas da Carteira - SalesRep*\n\n");
+        StringBuilder mensagem = new StringBuilder("⚠️ *Alertas da Carteira - Sagra Analytics*\n\n");
         mensagem.append("Olá, *").append(representante.getNome()).append("*!\n");
         mensagem.append("Identificamos os seguintes alertas pendentes na sua carteira:\n\n");
 
@@ -81,7 +91,7 @@ public class WhatsAppController {
             mensagem.append("• ").append(alerta.getDescricao()).append("\n");
         }
 
-        mensagem.append("\nAcesse o painel do SalesRep para atuar nesses pontos!");
+        mensagem.append("\nAcesse o painel do Sagra Analytics para atuar nesses pontos!");
 
         try {
             whatsAppService.mandarMensagem(representante.getTelefone(), mensagem.toString());

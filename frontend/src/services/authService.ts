@@ -140,3 +140,7 @@ export function getRepresentanteId(): number | null {
 export function isRepresentante(): boolean {
   return getRepresentanteId() !== null
 }
+
+export function isGestor(): boolean {
+  return isLoggedIn() && !isRepresentante()
+}

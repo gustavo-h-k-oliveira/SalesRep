@@ -18,7 +18,7 @@ import { isRepresentante } from './services/authService'
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/sagra-analytics">
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/recuperar-senha" element={<ForgotPasswordPage />} />

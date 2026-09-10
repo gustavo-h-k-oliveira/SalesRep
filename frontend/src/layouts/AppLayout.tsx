@@ -66,10 +66,10 @@ export default function AppLayout() {
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 shadow-xs lg:hidden">
         <div className="flex flex-col items-start gap-0.5">
           <p className={`text-[10px] font-bold uppercase tracking-[0.2em] ${theme.accentText}`}>
-            Sagra Radar
+            Sagra Analytics
           </p>
           <img
-            src="/cropped-logo-sagra.png"
+            src={`${import.meta.env.BASE_URL}cropped-logo-sagra.png`}
             alt="Sagra Logo"
             className="h-7 w-auto object-contain"
           />
@@ -151,10 +151,10 @@ export default function AppLayout() {
               <div className="flex items-center justify-between gap-2">
                 <div className="animate-in fade-in duration-200 py-0.5 flex flex-col items-start gap-1">
                   <p className={`text-[10px] font-bold uppercase tracking-[0.25em] ${theme.accentText}`}>
-                    Sagra Radar
+                    Sagra Analytics
                   </p>
                   <img
-                    src="/cropped-logo-sagra.png"
+                    src={`${import.meta.env.BASE_URL}cropped-logo-sagra.png`}
                     alt="Sagra Logo"
                     className="h-8 w-auto max-w-[150px] object-contain"
                   />
@@ -173,7 +173,7 @@ export default function AppLayout() {
             ) : (
               <div className="flex flex-col items-center justify-center gap-3">
                 <img
-                  src="/cropped-logo-sagra.png"
+                  src={`${import.meta.env.BASE_URL}cropped-logo-sagra.png`}
                   alt="Sagra Logo"
                   className="h-6 w-auto max-w-[48px] object-contain"
                 />
