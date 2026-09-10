@@ -1,0 +1,31 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/sagra-analytics/",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/sagra-analytics/assets/:path*",
+      "destination": "/assets/:path*"
+    },
+    {
+      "source": "/sagra-analytics/chart1-5.png",
+      "destination": "/chart1-5.png"
+    },
+    {
+      "source": "/sagra-analytics/cropped-logo-sagra.png",
+      "destination": "/cropped-logo-sagra.png"
+    },
+    {
+      "source": "/sagra-analytics/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
