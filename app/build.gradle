@@ -79,3 +79,17 @@ tasks.named('test') {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
 }
+
+tasks.named('bootRun') {
+    def envFile = file("${rootDir}/.env")
+    if (envFile.exists()) {
+        envFile.eachLine { line ->
+            def trimmed = line.trim()
+            if (trimmed && !trimmed.startsWith("#") && trimmed.contains("=")) {
+                def parts = trimmed.split("=", 2)
+                environment parts[0].trim(), parts[1].trim()
+            }
+        }
+    }
+}
+
