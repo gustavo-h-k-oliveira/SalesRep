@@ -213,7 +213,7 @@ O SalesRep conta com uma via conversacional ativa para representantes consultare
    - Gera o cookie `XSRF-TOKEN` que o frontend lê e anexa no cabeçalho `X-XSRF-TOKEN` para requisições `POST`, `PUT` e `DELETE`.
    - **Exceções de CSRF:** Rotas públicas de login, recuperação de senha, `/health` e `/whatsapp/**` estão isentas.
 3. **Configuração CORS:**
-   - Origens liberadas: `http://localhost:5173`, `http://localhost:3000`, `http://localhost:8080` e `https://api.z-api.io`.
+   - Origens liberadas: `http://localhost:5173`, `http://localhost:4173` (preview), `http://localhost:3000`, `http://localhost:8080` e `https://api.z-api.io`.
    - A rota `/whatsapp/**` possui política permissiva dedicada para não bloquear requisições disparadas por robôs e webhooks da Z-API.
 
 ---

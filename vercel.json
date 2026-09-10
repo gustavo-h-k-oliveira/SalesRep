@@ -1,11 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/sagra-analytics/",
-      "permanent": false
-    }
-  ],
   "rewrites": [
     {
       "source": "/sagra-analytics/assets/:path*",
@@ -20,11 +13,7 @@
       "destination": "/cropped-logo-sagra.png"
     },
     {
-      "source": "/sagra-analytics/:path*",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/(.*)",
+      "source": "/sagra-analytics/((?!assets/|chart1-5|cropped-logo).*)",
       "destination": "/index.html"
     }
   ]
