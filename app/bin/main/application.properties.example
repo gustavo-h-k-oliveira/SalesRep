@@ -49,5 +49,14 @@ spring.data.web.pageable.page-serialization-mode=via_dto
 # ==========================================
 # CORS & Security Configuration
 # ==========================================
-app.cors.allowed-origins=${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000,http://localhost:8080}
+app.cors.allowed-origins=${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:4173,http://localhost:3000,http://localhost:8080}
 app.security.csrf.enabled=${APP_SECURITY_CSRF_ENABLED:true}
+
+# ==========================================
+# Configurações Z-API / WhatsApp
+# ==========================================
+whatsapp.enabled=${WHATSAPP_ENABLED:true}
+whatsapp.api-url=${WHATSAPP_API_URL}
+whatsapp.instance-id=${WHATSAPP_INSTANCE_ID}
+whatsapp.token=${WHATSAPP_TOKEN}
+whatsapp.client-token=${WHATSAPP_CLIENT_TOKEN}
