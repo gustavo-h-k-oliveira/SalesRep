@@ -21,42 +21,27 @@ public class ClienteService {
     private final ClienteRepository clienteRepository;
 
     // Métodos de consulta
-    @Transactional
     public Page<Cliente> encontrarTodos(Pageable paginacao) {
-        atualizarStatusDeTodos();
         return clienteRepository.findAll(paginacao);
     }
 
-    @Transactional
     public Cliente encontrarPorId(Long id) {
-        Cliente cliente = clienteRepository.findById(id).orElse(null);
-        if (cliente != null) {
-            atualizarStatusPorUltimaCompra(cliente);
-        }
-        return cliente;
+        return clienteRepository.findById(id).orElse(null);
     }
 
-    @Transactional
     public List<Cliente> encontrarInativos() {
-        atualizarStatusDeTodos();
         return clienteRepository.findByStatus(StatusCliente.INATIVO);
     }
 
-    @Transactional
     public List<Cliente> encontrarPorRegiao(Long regiaoId) {
-        atualizarStatusDeTodos();
         return clienteRepository.findByRegiaoId(regiaoId);
     }
 
-    @Transactional
     public List<Cliente> encontrarPorRepresentante(Long representanteId) {
-        atualizarStatusDeTodos();
         return clienteRepository.findByRepresentanteId(representanteId);
     }
 
-    @Transactional
     public List<Cliente> encontrarPorStatus(StatusCliente status) {
-        atualizarStatusDeTodos();
         return clienteRepository.findByStatus(status);
     }
 

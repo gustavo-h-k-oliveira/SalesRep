@@ -43,6 +43,7 @@ public class Cliente {
     private @NotNull Representante representante;
 
     @OneToMany(mappedBy = "cliente")
+    @org.hibernate.annotations.BatchSize(size = 100)
     private List<Pedido> pedidos;
     
     private @NotNull LocalDate ultimaCompra;

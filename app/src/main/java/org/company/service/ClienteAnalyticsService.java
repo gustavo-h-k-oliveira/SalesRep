@@ -51,13 +51,18 @@ public class ClienteAnalyticsService {
         return (representanteId == null
             ? clienteRepository.findAll()
             : clienteRepository.findByRepresentanteId(representanteId)).stream()
-            .map(cliente -> new ClienteScore(cliente, clienteAnalytics.calcularScore(cliente)))
-            .sorted(Comparator.comparingDouble((ClienteScore clienteScore) -> clienteScore.score).reversed())
-            .map(clienteScore -> clienteDtoMapper.toClientePrioritarioDto(
-                clienteScore.cliente,
-                clienteScore.score,
-                clienteAnalytics.calcularTicketMedio(clienteScore.cliente),
-                clienteAnalytics.calcularTotalPedidos(clienteScore.cliente)
+            .map(cliente -> {
+                double score = clienteAnalytics.calcularScore(cliente);
+                BigDecimal ticketMedio = clienteAnalytics.calcularTicketMedio(cliente);
+                int totalPedidos = clienteAnalytics.calcularTotalPedidos(cliente);
+                return new ClienteScore(cliente, score, ticketMedio, totalPedidos);
+            })
+            .sorted(Comparator.comparingDouble((ClienteScore cs) -> cs.score).reversed())
+            .map(cs -> clienteDtoMapper.toClientePrioritarioDto(
+                cs.cliente,
+                cs.score,
+                cs.ticketMedio,
+                cs.totalPedidos
             ))
             .collect(Collectors.toList());
     }
@@ -264,5 +269,5 @@ public class ClienteAnalyticsService {
         }
     }
 
-    private record ClienteScore(Cliente cliente, double score) {}
+    private record ClienteScore(Cliente cliente, double score, BigDecimal ticketMedio, int totalPedidos) {}
 }
