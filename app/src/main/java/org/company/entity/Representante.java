@@ -31,6 +31,11 @@ public class Representante {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @Valid
+    @JoinColumn(name = "estado_id")
+    private Estado estado;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @Valid
     @JoinColumn(name = "regiao_id")
     private @NotNull Regiao regiao;
 

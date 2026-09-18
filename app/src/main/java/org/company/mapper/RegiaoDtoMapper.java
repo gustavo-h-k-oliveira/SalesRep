@@ -11,7 +11,6 @@ public class RegiaoDtoMapper {
         return new RegiaoResponseDto(
             regiao.getId(),
             regiao.getNome(),
-            regiao.getUf(),
             regiao.getGerenteRegional(),
             regiao.getStatus()
         );

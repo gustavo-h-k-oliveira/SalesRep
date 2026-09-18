@@ -14,7 +14,8 @@ public class ClienteRequestDto {
     @NotBlank
     private String nome;
 
-    @NotNull
+    private Long estadoId;
+
     private Long regiaoId;
 
     @NotNull

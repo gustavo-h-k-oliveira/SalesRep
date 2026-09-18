@@ -19,12 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { isGestor } from '../services/authService'
 import {
   MagnifyingGlassIcon,
   UsersIcon,
   CurrencyDollarIcon,
   MapPinIcon,
   UserIcon,
+  UserPlusIcon,
 } from '@phosphor-icons/react'
 
 interface RepresentanteComMetricas extends RepresentanteResponse {
@@ -96,7 +98,13 @@ export default function RepresentantesPage() {
     value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
   const regiaoItems = useMemo(() => {
-    const uniqueNames = Array.from(new Set(representantes.map((r) => r.regiaoNome).filter(Boolean)))
+    const uniqueNames = Array.from(
+      new Set(
+        representantes
+          .map((r) => r.estadoNome || r.regiaoNome)
+          .filter((n): n is string => Boolean(n))
+      )
+    )
     return [
       { value: 'ALL', label: 'Todas as Regiões' },
       ...uniqueNames.map((nome) => ({ value: nome, label: nome })),
@@ -105,13 +113,17 @@ export default function RepresentantesPage() {
 
   const filteredRepresentantes = useMemo(() => {
     return representantes.filter((rep) => {
+      const term = searchTerm.toLowerCase()
       const matchesSearch =
-        rep.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        rep.regiaoNome.toLowerCase().includes(searchTerm.toLowerCase())
+        rep.nome.toLowerCase().includes(term) ||
+        Boolean(rep.estadoNome && rep.estadoNome.toLowerCase().includes(term)) ||
+        Boolean(rep.estadoUf && rep.estadoUf.toLowerCase().includes(term)) ||
+        Boolean(rep.regiaoNome && rep.regiaoNome.toLowerCase().includes(term))
       const matchesRegiao =
         selectedRegiao === 'ALL' ||
         selectedRegiao === '' ||
-        (rep.regiaoNome && rep.regiaoNome === selectedRegiao)
+        rep.regiaoNome === selectedRegiao ||
+        rep.estadoNome === selectedRegiao
       return matchesSearch && matchesRegiao
     })
   }, [representantes, searchTerm, selectedRegiao])
@@ -125,15 +137,15 @@ export default function RepresentantesPage() {
 
   return (
     <div className="w-full rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-slate-100 pb-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-slate-100 pb-6">
         <div>
           <h1 className="text-3xl font-semibold text-slate-900">Equipe de Representantes</h1>
           <p className="mt-2 text-sm text-slate-500">
             Gerencie e acompanhe o desempenho individual de vendas e cobertura de clientes dos representantes comerciais.
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto md:max-w-md shrink-0">
-          <div className="relative flex-1">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto shrink-0">
+          <div className="relative flex-1 sm:w-56">
             <span className="absolute inset-y-0 left-3 flex items-center text-slate-400 pointer-events-none">
               <MagnifyingGlassIcon className="h-5 w-5" />
             </span>
@@ -142,11 +154,11 @@ export default function RepresentantesPage() {
               placeholder="Buscar por nome..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 rounded-2xl border-slate-200 bg-white min-w-[200px]"
+              className="pl-10 rounded-2xl border-slate-200 bg-white"
             />
           </div>
           <Select value={selectedRegiao} onValueChange={(val) => setSelectedRegiao(val || 'ALL')} items={regiaoItems}>
-            <SelectTrigger className="w-full sm:w-[200px] rounded-2xl bg-white border-slate-200 text-slate-700 font-semibold h-9 px-4">
+            <SelectTrigger className="w-full sm:w-[190px] rounded-2xl bg-white border-slate-200 text-slate-700 font-semibold h-9 px-4">
               <SelectValue placeholder="Todas as Regiões" />
             </SelectTrigger>
             <SelectPortal>
@@ -160,6 +172,15 @@ export default function RepresentantesPage() {
               </SelectContent>
             </SelectPortal>
           </Select>
+          {isGestor() && (
+            <Link
+              to="/representantes/novo"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-emerald-700 active:scale-95 transition-all shrink-0"
+            >
+              <UserPlusIcon className="h-4 w-4" weight="bold" />
+              <span>Novo Representante</span>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -180,7 +201,7 @@ export default function RepresentantesPage() {
                 <TableRow className="bg-slate-50/75 hover:bg-slate-50/75">
                   <TableHead className="w-[80px]">ID</TableHead>
                   <TableHead>Representante</TableHead>
-                  <TableHead>Região de Atuação</TableHead>
+                  <TableHead>Estado / Região</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead className="text-right">Clientes Carteira</TableHead>
                   <TableHead className="text-right">Faturamento</TableHead>
@@ -203,8 +224,15 @@ export default function RepresentantesPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5 text-slate-600">
-                        <MapPinIcon className="h-4 w-4 text-slate-400" />
-                        <span>{rep.regiaoNome}</span>
+                        <MapPinIcon className="h-4 w-4 text-slate-400 shrink-0" />
+                        <div>
+                          <span className="font-medium text-slate-800">
+                            {rep.estadoNome ? `${rep.estadoNome} (${rep.estadoUf})` : rep.regiaoNome}
+                          </span>
+                          {rep.estadoNome && rep.regiaoNome && (
+                            <span className="block text-[11px] text-slate-400">{rep.regiaoNome}</span>
+                          )}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-slate-600 font-medium">{rep.telefone}</TableCell>

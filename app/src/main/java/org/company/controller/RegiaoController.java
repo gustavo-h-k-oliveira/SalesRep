@@ -8,7 +8,6 @@ import org.company.dto.RegiaoResponseDto;
 import org.company.dto.ClienteResponseDto;
 import org.company.dto.RepresentanteResponseDto;
 import org.company.entity.Regiao;
-import org.company.entity.Uf;
 import org.company.mapper.RegiaoDtoMapper;
 import org.company.mapper.ClienteDtoMapper;
 import org.company.mapper.RepresentanteDtoMapper;
@@ -52,13 +51,6 @@ public class RegiaoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/uf/{uf}")
-    public List<RegiaoResponseDto> listarPorUf(@PathVariable Uf uf) {
-        return regiaoService.encontrarPorUf(uf).stream()
-                .map(regiaoDtoMapper::toRegiaoResponseDto)
-                .toList();
-    }
-
     @GetMapping("/{id}/clientes")
     public List<ClienteResponseDto> listarClientes(@PathVariable Long id) {
         return regiaoService.encontrarClientesPorRegiao(id).stream()
@@ -96,7 +88,6 @@ public class RegiaoController {
     private Regiao construirRegiao(RegiaoRequestDto dto) {
         Regiao regiao = new Regiao();
         regiao.setNome(dto.getNome());
-        regiao.setUf(dto.getUf());
         regiao.setGerenteRegional(dto.getGerenteRegional());
         regiao.setStatus(dto.getStatus());
         return regiao;
@@ -104,7 +95,6 @@ public class RegiaoController {
 
     private void atualizarRegiao(Regiao regiao, RegiaoRequestDto dto) {
         regiao.setNome(dto.getNome());
-        regiao.setUf(dto.getUf());
         regiao.setGerenteRegional(dto.getGerenteRegional());
         regiao.setStatus(dto.getStatus());
     }

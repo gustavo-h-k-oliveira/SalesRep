@@ -55,6 +55,7 @@ public class Pedido {
     private @NotNull StatusAutorizacaoComercial autorizacaoComercial;
 
     @OneToMany(mappedBy = "pedido")
+    @org.hibernate.annotations.BatchSize(size = 100)
     private List<PedidoItem> itens;
 
     // Métodos de consulta

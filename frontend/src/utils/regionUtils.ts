@@ -92,14 +92,31 @@ export function matchesRegionFilter(
   clientRegiaoNome?: string | null,
   clientRegiaoId?: number | null,
   filterTarget?: string | null,
-  regioesList: { id: number; uf?: string; nome?: string }[] = []
+  regioesList: { id: number; uf?: string; nome?: string }[] = [],
+  clientEstadoNome?: string | null,
+  clientEstadoUf?: string | null
 ): boolean {
   if (!filterTarget || filterTarget === 'ALL') return true
 
   const targetClean = filterTarget.trim().toUpperCase()
   const targetMacro = getMacrorregiao(filterTarget)
 
-  // 1. Avalia pelo regiaoNome do cliente
+  // 1. Avalia por clientEstadoUf e clientEstadoNome
+  if (clientEstadoUf) {
+    const ufClean = clientEstadoUf.trim().toUpperCase()
+    if (ufClean === targetClean) return true
+    if (targetMacro && UF_TO_MACRO[ufClean] === targetMacro) return true
+  }
+
+  if (clientEstadoNome) {
+    const estClean = clientEstadoNome.trim().toUpperCase()
+    if (estClean === targetClean) return true
+    const estUf = STATE_NAME_TO_UF[estClean]
+    if (estUf && estUf === targetClean) return true
+    if (targetMacro && estUf && UF_TO_MACRO[estUf] === targetMacro) return true
+  }
+
+  // 2. Avalia pelo regiaoNome do cliente
   if (clientRegiaoNome) {
     const clientMacro = getMacrorregiao(clientRegiaoNome)
     const clientRegClean = clientRegiaoNome.trim().toUpperCase()
@@ -115,7 +132,7 @@ export function matchesRegionFilter(
     if (clientUf && clientUf === targetClean) return true
   }
 
-  // 2. Avalia pelo regiaoId do cliente cruzado com a lista de entidades Regiao
+  // 3. Avalia pelo regiaoId do cliente cruzado com a lista de entidades Regiao
   if (clientRegiaoId && regioesList.length > 0) {
     const reg = regioesList.find((r) => r.id === clientRegiaoId)
     if (reg) {

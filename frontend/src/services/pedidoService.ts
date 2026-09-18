@@ -1,5 +1,5 @@
 import { apiFetch } from './api'
-import type { PedidoResponse } from '../types/api'
+import type { PedidoRequest, PedidoResponse } from '../types/api'
 
 export async function fetchPedidos(): Promise<PedidoResponse[]> {
   const data = await apiFetch<PedidoResponse[] | { content: PedidoResponse[] }>('/pedidos?size=1000')
@@ -41,4 +41,11 @@ export async function fetchPedidosFaturados(): Promise<PedidoResponse[]> {
 
 export async function fetchPedidosNaoFaturados(): Promise<PedidoResponse[]> {
   return apiFetch<PedidoResponse[]>('/pedidos/nao-faturados')
+}
+
+export async function createPedido(data: PedidoRequest): Promise<PedidoResponse> {
+  return apiFetch<PedidoResponse>('/pedidos', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
 }

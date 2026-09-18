@@ -18,6 +18,7 @@ import org.company.service.AlertaService;
 import org.company.dto.AlertaDto;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 
+import org.company.entity.Estado;
+import org.company.service.EstadoService;
+
 @RestController
 @RequestMapping("/representantes")
 @RequiredArgsConstructor
@@ -36,6 +40,7 @@ public class RepresentanteController {
 
     private final RepresentanteService representanteService;
     private final RegiaoService regiaoService;
+    private final EstadoService estadoService;
     private final AlertaService alertaService;
     private final RepresentanteDtoMapper representanteDtoMapper;
     private final ClienteDtoMapper clienteDtoMapper;
@@ -63,6 +68,13 @@ public class RepresentanteController {
             .toList();
     }
 
+    @GetMapping("/estado/{estadoId}")
+    public List<RepresentanteResponseDto> listarPorEstado(@PathVariable Long estadoId) {
+        return representanteService.encontrarPorEstado(estadoId).stream()
+            .map(representanteDtoMapper::toRepresentanteResponseDto)
+            .toList();
+    }
+
     @GetMapping("/{id}/clientes")
     public List<ClienteResponseDto> listarClientes(@PathVariable Long id) {
         return representanteService.encontrarClientesDoRepresentante(id).stream()
@@ -83,6 +95,7 @@ public class RepresentanteController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('GESTOR')")
     public ResponseEntity<RepresentanteResponseDto> criar(@Valid @RequestBody RepresentanteRequestDto dto) {
         try {
             Representante salvo = representanteService.salvar(construirRepresentante(dto));
@@ -93,6 +106,7 @@ public class RepresentanteController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('GESTOR')")
     public ResponseEntity<RepresentanteResponseDto> atualizar(@PathVariable Long id, @Valid @RequestBody RepresentanteRequestDto dto) {
         Representante existente = representanteService.encontrarPorId(id);
         if (existente == null) {
@@ -112,7 +126,7 @@ public class RepresentanteController {
         representante.setNome(dto.getNome());
         representante.setCpfCnpj(dto.getCpfCnpj());
         representante.setEmail(dto.getEmail());
-        representante.setRegiao(buscarRegiao(dto.getRegiaoId()));
+        vincularEstadoERegiao(representante, dto);
         representante.setTelefone(dto.getTelefone());
         return representante;
     }
@@ -121,8 +135,23 @@ public class RepresentanteController {
         representante.setNome(dto.getNome());
         representante.setCpfCnpj(dto.getCpfCnpj());
         representante.setEmail(dto.getEmail());
-        representante.setRegiao(buscarRegiao(dto.getRegiaoId()));
+        vincularEstadoERegiao(representante, dto);
         representante.setTelefone(dto.getTelefone());
+    }
+
+    private void vincularEstadoERegiao(Representante representante, RepresentanteRequestDto dto) {
+        if (dto.getEstadoId() != null) {
+            Estado estado = estadoService.encontrarPorId(dto.getEstadoId());
+            if (estado == null) {
+                throw new IllegalArgumentException("Estado não encontrado: " + dto.getEstadoId());
+            }
+            representante.setEstado(estado);
+            representante.setRegiao(estado.getRegiao());
+        } else if (dto.getRegiaoId() != null) {
+            representante.setRegiao(buscarRegiao(dto.getRegiaoId()));
+        } else {
+            throw new IllegalArgumentException("Estado ou Região deve ser informado.");
+        }
     }
 
     private Regiao buscarRegiao(Long regiaoId) {
@@ -134,6 +163,7 @@ public class RepresentanteController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('GESTOR')")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
         representanteService.deletar(id);
         return ResponseEntity.noContent().build();
