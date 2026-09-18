@@ -5,7 +5,6 @@ import java.util.List;
 import org.company.entity.Cliente;
 import org.company.entity.Regiao;
 import org.company.entity.Representante;
-import org.company.entity.Uf;
 import org.company.repository.ClienteRepository;
 import org.company.repository.RegiaoRepository;
 import org.company.repository.RepresentanteRepository;
@@ -44,9 +43,6 @@ public class RegiaoService {
         regiaoRepository.deleteById(id);
     }
 
-    public List<Regiao> encontrarPorUf(Uf uf) {
-        return regiaoRepository.findByUf(uf);
-    }
 
     public List<Cliente> encontrarClientesPorRegiao(Long regiaoId) {
         return clienteRepository.findByRegiaoId(regiaoId);

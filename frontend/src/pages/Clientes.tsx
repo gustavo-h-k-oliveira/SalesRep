@@ -95,7 +95,7 @@ export default function ClientesPage() {
   const filteredClientes = useMemo(() => {
     return clientes.filter((cliente) => {
       const matchesSearch = cliente.nome.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesRegiao = matchesRegionFilter(cliente.regiaoNome, cliente.regiaoId, selectedRegiao, regioes)
+      const matchesRegiao = matchesRegionFilter(cliente.regiaoNome, cliente.regiaoId, selectedRegiao, regioes, cliente.estadoNome, cliente.estadoUf)
       const matchesStatus =
         selectedStatus === 'ALL' ||
         selectedStatus === '' ||

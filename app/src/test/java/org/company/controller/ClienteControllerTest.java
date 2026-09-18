@@ -12,6 +12,7 @@ import java.util.Set;
 import org.company.dto.ClienteRequestDto;
 import org.company.dto.ClienteResponseDto;
 import org.company.entity.Cliente;
+import org.company.entity.Estado;
 import org.company.entity.Regiao;
 import org.company.entity.Representante;
 import org.company.entity.StatusCliente;
@@ -60,20 +61,28 @@ class ClienteControllerTest {
         Regiao regiao = new Regiao();
         regiao.setId(1L);
         regiao.setNome("Sul");
-        regiao.setUf(Uf.PR);
         regiao.setGerenteRegional("Gerente Sul");
         regiao.setStatus(StatusRegiao.NORMAL);
+
+        Estado estado = new Estado();
+        estado.setId(10L);
+        estado.setNome("Paraná");
+        estado.setUf(Uf.PR);
+        estado.setRegiao(regiao);
+        estado.setStatus(StatusRegiao.NORMAL);
 
         Representante representante = new Representante();
         representante.setId(2L);
         representante.setNome("João");
         representante.setTelefone("(41) 99999-9999");
         representante.setRegiao(regiao);
+        representante.setEstado(estado);
 
         Cliente cliente = new Cliente();
         cliente.setId(100L);
         cliente.setNome("Cliente Teste");
         cliente.setRegiao(regiao);
+        cliente.setEstado(estado);
         cliente.setRepresentante(representante);
         cliente.setUltimaCompra(LocalDate.of(2026, 5, 1));
         cliente.setStatus(StatusCliente.ATIVO);
@@ -83,6 +92,9 @@ class ClienteControllerTest {
         assertNotNull(response);
         assertEquals(100L, response.id());
         assertEquals("Cliente Teste", response.nome());
+        assertEquals(10L, response.estadoId());
+        assertEquals("Paraná", response.estadoNome());
+        assertEquals(Uf.PR, response.estadoUf());
         assertEquals(1L, response.regiaoId());
         assertEquals("Sul", response.regiaoNome());
         assertEquals(2L, response.representanteId());

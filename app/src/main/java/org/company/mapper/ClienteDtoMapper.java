@@ -20,6 +20,9 @@ public class ClienteDtoMapper {
             cliente.getDiasSemCompra(),
             ticketMedio.setScale(2, RoundingMode.HALF_UP),
             totalPedidos,
+            cliente.getEstado() != null ? cliente.getEstado().getId() : null,
+            cliente.getEstado() != null ? cliente.getEstado().getNome() : null,
+            cliente.getEstado() != null ? cliente.getEstado().getUf() : null,
             cliente.getRegiao() != null ? cliente.getRegiao().getId() : null,
             cliente.getRegiao() != null ? cliente.getRegiao().getNome() : null,
             cliente.getStatus().name()
@@ -45,6 +48,9 @@ public class ClienteDtoMapper {
         return new ClienteResponseDto(
             cliente.getId(),
             cliente.getNome(),
+            cliente.getEstado() != null ? cliente.getEstado().getId() : null,
+            cliente.getEstado() != null ? cliente.getEstado().getNome() : null,
+            cliente.getEstado() != null ? cliente.getEstado().getUf() : null,
             cliente.getRegiao() != null ? cliente.getRegiao().getId() : null,
             cliente.getRegiao() != null ? cliente.getRegiao().getNome() : null,
             cliente.getRepresentante() != null ? cliente.getRepresentante().getId() : null,

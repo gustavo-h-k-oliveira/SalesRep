@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type {
   RegiaoResponse,
+  EstadoResponse,
   ClienteResponse,
   RepresentanteResponse,
   ClientePrioritarioDto,
   PedidoResponse,
 } from '../types/api'
+import { fetchEstados } from '../services/estadoService'
 import {
   MapPinIcon,
   XIcon,
@@ -44,6 +46,7 @@ export interface EstadoData {
 }
 
 interface MapaBrasilSvgProps {
+  estados?: EstadoResponse[]
   regioes?: RegiaoResponse[]
   clientes?: ClienteResponse[]
   representantes?: RepresentanteResponse[]
@@ -89,6 +92,7 @@ const ESTADOS_INFO: Record<string, { nome: string; regiaoMacro: EstadoData['regi
 }
 
 export default function MapaBrasilSvg({
+  estados = [],
   regioes = [],
   clientes = [],
   representantes = [],
@@ -105,6 +109,19 @@ export default function MapaBrasilSvg({
   const [selectedUf, setSelectedUf] = useState<string | null>(selectedUfFilter || null)
   const [hoveredUf, setHoveredUf] = useState<string | null>(null)
   const [activeData, setActiveData] = useState<EstadoData | null>(null)
+  const [internalEstados, setInternalEstados] = useState<EstadoResponse[]>([])
+
+  useEffect(() => {
+    if (!estados || estados.length === 0) {
+      fetchEstados()
+        .then((data) => {
+          if (Array.isArray(data)) setInternalEstados(data)
+        })
+        .catch(() => {})
+    }
+  }, [estados])
+
+  const safeEstados = estados && estados.length > 0 ? estados : internalEstados
 
   useEffect(() => {
     setSelectedUf(selectedUfFilter || null)
@@ -122,27 +139,41 @@ export default function MapaBrasilSvg({
     const safeClientes = rawClientes as any[]
     const safeRepresentantes = representantes || []
     const safePedidos = pedidos || []
-    const safePrioritarios = clientesPrioritarios || []
+    const safePrioritarios = (clientesPrioritarios || []) as any[]
     const safeRegioesCriticas = regioesCriticas || []
 
-    // Procura todas as entidades Regiao que correspondam ao UF ou Nome do Estado
-    const regioesUf = safeRegioes.filter(
-      (r) =>
-        r &&
-        (r.uf === uf ||
-          (r.nome &&
-            (r.nome.toUpperCase() === uf ||
-              r.nome.toLowerCase() === info.nome.toLowerCase())))
+    // 1. Encontra a entidade Estado correspondente ao UF
+    const estadoObj = safeEstados.find(
+      (e) =>
+        e &&
+        (e.uf === uf ||
+          (e.nome &&
+            (e.nome.toUpperCase() === uf ||
+              e.nome.toUpperCase() === info.nome.toUpperCase())))
     )
-    const regiaoIdsUf = new Set(regioesUf.map((r) => r.id))
+    const estadoId = estadoObj?.id
 
-    // Filtra clientes dessa região/UF
-    const clientesUf = safeClientes.filter((c) => {
-      if (!c) return false
-      if (c.regiaoId && regiaoIdsUf.has(c.regiaoId)) return true
-      if (c.regiaoNome) {
-        const rUpper = c.regiaoNome.toUpperCase()
-        const rLower = c.regiaoNome.toLowerCase()
+    // 2. Encontra a Macrorregião (Regiao) para obter o Gerente Regional
+    const regiaoMacroObj = safeRegioes.find(
+      (r) =>
+        (estadoObj && r.id === estadoObj.regiaoId) ||
+        (r.nome && r.nome.toLowerCase() === info.regiaoMacro.toLowerCase())
+    )
+    const gerenteRegional = regiaoMacroObj?.gerenteRegional || 'Não atribuído'
+
+    // 3. Helper de correspondência de cliente / representante / pedido à UF
+    const matchesUf = (item: any) => {
+      if (!item) return false
+      if (item.estadoUf && item.estadoUf.toUpperCase() === uf) return true
+      if (estadoId && item.estadoId === estadoId) return true
+      if (item.estadoNome && (
+        item.estadoNome.toUpperCase() === uf ||
+        item.estadoNome.toLowerCase() === info.nome.toLowerCase()
+      )) return true
+      // Compatibilidade legada caso ainda use regiaoNome / regiaoId para o estado
+      if (item.regiaoNome) {
+        const rUpper = item.regiaoNome.toUpperCase()
+        const rLower = item.regiaoNome.toLowerCase()
         if (
           rUpper === uf ||
           rUpper === info.nome.toUpperCase() ||
@@ -152,7 +183,11 @@ export default function MapaBrasilSvg({
         }
       }
       return false
-    })
+    }
+
+    // Filtra clientes dessa região/UF
+    const clientesUf = safeClientes.filter(matchesUf)
+    const clientesUfIds = new Set(clientesUf.map((c) => c.id))
 
     let clientesAtivosCount = 0
     let clientesInativosCount = 0
@@ -185,20 +220,13 @@ export default function MapaBrasilSvg({
       clientesInativosCount = Math.max(0, clientesUf.length - clientesAtivosCount)
     }
 
-    // Representantes associados à região
-    const repUf = safeRepresentantes.filter(
-      (r) =>
-        r &&
-        ((r.regiaoId && regiaoIdsUf.has(r.regiaoId)) ||
-          (r.regiaoNome &&
-            (r.regiaoNome.toUpperCase() === uf ||
-              r.regiaoNome.toLowerCase() === info.nome.toLowerCase())))
-    )
+    // Representantes associados à UF
+    const repUf = safeRepresentantes.filter(matchesUf)
 
-    // Pedidos faturados dessa região (filtrados pelo mês de referência se selecionado)
+    // Pedidos faturados dessa UF
     const pedidosUf = safePedidos.filter((p) => {
       if (!p || p.status !== 'FATURADO') return false
-      if (!clientesUf.some((c) => c.id === p.clienteId)) return false
+      if (!clientesUfIds.has(p.clienteId)) return false
       if (selectedMesFilter && selectedMesFilter !== 'ALL' && p.dataEmissao) {
         return p.dataEmissao.startsWith(selectedMesFilter)
       }
@@ -207,35 +235,27 @@ export default function MapaBrasilSvg({
 
     const faturamentoTotal = pedidosUf.reduce((sum, p) => sum + (p.valorTotal || 0), 0)
 
-    const faturamentoFinal = faturamentoTotal
-
     // Clientes em Risco / Prioritários
-    const prioritariosUf = safePrioritarios.filter(
-      (cp) =>
-        cp &&
-        ((cp.regiaoId && regiaoIdsUf.has(cp.regiaoId)) ||
-          (cp.regiaoNome &&
-            (cp.regiaoNome.toUpperCase() === uf ||
-              cp.regiaoNome.toLowerCase() === info.nome.toLowerCase())))
-    )
+    const prioritariosUf = safePrioritarios.filter(matchesUf)
 
     const isCritica = safeRegioesCriticas.some(
       (rc) =>
         rc &&
         (rc.toUpperCase() === uf ||
-          rc.toLowerCase() === info.nome.toLowerCase())
+          rc.toLowerCase() === info.nome.toLowerCase() ||
+          rc.toLowerCase() === info.regiaoMacro.toLowerCase())
     )
 
     return {
       uf,
       nome: info.nome,
       regiaoMacro: info.regiaoMacro,
-      faturamento: faturamentoFinal,
+      faturamento: faturamentoTotal,
       clientesAtivos: clientesAtivosCount,
       clientesInativos: clientesInativosCount,
       representantes: repUf,
       clientesPrioritarios: prioritariosUf,
-      gerenteRegional: regioesUf[0]?.gerenteRegional || 'Não atribuído',
+      gerenteRegional,
       isCritica,
     }
   }

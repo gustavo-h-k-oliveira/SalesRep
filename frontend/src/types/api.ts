@@ -41,6 +41,9 @@ export interface ClientePrioritarioDto {
   diasSemCompra: number
   ticketMedio: number
   totalPedidos: number
+  estadoId?: number
+  estadoNome?: string
+  estadoUf?: string
   regiaoId?: number
   regiaoNome?: string
   status: string
@@ -65,8 +68,11 @@ export interface PageResponse<T> {
 export interface ClienteResponse {
   id: number
   nome: string
-  regiaoId: number
-  regiaoNome: string
+  estadoId?: number
+  estadoNome?: string
+  estadoUf?: string
+  regiaoId?: number
+  regiaoNome?: string
   representanteId: number
   representanteNome: string
   ultimaCompra: string
@@ -77,6 +83,7 @@ export interface ClientePerfilDto {
   id: number
   nome: string
   representante: string
+  estado?: string
   regiao: string
   status: string
   ultimaCompra: string
@@ -88,7 +95,8 @@ export interface ClientePerfilDto {
 
 export interface ClienteRequest {
   nome: string
-  regiaoId: number
+  estadoId?: number
+  regiaoId?: number
   representanteId: number
   ultimaCompra: string
   status: string
@@ -112,29 +120,50 @@ export interface RepresentanteResponse {
   id: number
   nome: string
   cpfCnpj?: string
-  regiaoId: number
-  regiaoNome: string
+  estadoId?: number
+  estadoNome?: string
+  estadoUf?: string
+  regiaoId?: number
+  regiaoNome?: string
   telefone: string
   email?: string
 }
 
 export interface RepresentanteRequest {
   nome: string
-  regiaoId: number
+  estadoId?: number
+  regiaoId?: number
   telefone: string
+  cpfCnpj?: string
+  email?: string
+}
+
+export interface EstadoResponse {
+  id: number
+  nome: string
+  uf: string
+  regiaoId: number
+  regiaoNome?: string
+  status: string
+}
+
+export interface EstadoRequest {
+  nome: string
+  uf: string
+  regiaoId: number
+  status: string
 }
 
 export interface RegiaoResponse {
   id: number
   nome: string
-  uf: string
+  uf?: string
   gerenteRegional: string
   status: string
 }
 
 export interface RegiaoRequest {
   nome: string
-  uf: string
   gerenteRegional: string
   status: string
 }

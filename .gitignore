@@ -42,3 +42,7 @@ application.properties
 
 # Credentials
 local-credentials.txt
+credentials.txt
+credentials.md
+credenciais.txt
+credenciais.md

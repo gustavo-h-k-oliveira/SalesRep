@@ -12,9 +12,11 @@ import OportunidadesPage from './pages/Oportunidades'
 import ProtectedRoute from './pages/ProtectedRoute'
 import AppLayout from './layouts/AppLayout'
 import RepresentantesPage from './pages/Representantes'
+import RepresentanteCadastroPage from './pages/RepresentanteCadastro'
 import RepresentanteDetalhePage from './pages/RepresentanteDetalhe'
+import RepresentanteRegistroPage from './pages/RepresentanteRegistro'
 import LogsAuditoriaPage from './pages/LogsAuditoria'
-import { isRepresentante } from './services/authService'
+import { isGestor } from './services/authService'
 
 function App() {
   return (
@@ -39,15 +41,23 @@ function App() {
           <Route path="/oportunidades" element={<OportunidadesPage />} />
           <Route
             path="/representantes"
-            element={!isRepresentante() ? <RepresentantesPage /> : <Navigate to="/dashboard" replace />}
+            element={isGestor() ? <RepresentantesPage /> : <Navigate to="/dashboard" replace />}
+          />
+          <Route
+            path="/representantes/novo"
+            element={isGestor() ? <RepresentanteCadastroPage /> : <Navigate to="/dashboard" replace />}
+          />
+          <Route
+            path="/representantes/:id/cadastro"
+            element={isGestor() ? <RepresentanteRegistroPage /> : <Navigate to="/dashboard" replace />}
           />
           <Route
             path="/representantes/:id"
-            element={!isRepresentante() ? <RepresentanteDetalhePage /> : <Navigate to="/dashboard" replace />}
+            element={isGestor() ? <RepresentanteDetalhePage /> : <Navigate to="/dashboard" replace />}
           />
           <Route
             path="/auditoria"
-            element={!isRepresentante() ? <LogsAuditoriaPage /> : <Navigate to="/dashboard" replace />}
+            element={isGestor() ? <LogsAuditoriaPage /> : <Navigate to="/dashboard" replace />}
           />
         </Route>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />

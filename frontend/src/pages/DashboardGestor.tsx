@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import type { DashboardDto, ClientePrioritarioDto, PedidoResponse, RepresentanteResponse, RegiaoResponse, ClienteResponse } from '../types/api'
+import type { DashboardDto, ClientePrioritarioDto, PedidoResponse, RepresentanteResponse, RegiaoResponse, ClienteResponse, EstadoResponse } from '../types/api'
 import { fetchClientesPrioritarios, fetchClientes } from '../services/clienteService'
 import { fetchPedidos } from '../services/pedidoService'
 import { fetchRepresentantes } from '../services/representanteService'
 import { fetchRegioes } from '../services/regiaoService'
+import { fetchEstados } from '../services/estadoService'
 import MapaBrasilSvg from '../components/MapaBrasilSvg'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ReferenceLine } from 'recharts'
 import type { ChartConfig } from '@/components/ui/chart'
@@ -51,6 +52,7 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
   const [pedidos, setPedidos] = useState<PedidoResponse[]>([])
   const [representantes, setRepresentantes] = useState<RepresentanteResponse[]>([])
   const [regioes, setRegioes] = useState<RegiaoResponse[]>([])
+  const [estados, setEstados] = useState<EstadoResponse[]>([])
   const [clientes, setClientes] = useState<ClienteResponse[]>([])
   const [selectedUfFilter, setSelectedUfFilter] = useState<string | null>(null)
   const [selectedMesFilter, setSelectedMesFilter] = useState<string>('ALL')
@@ -59,18 +61,20 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
   useEffect(() => {
     async function loadGestorDashboardData() {
       try {
-        const [prioritariosRes, pedidosRes, representantesRes, regioesRes, clientesRes] = await Promise.allSettled([
+        const [prioritariosRes, pedidosRes, representantesRes, regioesRes, clientesRes, estadosRes] = await Promise.allSettled([
           fetchClientesPrioritarios(),
           fetchPedidos(),
           fetchRepresentantes(),
           fetchRegioes(),
           fetchClientes(),
+          fetchEstados(),
         ])
 
         if (prioritariosRes.status === 'fulfilled' && Array.isArray(prioritariosRes.value)) setPrioritarios(prioritariosRes.value)
         if (pedidosRes.status === 'fulfilled' && Array.isArray(pedidosRes.value)) setPedidos(pedidosRes.value)
         if (representantesRes.status === 'fulfilled' && Array.isArray(representantesRes.value)) setRepresentantes(representantesRes.value)
         if (regioesRes.status === 'fulfilled' && Array.isArray(regioesRes.value)) setRegioes(regioesRes.value)
+        if (estadosRes.status === 'fulfilled' && Array.isArray(estadosRes.value)) setEstados(estadosRes.value)
         if (clientesRes.status === 'fulfilled') {
           const val = clientesRes.value as any
           if (Array.isArray(val)) {
@@ -121,41 +125,63 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
   }, [pedidos])
 
   // 1. Filtragem dinâmica de coleções por Estado (UF)
+  const estadoSelecionado = useMemo(() => {
+    if (!selectedUfFilter) return null
+    const target = selectedUfFilter.trim().toUpperCase()
+    return (estados || []).find(
+      (e) =>
+        e &&
+        (e.uf.toUpperCase() === target ||
+          e.nome.toUpperCase() === target)
+    )
+  }, [estados, selectedUfFilter])
+
   const regioesDoUf = useMemo(() => {
     if (!selectedUfFilter) return regioes
+    if (estadoSelecionado && estadoSelecionado.regiaoId) {
+      return (regioes || []).filter((r) => r && r.id === estadoSelecionado.regiaoId)
+    }
     return (regioes || []).filter(
       (r) =>
         r &&
         (r.uf === selectedUfFilter ||
-          (r.nome && r.nome.toUpperCase() === selectedUfFilter))
+          (r.nome && r.nome.toUpperCase() === selectedUfFilter.toUpperCase()))
     )
-  }, [regioes, selectedUfFilter])
+  }, [regioes, selectedUfFilter, estadoSelecionado])
 
   const regiaoIdsDoUf = useMemo(() => new Set(regioesDoUf.map((r) => r.id)), [regioesDoUf])
 
   const baseClientes = useMemo(() => {
-    return prioritarios && prioritarios.length > 0 ? (prioritarios as any[]) : clientes
-  }, [prioritarios, clientes])
+    return clientes && clientes.length > 0 ? clientes : (prioritarios as any[])
+  }, [clientes, prioritarios])
 
   const clientesFiltrados = useMemo(() => {
     if (!selectedUfFilter) return baseClientes
+    const target = selectedUfFilter.trim().toUpperCase()
     return (baseClientes || []).filter((c) => {
       if (!c) return false
+      if (c.estadoUf && c.estadoUf.toUpperCase() === target) return true
+      if (estadoSelecionado && c.estadoId === estadoSelecionado.id) return true
+      if (c.estadoNome && c.estadoNome.toUpperCase() === target) return true
       if (c.regiaoId && regiaoIdsDoUf.has(c.regiaoId)) return true
-      if (c.regiaoNome && c.regiaoNome.toUpperCase() === selectedUfFilter) return true
+      if (c.regiaoNome && c.regiaoNome.toUpperCase() === target) return true
       return false
     })
-  }, [baseClientes, selectedUfFilter, regiaoIdsDoUf])
+  }, [baseClientes, selectedUfFilter, regiaoIdsDoUf, estadoSelecionado])
 
   const representantesFiltrados = useMemo(() => {
     if (!selectedUfFilter) return representantes
+    const target = selectedUfFilter.trim().toUpperCase()
     return (representantes || []).filter((r) => {
       if (!r) return false
+      if (r.estadoUf && r.estadoUf.toUpperCase() === target) return true
+      if (estadoSelecionado && r.estadoId === estadoSelecionado.id) return true
+      if (r.estadoNome && r.estadoNome.toUpperCase() === target) return true
       if (r.regiaoId && regiaoIdsDoUf.has(r.regiaoId)) return true
-      if (r.regiaoNome && r.regiaoNome.toUpperCase() === selectedUfFilter) return true
+      if (r.regiaoNome && r.regiaoNome.toUpperCase() === target) return true
       return false
     })
-  }, [representantes, selectedUfFilter, regiaoIdsDoUf])
+  }, [representantes, selectedUfFilter, regiaoIdsDoUf, estadoSelecionado])
 
   const pedidosFiltrados = useMemo(() => {
     if (!selectedUfFilter) return pedidos
@@ -178,13 +204,17 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
 
   const prioritariosFiltrados = useMemo(() => {
     if (!selectedUfFilter) return prioritarios
+    const target = selectedUfFilter.trim().toUpperCase()
     return (prioritarios || []).filter((cp) => {
       if (!cp) return false
+      if (cp.estadoUf && cp.estadoUf.toUpperCase() === target) return true
+      if (estadoSelecionado && cp.estadoId === estadoSelecionado.id) return true
+      if (cp.estadoNome && cp.estadoNome.toUpperCase() === target) return true
       if (cp.regiaoId && regiaoIdsDoUf.has(cp.regiaoId)) return true
-      if (cp.regiaoNome && cp.regiaoNome.toUpperCase() === selectedUfFilter) return true
+      if (cp.regiaoNome && cp.regiaoNome.toUpperCase() === target) return true
       return false
     })
-  }, [prioritarios, selectedUfFilter, regiaoIdsDoUf])
+  }, [prioritarios, selectedUfFilter, regiaoIdsDoUf, estadoSelecionado])
 
   const faturamentoConsolidado = useMemo(() => {
     return (pedidosFiltradosPorMes || [])
@@ -470,6 +500,7 @@ export default function DashboardGestor({ data }: DashboardGestorProps) {
 
       {/* Mapa Vetorial do Brasil Interativo por UFs */}
       <MapaBrasilSvg
+        estados={estados}
         regioes={regioes}
         clientes={baseClientes as any}
         representantes={representantes}

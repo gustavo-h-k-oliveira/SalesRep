@@ -33,6 +33,11 @@ public class Cliente {
     private @NotBlank String nome;
     
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "estado_id")
+    @Valid
+    private Estado estado;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "regiao_id")
     @Valid
     private @NotNull Regiao regiao;

@@ -37,6 +37,10 @@ public class ClienteService {
         return clienteRepository.findByRegiaoId(regiaoId);
     }
 
+    public List<Cliente> encontrarPorEstado(Long estadoId) {
+        return clienteRepository.findByEstadoId(estadoId);
+    }
+
     public List<Cliente> encontrarPorRepresentante(Long representanteId) {
         return clienteRepository.findByRepresentanteId(representanteId);
     }

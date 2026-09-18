@@ -15,6 +15,7 @@ import org.company.service.ClienteService;
 import org.company.service.PedidoService;
 import org.company.service.RepresentanteService;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -135,6 +136,7 @@ public class PedidoController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('GESTOR')")
     public ResponseEntity<PedidoResponseDto> criar(@Valid @RequestBody PedidoRequestDto pedidoDto) {
         try {
             Pedido salvo = pedidoService.salvar(construirPedido(pedidoDto));
@@ -145,6 +147,7 @@ public class PedidoController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('GESTOR')")
     public ResponseEntity<PedidoResponseDto> atualizar(@PathVariable Long id, @Valid @RequestBody PedidoRequestDto pedidoDto) {
         Pedido existente = pedidoService.encontrarPorId(id);
         if (existente == null) {
@@ -206,6 +209,7 @@ public class PedidoController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('GESTOR')")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
         pedidoService.deletar(id);
         return ResponseEntity.noContent().build();
