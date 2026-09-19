@@ -142,7 +142,7 @@ export default function RepresentanteDetalhePage() {
     const faturados = pedidos.filter((p) => p.status === 'FATURADO')
     const faturamentoTotal = faturados.reduce((sum, p) => sum + p.valorTotal, 0)
 
-    const pendentes = pedidos.filter((p) => p.status === 'PENDENTE')
+    const pendentes = pedidos.filter((p) => p.status === 'EMITIDO' || p.status === 'PENDENTE' || p.status === 'APROVADO')
     const faturamentoPendente = pendentes.reduce((sum, p) => sum + p.valorTotal, 0)
 
     const ticketMedio = faturados.length > 0 ? faturamentoTotal / faturados.length : 0
@@ -573,7 +573,7 @@ export default function RepresentanteDetalhePage() {
                               variant="outline"
                               className={`px-2.5 py-0.5 rounded-full ${p.status === 'FATURADO'
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50'
-                                : p.status === 'PENDENTE'
+                                : (p.status === 'PENDENTE' || p.status === 'EMITIDO' || p.status === 'APROVADO')
                                   ? 'bg-amber-50 text-amber-700 border-amber-200/50'
                                   : 'bg-slate-50 text-slate-600'
                                 }`}

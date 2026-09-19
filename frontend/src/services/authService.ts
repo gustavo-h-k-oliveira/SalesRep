@@ -91,12 +91,36 @@ export async function redefinirSenha(token: string, novaSenha: string): Promise<
   }
 }
 
-export function saveSession(representanteId?: number, remember = false, token?: string) {
+export function getUserRole(): string | null {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token')
+  if (!token) return null
+  try {
+    const parts = token.split('.')
+    if (parts.length < 2) return null
+    const base64Url = parts[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    )
+    const payload = JSON.parse(jsonPayload)
+    return payload.role ?? null
+  } catch {
+    return null
+  }
+}
+
+export function saveSession(representanteId?: number | null, remember = false, token?: string) {
   if (remember) {
     localStorage.setItem('loggedIn', 'true')
     sessionStorage.removeItem('loggedIn')
     if (representanteId !== undefined && representanteId !== null) {
       localStorage.setItem('representanteId', String(representanteId))
+      sessionStorage.removeItem('representanteId')
+    } else {
+      localStorage.removeItem('representanteId')
       sessionStorage.removeItem('representanteId')
     }
     if (token) {
@@ -108,6 +132,9 @@ export function saveSession(representanteId?: number, remember = false, token?: 
     localStorage.removeItem('loggedIn')
     if (representanteId !== undefined && representanteId !== null) {
       sessionStorage.setItem('representanteId', String(representanteId))
+      localStorage.removeItem('representanteId')
+    } else {
+      sessionStorage.removeItem('representanteId')
       localStorage.removeItem('representanteId')
     }
     if (token) {
@@ -138,9 +165,17 @@ export function getRepresentanteId(): number | null {
 }
 
 export function isRepresentante(): boolean {
+  const role = getUserRole()
+  if (role) {
+    return role === 'REPRESENTANTE'
+  }
   return getRepresentanteId() !== null
 }
 
 export function isGestor(): boolean {
+  const role = getUserRole()
+  if (role) {
+    return role === 'GESTOR'
+  }
   return isLoggedIn() && !isRepresentante()
 }
