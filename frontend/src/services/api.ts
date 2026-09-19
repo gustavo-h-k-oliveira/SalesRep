@@ -33,8 +33,10 @@ async function apiFetch<T>(input: string, init: RequestInit = {}): Promise<T> {
   if (response.status === 401 || response.status === 403) {
     localStorage.removeItem('loggedIn')
     localStorage.removeItem('representanteId')
+    localStorage.removeItem('token')
     sessionStorage.removeItem('loggedIn')
     sessionStorage.removeItem('representanteId')
+    sessionStorage.removeItem('token')
     const base = import.meta.env.BASE_URL || '/'
     const loginPath = `${base.replace(/\/$/, '')}/login`
     if (window.location.pathname !== loginPath) {
