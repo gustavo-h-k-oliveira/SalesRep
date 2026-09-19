@@ -17,8 +17,11 @@ async function apiFetch<T>(input: string, init: RequestInit = {}): Promise<T> {
   }
 
   const method = init.method?.toUpperCase() || 'GET'
+  if (init.body && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json')
+  }
   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
-    const csrfToken = getCookie('XSRF-TOKEN')
+    const csrfToken = getCookie('XSRF-TOKEN') || sessionStorage.getItem('XSRF-TOKEN')
     if (csrfToken) {
       headers.set('X-XSRF-TOKEN', csrfToken)
     }
@@ -30,7 +33,12 @@ async function apiFetch<T>(input: string, init: RequestInit = {}): Promise<T> {
     credentials: 'include',
   })
 
-  if (response.status === 401 || response.status === 403) {
+  const newCsrf = response.headers.get('X-XSRF-TOKEN')
+  if (newCsrf) {
+    sessionStorage.setItem('XSRF-TOKEN', newCsrf)
+  }
+
+  if (response.status === 401) {
     localStorage.removeItem('loggedIn')
     localStorage.removeItem('representanteId')
     localStorage.removeItem('token')

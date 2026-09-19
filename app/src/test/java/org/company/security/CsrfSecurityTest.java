@@ -17,10 +17,12 @@ import jakarta.servlet.http.Cookie;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import org.springframework.test.context.TestPropertySource;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ProdutoController.class)
 @Import({ SecurityConfig.class, JwtAuthenticationFilter.class })
+@TestPropertySource(properties = "app.security.csrf.enabled=true")
 class CsrfSecurityTest {
 
     @Autowired
