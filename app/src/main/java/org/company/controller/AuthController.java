@@ -15,6 +15,7 @@ import org.company.security.SecurityUtils;
 import org.company.security.UsuarioPrincipal;
 import org.company.service.AuthService;
 import org.company.service.LogAuditoriaService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,12 @@ public class AuthController {
 
     private final AuthService authService;
     private final LogAuditoriaService logAuditoriaService;
+
+    @Value("${app.cookie.same-site:Lax}")
+    private String configuredSameSite;
+
+    @Value("${app.cookie.secure:false}")
+    private boolean configuredSecure;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto loginRequest,
@@ -53,12 +60,7 @@ public class AuthController {
         long maxAgeSeconds = (loginRequest.getLembreMe() != null && loginRequest.getLembreMe()) ? 15 * 24 * 60 * 60L
                 : 8 * 60 * 60L;
 
-        ResponseCookie cookie = ResponseCookie.from("AUTH_TOKEN", token)
-                .httpOnly(true)
-                .path("/")
-                .maxAge(Duration.ofSeconds(maxAgeSeconds))
-                .sameSite("Lax")
-                .build();
+        ResponseCookie cookie = buildAuthCookie(token, maxAgeSeconds, request);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -72,15 +74,34 @@ public class AuthController {
             logAuditoriaService.registrarAcesso(user.getUsername(), TipoEvento.LOGOUT, request);
         }
 
-        ResponseCookie cookie = ResponseCookie.from("AUTH_TOKEN", "")
-                .httpOnly(true)
-                .path("/")
-                .maxAge(0)
-                .sameSite("Lax")
-                .build();
+        ResponseCookie cookie = buildAuthCookie("", 0L, request);
 
         servletResponse.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.noContent().build();
+    }
+
+    private ResponseCookie buildAuthCookie(String token, long maxAgeSeconds, HttpServletRequest request) {
+        boolean isHttps = configuredSecure || request.isSecure()
+                || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
+
+        // Em conexões HTTPS / Cross-Site, se o SameSite configurado for o default
+        // "Lax", promove para "None"
+        String sameSite = configuredSameSite;
+        if (isHttps && "Lax".equalsIgnoreCase(configuredSameSite)) {
+            sameSite = "None";
+        }
+
+        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from("AUTH_TOKEN", token)
+                .httpOnly(true)
+                .path("/")
+                .maxAge(Duration.ofSeconds(maxAgeSeconds))
+                .sameSite(sameSite);
+
+        if (isHttps || "None".equalsIgnoreCase(sameSite)) {
+            builder.secure(true);
+        }
+
+        return builder.build();
     }
 
     @PostMapping("/recuperar-senha")
