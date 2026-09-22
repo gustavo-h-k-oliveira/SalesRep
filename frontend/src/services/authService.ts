@@ -98,7 +98,10 @@ export function getUserRole(): string | null {
     const parts = token.split('.')
     if (parts.length < 2) return null
     const base64Url = parts[1]
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    while (base64.length % 4 !== 0) {
+      base64 += '='
+    }
     const jsonPayload = decodeURIComponent(
       atob(base64)
         .split('')
@@ -167,7 +170,8 @@ export function getRepresentanteId(): number | null {
 export function isRepresentante(): boolean {
   const role = getUserRole()
   if (role) {
-    return role === 'REPRESENTANTE'
+    const normalized = role.toUpperCase()
+    return normalized === 'REPRESENTANTE' || normalized === 'ROLE_REPRESENTANTE'
   }
   return getRepresentanteId() !== null
 }
@@ -175,7 +179,8 @@ export function isRepresentante(): boolean {
 export function isGestor(): boolean {
   const role = getUserRole()
   if (role) {
-    return role === 'GESTOR'
+    const normalized = role.toUpperCase()
+    return normalized === 'GESTOR' || normalized === 'ROLE_GESTOR'
   }
   return isLoggedIn() && !isRepresentante()
 }
