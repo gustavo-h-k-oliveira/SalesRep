@@ -99,6 +99,7 @@ public class AuthController {
 
         if (isHttps || "None".equalsIgnoreCase(sameSite)) {
             builder.secure(true);
+            builder.partitioned(true);
         }
 
         return builder.build();

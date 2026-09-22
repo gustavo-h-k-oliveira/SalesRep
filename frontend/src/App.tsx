@@ -16,7 +16,7 @@ import RepresentanteCadastroPage from './pages/RepresentanteCadastro'
 import RepresentanteDetalhePage from './pages/RepresentanteDetalhe'
 import RepresentanteRegistroPage from './pages/RepresentanteRegistro'
 import LogsAuditoriaPage from './pages/LogsAuditoria'
-import { isGestor } from './services/authService'
+import GestorRoute from './pages/GestorRoute'
 
 function App() {
   return (
@@ -41,23 +41,43 @@ function App() {
           <Route path="/oportunidades" element={<OportunidadesPage />} />
           <Route
             path="/representantes"
-            element={isGestor() ? <RepresentantesPage /> : <Navigate to="/dashboard" replace />}
+            element={
+              <GestorRoute>
+                <RepresentantesPage />
+              </GestorRoute>
+            }
           />
           <Route
             path="/representantes/novo"
-            element={isGestor() ? <RepresentanteCadastroPage /> : <Navigate to="/dashboard" replace />}
+            element={
+              <GestorRoute>
+                <RepresentanteCadastroPage />
+              </GestorRoute>
+            }
           />
           <Route
             path="/representantes/:id/cadastro"
-            element={isGestor() ? <RepresentanteRegistroPage /> : <Navigate to="/dashboard" replace />}
+            element={
+              <GestorRoute>
+                <RepresentanteRegistroPage />
+              </GestorRoute>
+            }
           />
           <Route
             path="/representantes/:id"
-            element={isGestor() ? <RepresentanteDetalhePage /> : <Navigate to="/dashboard" replace />}
+            element={
+              <GestorRoute>
+                <RepresentanteDetalhePage />
+              </GestorRoute>
+            }
           />
           <Route
             path="/auditoria"
-            element={isGestor() ? <LogsAuditoriaPage /> : <Navigate to="/dashboard" replace />}
+            element={
+              <GestorRoute>
+                <LogsAuditoriaPage />
+              </GestorRoute>
+            }
           />
         </Route>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
