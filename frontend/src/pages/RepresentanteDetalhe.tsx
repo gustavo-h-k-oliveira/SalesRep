@@ -92,14 +92,25 @@ export default function RepresentanteDetalhePage() {
       } else {
         setFeedback({
           tipo: 'erro',
-          mensagem: 'Erro no disparo da mensagem. Por favor, contatar o suporte.',
+          mensagem: res.mensagem || 'Erro no disparo da mensagem. Por favor, contatar o suporte.',
         })
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro no disparo de alertas por WhatsApp:', err)
+      let mensagem = 'Erro no disparo da mensagem. Por favor, contatar o suporte.'
+      try {
+        const parsed = JSON.parse(err.message)
+        if (parsed?.mensagem) {
+          mensagem = parsed.mensagem
+        }
+      } catch {
+        if (err?.message) {
+          mensagem = err.message
+        }
+      }
       setFeedback({
         tipo: 'erro',
-        mensagem: 'Erro no disparo da mensagem. Por favor, contatar o suporte.',
+        mensagem,
       })
     } finally {
       setEnviandoAlertas(false)

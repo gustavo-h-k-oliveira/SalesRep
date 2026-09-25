@@ -39,7 +39,7 @@ public class WhatsAppController {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                     .body(Map.of(
                             "status", "erro",
-                            "mensagem", "Z-API não está configurada no application.properties (preencha whatsapp.instance-id e whatsapp.token)"
+                            "mensagem", "Z-API desabilitada ou não configurada no application.properties (verifique whatsapp.enabled, whatsapp.instance-id e whatsapp.token)"
                     ));
         }
         try {
@@ -71,7 +71,7 @@ public class WhatsAppController {
         }
         if (!whatsAppService.estaConfigurado()) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body(Map.of("status", "erro", "mensagem", "Z-API não configurada (preencha whatsapp.instance-id e whatsapp.token)"));
+                    .body(Map.of("status", "erro", "mensagem", "Z-API desabilitada ou não configurada (verifique whatsapp.enabled, whatsapp.instance-id e whatsapp.token)"));
         }
 
         List<AlertaDto> alertas = alertaService.buscarAlertas(representanteId);
