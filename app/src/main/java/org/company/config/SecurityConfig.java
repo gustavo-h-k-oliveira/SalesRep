@@ -84,7 +84,7 @@ public class SecurityConfig {
         whatsappCors.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/whatsapp/**", whatsappCors);
+        source.registerCorsConfiguration("/whatsapp/webhook", whatsappCors);
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }

@@ -135,11 +135,11 @@ export default function ClientesPage() {
             />
           </div>
           <Select value={selectedStatus} onValueChange={(val) => setSelectedStatus(val || 'ALL')} items={statusItems}>
-            <SelectTrigger className="w-full sm:w-[150px] rounded-2xl bg-white border-slate-200 text-slate-700 font-semibold h-9 px-4">
+            <SelectTrigger className="w-full sm:w-[150px] rounded-2xl bg-white border-slate-200 text-slate-700 font-semibold h-9 px-4 text-xs">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectPortal>
-              <SelectContent className="rounded-2xl border-slate-200 bg-white shadow-lg p-1 text-slate-700">
+              <SelectContent className="rounded-2xl border-slate-200 bg-white shadow-lg p-1 text-slate-700 text-xs">
                 <SelectItem value="ALL">Todos os Status</SelectItem>
                 <SelectItem value="ATIVO">Ativos</SelectItem>
                 <SelectItem value="INATIVO">Inativos</SelectItem>
@@ -148,11 +148,11 @@ export default function ClientesPage() {
             </SelectPortal>
           </Select>
           <Select value={selectedRegiao} onValueChange={(val) => setSelectedRegiao(val || 'ALL')} items={regiaoItems}>
-            <SelectTrigger className="w-full sm:w-[170px] rounded-2xl bg-white border-slate-200 text-slate-700 font-semibold h-9 px-4">
+            <SelectTrigger className="w-full sm:w-[170px] rounded-2xl bg-white border-slate-200 text-slate-700 font-semibold h-9 px-4 text-xs">
               <SelectValue placeholder="Todas as Regiões" />
             </SelectTrigger>
             <SelectPortal>
-              <SelectContent className="rounded-2xl border-slate-200 bg-white shadow-lg p-1 text-slate-700">
+              <SelectContent className="rounded-2xl border-slate-200 bg-white shadow-lg p-1 text-slate-700 text-xs">
                 {regiaoItems.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
                     {item.label}

@@ -49,7 +49,7 @@ export default function RepresentantesPage() {
     async function loadRepresentantes() {
       try {
         const data = await fetchRepresentantes()
-        
+
         // Carrega dados adicionais de clientes e pedidos para mostrar métricas resumidas
         const repsComMetricas = await Promise.all(
           data.map(async (rep) => {
@@ -61,7 +61,7 @@ export default function RepresentantesPage() {
               const faturamentoTotal = pedidos
                 .filter((p) => p.status === 'FATURADO')
                 .reduce((sum, p) => sum + p.valorTotal, 0)
-              
+
               return {
                 ...rep,
                 totalClientes: clientes.length,
@@ -158,11 +158,11 @@ export default function RepresentantesPage() {
             />
           </div>
           <Select value={selectedRegiao} onValueChange={(val) => setSelectedRegiao(val || 'ALL')} items={regiaoItems}>
-            <SelectTrigger className="w-full sm:w-[190px] rounded-2xl bg-white border-slate-200 text-slate-700 font-semibold h-9 px-4">
+            <SelectTrigger className="w-full sm:w-[190px] rounded-2xl bg-white border-slate-200 text-slate-700 font-semibold h-9 px-4 text-xs">
               <SelectValue placeholder="Todas as Regiões" />
             </SelectTrigger>
             <SelectPortal>
-              <SelectContent className="rounded-2xl border-slate-200 bg-white shadow-lg p-1 text-slate-700">
+              <SelectContent className="rounded-2xl border-slate-200 bg-white shadow-lg p-1 text-slate-700 text-xs">
                 <SelectItem value="ALL">Todas as Regiões</SelectItem>
                 {Array.from(new Set(representantes.map((r) => r.regiaoNome).filter(Boolean))).map((nome) => (
                   <SelectItem key={nome} value={nome}>
